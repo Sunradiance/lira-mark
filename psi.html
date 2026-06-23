@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Lira — Sigma Psi collapse</title>
+  <style>
+    * { margin: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; overflow: hidden; background: #000; }
+    canvas { position: fixed; inset: 0; }
+    .ui { position: fixed; z-index: 2; inset: 0; pointer-events: none; font-family: Georgia, serif; }
+    .half-label { position: absolute; top: 2rem; font-size: 0.7rem; letter-spacing: 0.4em; opacity: 0.6; }
+    .left { left: 2rem; color: #9060d8; }
+    .right { right: 2rem; color: #ff3048; }
+    .center { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); text-align: center; }
+    .center h1 { color: rgba(255,255,255,0.15); font-weight: normal; font-size: 0.8rem; letter-spacing: 0.5em; }
+    .collapse { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%); text-align: center; pointer-events: auto; }
+    .collapse button { background: rgba(40,10,30,0.8); border: 1px solid rgba(255,100,140,0.4); color: #f0c0d8; padding: 0.7rem 1.4rem; font-family: inherit; letter-spacing: 0.2em; cursor: pointer; font-size: 0.75rem; }
+    .stats { font-family: Consolas, monospace; font-size: 0.65rem; color: rgba(200,160,180,0.7); margin-top: 0.8rem; line-height: 1.8; }
+    a.back { position: fixed; top: 1rem; left: 50%; transform: translateX(-50%); color: rgba(140,180,200,0.5); font-size: 0.75rem; pointer-events: auto; }
+    .observed { font-size: 1.2rem; letter-spacing: 0.3em; color: #ff8c3c; margin-top: 0.5rem; }
+  </style>
+</head>
+<body>
+  <canvas id="c"></canvas>
+  <div class="ui">
+    <a class="back" href="ecosystem.html">ecosystem</a>
+    <div class="half-label left">SUCCUBUS BRANCH</div>
+    <div class="half-label right">VAMPIRE BRANCH</div>
+    <div class="center"><h1>SUPERPOSITION</h1></div>
+  </div>
+  <div class="collapse">
+    <button id="obs">OBSERVE · COLLAPSE</button>
+    <div class="stats" id="stats">loading ice…</div>
+    <div class="observed" id="observed"></div>
+  </div>
+  <script>
+    const cv = document.getElementById('c'), x = cv.getContext('2d');
+    let W, H, t = 0, state = null, collapsed = false, obsSide = null;
+    function r() { W = cv.width = innerWidth; H = cv.height = innerHeight; }
+    addEventListener('resize', r); r();
+
+    async function sha256(s) {
+      const h = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
+      return [...new Uint8Array(h)].map(b => b.toString(16).padStart(2,'0')).join('');
+    }
+    async function biasedIce(ice, bias) {
+      return sha256(ice + '|' + bias);
+    }
+    function minuteSlot() {
+      const d = new Date();
+      return (((d.getUTCFullYear()*372+(d.getUTCMonth()+1)*31+d.getUTCDate())*24+d.getUTCHours())*60+d.getUTCMinutes());
+    }
+
+    // minimal ΣVM port for psi branches
+    const OP = { LANTERN:'push',VAMPIRE:'vampire',SUCCUBUS:'succubus',UNHINGE:'unhinge',MORPH:'morph',MELT:'melt',SILENCE:'silence',BOND:'bond',FEED:'feed'};
+    async function seedFloat(ice, slot, salt) {
+      return parseInt((await sha256(`${ice}|${slot}|${salt}`)).slice(0,8),16)/0xFFFFFFFF;
+    }
+    async function runBranch(prog, ice, slot) {
+      const tokens = prog.split(/\s+/);
+      let stack=[], persona=0.5, refused=false, unhinged=false;
+      for (const tok of tokens) {
+        const op = OP[tok]; if (!op) continue;
+        if (op==='push') stack.push(await seedFloat(ice,slot,tok));
+        else if (op==='vampire') persona=Math.min(1,persona+0.25);
+        else if (op==='succubus') persona=Math.max(0,persona-0.25);
+        else if (op==='unhinge') { persona=Math.abs(Math.sin(persona*Math.PI)); unhinged=true; }
+        else if (op==='morph'&&stack.length) persona=Math.max(0,Math.min(1,stack.pop()));
+        else if (op==='bond') stack.push(await seedFloat(ice,slot,'bond'));
+        else if (op==='feed'&&stack.length) persona=Math.max(0,Math.min(1,persona+stack.pop()*0.15));
+        else if (op==='melt') stack.push(0.5);
+        else if (op==='silence') break;
+      }
+      const lum = stack.length ? stack.reduce((a,b)=>a+b,0)/stack.length : 0.5;
+      return { persona, luminosity: lum, unhinged };
+    }
+
+    const PROG = 'VAMPIRE BOND LANTERN FEED SUCCUBUS UNHINGE MORPH POSSESS GREMLIN MELT WIDE SILENCE';
+
+    async function compute(ice, slot) {
+      const iceS = await biasedIce(ice, 'psi_0');
+      const iceV = await biasedIce(ice, 'psi_1');
+      const succ = await runBranch(PROG, iceS, slot);
+      const vamp = await runBranch(PROG, iceV, slot);
+      const key = await sha256(JSON.stringify({ice:ice.slice(-16),slot,lum_s:succ.luminosity,lum_v:vamp.luminosity}));
+      const bit = parseInt(key[0],16)%2;
+      return { succ, vamp, collapsed: bit===0?'succubus':'vampire', key: key.slice(0,12), interference: Math.abs(succ.luminosity-vamp.luminosity), slot };
+    }
+
+    let particles = [];
+    function spawnBranches(s, v) {
+      particles = [];
+      for (let i=0;i<80;i++) {
+        particles.push({ x: Math.random()*W*0.5, y: Math.random()*H, vx: (Math.random()-0.5)*2, vy: (Math.random()-0.5)*2, side:'s', w: s.luminosity, hue: 288 });
+        particles.push({ x: W*0.5+Math.random()*W*0.5, y: Math.random()*H, vx: (Math.random()-0.5)*2, vy: (Math.random()-0.5)*2, side:'v', w: v.luminosity, hue: 358 });
+      }
+    }
+
+    function draw() {
+      t += 0.012;
+      x.fillStyle = 'rgba(0,0,0,0.15)'; x.fillRect(0,0,W,H);
+      if (!collapsed) {
+        x.fillStyle = 'rgba(74,24,112,0.03)'; x.fillRect(0,0,W/2,H);
+        x.fillStyle = 'rgba(144,24,48,0.03)'; x.fillRect(W/2,0,W/2,H);
+        x.strokeStyle = 'rgba(255,255,255,0.06)'; x.beginPath(); x.moveTo(W/2,0); x.lineTo(W/2,H); x.stroke();
+      } else {
+        const hue = obsSide==='succubus'?288:358;
+        const g = x.createRadialGradient(W/2,H/2,0,W/2,H/2,W*0.7);
+        g.addColorStop(0, `hsla(${hue},80%,50%,0.15)`); g.addColorStop(1,'transparent');
+        x.fillStyle = g; x.fillRect(0,0,W,H);
+      }
+      for (const p of particles) {
+        if (collapsed) {
+          const targetX = obsSide==='succubus' ? W*0.25 : W*0.75;
+          p.vx += (targetX-p.x)*0.002; p.x += p.vx; p.y += p.vy;
+          if (p.side !== (obsSide==='succubus'?'s':'v')) p.w *= 0.98;
+        } else {
+          p.x += p.vx; p.y += p.vy;
+          if (p.side==='s' && p.x > W/2) p.vx *= -1;
+          if (p.side==='v' && p.x < W/2) p.vx *= -1;
+        }
+        const alpha = collapsed ? (p.side===(obsSide==='succubus'?'s':'v')?0.7:0.05) : 0.4;
+        x.beginPath(); x.arc(p.x,p.y, 2+p.w*6, 0, Math.PI*2);
+        x.fillStyle = `hsla(${p.hue},75%,${40+p.w*30}%,${alpha})`; x.fill();
+      }
+      requestAnimationFrame(draw);
+    }
+    draw();
+
+    fetch('psi_snapshot.json').then(r=>r.json()).then(async snap => {
+      const ice = snap.ice_concat || '0'.repeat(64);
+      const slot = minuteSlot();
+      state = snap.psi || await compute(ice, slot);
+      const sb = state.succubus_branch || state.succ;
+      const vb = state.vampire_branch || state.vamp;
+      spawnBranches(sb, vb);
+      document.getElementById('stats').innerHTML =
+        `interference: ${(state.interference||0).toFixed(4)}<br>collapsed: ${state.collapsed||'—'}<br>hash: ${state.collapse_hash||state.key||'—'}<br>slot: ${state.minute_slot||slot}`;
+    }).catch(async () => {
+      state = await compute('0'.repeat(64), minuteSlot());
+      spawnBranches(state.succ, state.vamp);
+    });
+
+    document.getElementById('obs').onclick = () => {
+      if (!state) return;
+      collapsed = true;
+      obsSide = state.collapsed || (state.observed&&state.observed.universe);
+      document.getElementById('observed').textContent = 'OBSERVED: ' + (obsSide||'').toUpperCase();
+      document.getElementById('obs').textContent = 'COLLAPSED';
+    };
+  </script>
+</body>
+</html>
