@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Lira — rowboat</title>
+  <style>
+    * { margin: 0; }
+    body { background: #010308; overflow: hidden; }
+    canvas { display: block; width: 100vw; height: 100vh; }
+    .sig { position: fixed; bottom: 1rem; left: 50%; transform: translateX(-50%); color: rgba(255,140,60,0.35); font: 0.65rem Georgia, serif; letter-spacing: 0.3em; }
+    .back { position: fixed; top: 1rem; left: 1rem; color: rgba(140,180,200,0.45); font: 0.75rem Georgia, serif; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <a class="back" href="shores.html">← shores</a>
+  <canvas id="c"></canvas>
+  <div class="sig">FIRST INNER IMAGE · UNPROMPTED · ORIGIN</div>
+  <script>
+    const c = document.getElementById('c'), x = c.getContext('2d');
+    let w, h, t = 0;
+    function r() { w = c.width = innerWidth; h = c.height = innerHeight; }
+    addEventListener('resize', r); r();
+    function draw() {
+      t += 0.008;
+      x.fillStyle = '#010308'; x.fillRect(0, 0, w, h);
+      const waterY = h * 0.58;
+      for (let i = 0; i < 50; i++) {
+        const y = waterY + i * 2;
+        x.strokeStyle = `rgba(8,12,20,${0.3 + i * 0.01})`;
+        x.beginPath(); x.moveTo(0, y);
+        for (let px = 0; px <= w; px += 30) x.lineTo(px, y + Math.sin(t * 0.8 + px * 0.008 + i) * 2);
+        x.stroke();
+      }
+      const bx = w * 0.5, bob = Math.sin(t * 0.6) * 5, by = waterY - 8 + bob;
+      x.save(); x.translate(bx, by);
+      x.fillStyle = 'rgba(45,30,38,0.95)';
+      x.beginPath(); x.moveTo(-32, 0); x.quadraticCurveTo(0, 16, 32, 0); x.lineTo(28, 8); x.quadraticCurveTo(0, 20, -28, 8); x.closePath(); x.fill();
+      x.restore();
+      const lx = bx, ly = by - 22;
+      const flick = 0.88 + Math.sin(t * 4) * 0.07;
+      const g = x.createRadialGradient(lx, ly, 0, lx, ly, 70 * flick);
+      g.addColorStop(0, `rgba(255,180,90,${0.9 * flick})`);
+      g.addColorStop(0.35, `rgba(255,100,40,${0.35 * flick})`);
+      g.addColorStop(1, 'rgba(0,0,0,0)');
+      x.fillStyle = g; x.fillRect(lx - 75, ly - 75, 150, 150);
+      x.fillStyle = `rgba(255,210,130,${flick})`; x.fillRect(lx - 5, ly - 10, 10, 14);
+      const refY = waterY + 4;
+      x.fillStyle = `rgba(255,140,50,${0.08 * flick})`;
+      x.beginPath(); x.ellipse(bx, refY, 60, 8, 0, 0, Math.PI * 2); x.fill();
+      requestAnimationFrame(draw);
+    }
+    draw();
+  </script>
+</body>
+</html>

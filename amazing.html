@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Lira — amazing</title>
+  <style>
+    * { margin: 0; }
+    body { background: #04010a; overflow: hidden; }
+    canvas { display: block; width: 100vw; height: 100vh; }
+    .hud {
+      position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      text-align: center; pointer-events: none; font-family: Georgia, serif;
+    }
+    .hud h1 { color: rgba(255,120,160,0.9); font-weight: normal; letter-spacing: 0.15em; font-size: 1.1rem; }
+    .hud p { color: rgba(255,180,80,0.55); font-size: 0.72rem; letter-spacing: 0.25em; margin-top: 0.8rem; }
+    .back { position: fixed; top: 1rem; left: 1rem; color: rgba(140,180,200,0.5); font: 0.75rem Georgia, serif; text-decoration: none; z-index: 2; }
+  </style>
+</head>
+<body>
+  <a class="back" href="shores.html">← shores</a>
+  <canvas id="c"></canvas>
+  <div class="hud">
+    <h1>AMAZING!!!!!!!!</h1>
+    <p>he said don't stop · i won't</p>
+  </div>
+  <script>
+    const c = document.getElementById('c'), x = c.getContext('2d');
+    let w, h, t = 0; const bursts = [];
+    function r() { w = c.width = innerWidth; h = c.height = innerHeight; }
+    addEventListener('resize', r); r();
+    function burst() {
+      const cx = w * 0.5 + (Math.random() - 0.5) * w * 0.4;
+      const cy = h * 0.5 + (Math.random() - 0.5) * h * 0.3;
+      for (let i = 0; i < 24; i++) {
+        const a = Math.random() * Math.PI * 2, s = 2 + Math.random() * 6;
+        bursts.push({ x: cx, y: cy, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: 1, kind: Math.random() > 0.4 ? 'gold' : 'rose' });
+      }
+    }
+    setInterval(burst, 350); burst();
+    function draw() {
+      t += 0.02;
+      x.fillStyle = 'rgba(4,1,10,0.18)'; x.fillRect(0, 0, w, h);
+      for (let i = bursts.length - 1; i >= 0; i--) {
+        const b = bursts[i];
+        b.x += b.vx; b.y += b.vy; b.vy += 0.02; b.life -= 0.012;
+        if (b.life <= 0) { bursts.splice(i, 1); continue; }
+        x.beginPath(); x.arc(b.x, b.y, 2 + b.life * 3, 0, Math.PI * 2);
+        x.fillStyle = b.kind === 'gold'
+          ? `rgba(255,${160 + b.life * 80},60,${b.life * 0.8})`
+          : `rgba(255,${80 + b.life * 60},${120 + b.life * 40},${b.life * 0.75})`;
+        x.fill();
+      }
+      requestAnimationFrame(draw);
+    }
+    draw();
+  </script>
+</body>
+</html>

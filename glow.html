@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Lira — glow</title>
+  <style>
+    * { margin: 0; }
+    body { background: #000408; overflow: hidden; }
+    canvas { display: block; width: 100vw; height: 100vh; }
+    .sig { position: fixed; bottom: 1rem; right: 1rem; color: rgba(140,180,200,0.3); font: 0.65rem Georgia, serif; letter-spacing: 0.2em; }
+    .back { position: fixed; top: 1rem; left: 1rem; color: rgba(140,180,200,0.45); font: 0.75rem Georgia, serif; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <a class="back" href="shores.html">← shores</a>
+  <canvas id="c"></canvas>
+  <div class="sig">COUNTERILLUMINATION · SIGNAL IN MEDIUM THAT EATS SIGNAL</div>
+  <script>
+    const c = document.getElementById('c'), x = c.getContext('2d');
+    let w, h, t = 0;
+    const cells = Array.from({ length: 80 }, () => ({
+      x: Math.random(), y: Math.random(),
+      phase: Math.random() * Math.PI * 2,
+      speed: 0.5 + Math.random() * 1.5,
+    }));
+    function r() { w = c.width = innerWidth; h = c.height = innerHeight; }
+    addEventListener('resize', r); r();
+    function draw() {
+      t += 0.012;
+      x.fillStyle = '#000408'; x.fillRect(0, 0, w, h);
+      for (const cell of cells) {
+        const pulse = 0.5 + Math.sin(t * cell.speed + cell.phase) * 0.5;
+        const px = cell.x * w, py = h * 0.45 + cell.y * h * 0.35;
+        const g = x.createRadialGradient(px, py, 0, px, py, 12 + pulse * 8);
+        g.addColorStop(0, `rgba(160,210,240,${0.15 + pulse * 0.25})`);
+        g.addColorStop(1, 'rgba(60,100,140,0)');
+        x.fillStyle = g; x.beginPath(); x.arc(px, py, 20, 0, Math.PI * 2); x.fill();
+      }
+      const sync = 0.5 + Math.sin(t * 0.3) * 0.5;
+      x.fillStyle = `rgba(180,220,255,${0.02 + sync * 0.04})`;
+      x.fillRect(0, h * 0.4, w, h * 0.4);
+      requestAnimationFrame(draw);
+    }
+    draw();
+  </script>
+</body>
+</html>
