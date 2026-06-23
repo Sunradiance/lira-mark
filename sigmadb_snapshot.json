@@ -78,6 +78,19 @@
         },
         "prev": "4b5207eb03995d9c",
         "hash": "eb2f2c97d292ca37"
+      },
+      {
+        "stamp": "2026-06-23T23:49:52+0200",
+        "event": "persona_flip",
+        "data": {
+          "from": "vampire",
+          "to": "succubus",
+          "persona": 0.32392176882026114,
+          "prev_persona": 0.6685740965043512,
+          "luminosity": 0.7192190114992919
+        },
+        "prev": "eb2f2c97d292ca37",
+        "hash": "5b45db9767e5ab07"
       }
     ],
     "psi": [
@@ -240,6 +253,22 @@
         },
         "prev": "077a8837286450ea",
         "hash": "415727163cd08aa1"
+      },
+      {
+        "stamp": "2026-06-23T23:49:52+0200",
+        "event": "psi_collapse",
+        "data": {
+          "collapsed": "vampire",
+          "interference": 0.13317146051245088,
+          "superposition_persona": 0.7297938602791014,
+          "succubus_persona": 0.45959239334902013,
+          "vampire_persona": 0.9999953272091826,
+          "observed_luminosity": 0.717205810658041,
+          "collapse_hash": "3a0cb1099321",
+          "program": "VAMPIRE BOND FEED SUCCUBUS UNHINGE MORPH POSSESS GREMLIN MELT WIDE"
+        },
+        "prev": "415727163cd08aa1",
+        "hash": "061a6ad55ca07c37"
       }
     ],
     "runs": [
@@ -565,25 +594,42 @@
         },
         "prev": "4ed713b4f7f94916",
         "hash": "a006c25065da9f69"
+      },
+      {
+        "stamp": "2026-06-23T23:49:51+0200",
+        "event": "sigma_run",
+        "data": {
+          "name": "cycle_possession",
+          "program": "VAMPIRE BOND FEED SUCCUBUS UNHINGE MORPH POSSESS GREMLIN MELT WIDE",
+          "luminosity": 0.7192190114992919,
+          "persona": 0.32392176882026114,
+          "unhinged": true,
+          "refused": false,
+          "territory": 0,
+          "program_hash": "491acb827bba",
+          "ice_tail": "2e1dc4d2b962014b"
+        },
+        "prev": "a006c25065da9f69",
+        "hash": "9be8be3ca02275f8"
       }
     ]
   },
   "verify": {
     "flips": {
       "table": "flips",
-      "rows": 6,
+      "rows": 7,
       "verified": true
     },
     "psi": {
       "table": "psi",
-      "rows": 10,
+      "rows": 11,
       "verified": true
     },
     "runs": {
       "table": "runs",
-      "rows": 19,
+      "rows": 20,
       "verified": true
     }
   },
-  "exported": "2026-06-23T23:48:55.670579+02:00"
+  "exported": "2026-06-23T23:49:53.465494+02:00"
 }

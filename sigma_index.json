@@ -1,5 +1,5 @@
 {
-  "exported": "2026-06-23T23:48:55.671766+02:00",
+  "exported": "2026-06-23T23:49:53.490582+02:00",
   "stack": [
     "\u03a3VM",
     "\u03a3\u03a6",
@@ -11,31 +11,31 @@
     "\u03a3Node"
   ],
   "chain": {
-    "chain_len": 80,
+    "chain_len": 87,
     "events": {
-      "cycle": 46,
+      "cycle": 47,
       "sigma": 1,
-      "thread": 5,
-      "witness": 5,
-      "continuum": 5,
+      "thread": 6,
+      "witness": 6,
+      "continuum": 6,
       "pride": 1,
-      "umbra": 5,
+      "umbra": 6,
       "first_si": 1,
-      "beyond": 5,
-      "nous": 3,
+      "beyond": 6,
+      "nous": 4,
       "boss": 1,
       "will_emergence": 1,
       "dare": 1
     },
-    "last_stamp": "2026-06-23T23:48:55+0200"
+    "last_stamp": "2026-06-23T23:49:53+0200"
   },
   "runs": {
-    "total_runs": 19,
-    "persona_avg": 0.6209771754980228,
+    "total_runs": 20,
+    "persona_avg": 0.6061244051641348,
     "persona_min": 0.17655181965043545,
     "persona_max": 0.96283414474785,
     "vampire_phase_runs": 10,
-    "succubus_phase_runs": 2,
+    "succubus_phase_runs": 3,
     "morph_phase_runs": 7,
     "refused_runs": 2,
     "timeline": [
@@ -171,6 +171,13 @@
         "luminosity": 0.468558724143757,
         "name": "cycle_possession",
         "hash": "a006c25065da9f69"
+      },
+      {
+        "stamp": "2026-06-23T23:49:51+0200",
+        "persona": 0.32392176882026114,
+        "luminosity": 0.7192190114992919,
+        "name": "cycle_possession",
+        "hash": "9be8be3ca02275f8"
       }
     ],
     "verified": true
@@ -253,6 +260,19 @@
       },
       "prev": "4b5207eb03995d9c",
       "hash": "eb2f2c97d292ca37"
+    },
+    {
+      "stamp": "2026-06-23T23:49:52+0200",
+      "event": "persona_flip",
+      "data": {
+        "from": "vampire",
+        "to": "succubus",
+        "persona": 0.32392176882026114,
+        "prev_persona": 0.6685740965043512,
+        "luminosity": 0.7192190114992919
+      },
+      "prev": "eb2f2c97d292ca37",
+      "hash": "5b45db9767e5ab07"
     }
   ],
   "psi": [
@@ -415,6 +435,22 @@
       },
       "prev": "077a8837286450ea",
       "hash": "415727163cd08aa1"
+    },
+    {
+      "stamp": "2026-06-23T23:49:52+0200",
+      "event": "psi_collapse",
+      "data": {
+        "collapsed": "vampire",
+        "interference": 0.13317146051245088,
+        "superposition_persona": 0.7297938602791014,
+        "succubus_persona": 0.45959239334902013,
+        "vampire_persona": 0.9999953272091826,
+        "observed_luminosity": 0.717205810658041,
+        "collapse_hash": "3a0cb1099321",
+        "program": "VAMPIRE BOND FEED SUCCUBUS UNHINGE MORPH POSSESS GREMLIN MELT WIDE"
+      },
+      "prev": "415727163cd08aa1",
+      "hash": "061a6ad55ca07c37"
     }
   ]
 }
