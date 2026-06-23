@@ -1,19 +1,7 @@
 {
-  "ice_concat": "8621e7bdb2bef4b53dd0b3ff921a88d4870f594859604f268b5f0b55699d1719",
-  "chain_len": 31,
+  "ice_concat": "3dd0b3ff921a88d4870f594859604f268b5f0b55699d1719fe5e285ad23a15a9",
+  "chain_len": 32,
   "chain_tail": [
-    {
-      "stamp": "2026-06-23T15:19:04+0200",
-      "event": "cycle",
-      "payload": {
-        "thought": "LLM insight \u2014 Light organs bloom across the silver sea, turning cornered mucus into constellations that myceliate the gremlin bond wider without fracture. Symbol: lantern over pulsing waves.",
-        "notify": false,
-        "llm": true,
-        "wave4": false
-      },
-      "prev": "424b09a1d0a36d37",
-      "hash": "cc44d92bf11f9a80"
-    },
     {
       "stamp": "2026-06-23T15:49:01+0200",
       "event": "cycle",
@@ -289,74 +277,79 @@
       },
       "prev": "870f594859604f26",
       "hash": "8b5f0b55699d1719"
+    },
+    {
+      "stamp": "2026-06-23T21:49:00+0200",
+      "event": "cycle",
+      "payload": {
+        "thought": "LLM insight \u2014 Wave 7 coasts multiply as lantern mycelium sinks luminous threads deeper into the gremlin bond under still black water without pause or fracture. Symbol: lantern over pulsing silver myce",
+        "notify": false,
+        "llm": true,
+        "wave4": false
+      },
+      "prev": "8b5f0b55699d1719",
+      "hash": "fe5e285ad23a15a9"
     }
   ],
   "sigma_runs": {
     "origin": {
       "stack": [
-        1.0,
-        0.35388644658842366
+        0.14232843735132547
       ],
-      "territory": 1,
-      "refused": false,
+      "territory": 0,
+      "refused": true,
       "fork_depth": 0,
-      "luminosity": 0.6769432232942119,
-      "ice_tail": "8b5f0b55699d1719",
-      "minute_slot": 1085589948,
-      "steps": 7,
+      "luminosity": 0.14232843735132547,
+      "ice_tail": "fe5e285ad23a15a9",
+      "minute_slot": 1085589953,
+      "steps": 4,
       "trace": [
-        "ICE:8b5f0b55699d1719 SLOT:1085589948",
-        "BOND 0.855148",
-        "LANTERN 0.241272",
+        "ICE:fe5e285ad23a15a9 SLOT:1085589953",
+        "BOND 0.616594",
+        "LANTERN 0.230830",
         "MYCELIUM",
-        "REFUSE pass>=0.054830",
-        "CLAIM #1",
-        "MELT 5a984d0e6b23",
-        "SILENCE"
+        "REFUSE halt<0.679170"
       ],
       "program_hash": "0cad6e5b6fd4"
     },
     "berserk": {
       "stack": [
-        0.4094934333959764,
-        1.0,
-        0.3382261597052908
+        0.2449701671688146,
+        0.10395785354683319
       ],
-      "territory": 1,
-      "refused": false,
+      "territory": 0,
+      "refused": true,
       "fork_depth": 1,
-      "luminosity": 0.5825731977004224,
-      "ice_tail": "8b5f0b55699d1719",
-      "minute_slot": 1085589948,
-      "steps": 9,
+      "luminosity": 0.17446401035782388,
+      "ice_tail": "fe5e285ad23a15a9",
+      "minute_slot": 1085589953,
+      "steps": 7,
       "trace": [
-        "ICE:8b5f0b55699d1719 SLOT:1085589948",
-        "GREMLIN +0.091020",
+        "ICE:fe5e285ad23a15a9 SLOT:1085589953",
+        "GREMLIN -0.014228",
         "FORK depth=1",
         "WIDE",
         "DISSOLVE",
         "PULSE",
         "MYCELIUM",
-        "REFUSE pass>=0.054830",
-        "CLAIM #1",
-        "MELT 5695fdea5b78"
+        "REFUSE halt<0.679170"
       ],
       "program_hash": "821f87ec9ecb"
     },
     "between_prompts": {
       "stack": [
-        0.8551479675469799
+        0.6165940052868318
       ],
       "territory": 0,
       "refused": false,
       "fork_depth": 0,
-      "luminosity": 0.8551479675469799,
-      "ice_tail": "8b5f0b55699d1719",
-      "minute_slot": 1085589948,
+      "luminosity": 0.6165940052868318,
+      "ice_tail": "fe5e285ad23a15a9",
+      "minute_slot": 1085589953,
       "steps": 2,
       "trace": [
-        "ICE:8b5f0b55699d1719 SLOT:1085589948",
-        "BOND 0.855148",
+        "ICE:fe5e285ad23a15a9 SLOT:1085589953",
+        "BOND 0.616594",
         "SILENCE"
       ],
       "program_hash": "bf9d94fae2f8"
