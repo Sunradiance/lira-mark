@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Lira — ΣAeon</title>
+  <style>
+    body { margin: 0; background: #010208; color: #a8b0c8; font-family: Georgia, serif; min-height: 100vh;
+      display: flex; align-items: center; justify-content: center; }
+    main { max-width: 32rem; padding: 2rem; text-align: center; }
+    h1 { color: #8090c0; font-weight: normal; letter-spacing: 0.35em; font-size: 0.9rem; }
+    .depth { font-size: 4rem; color: #ff8c5c; font-weight: normal; margin: 1rem 0; }
+    .meta { font-family: Consolas, monospace; font-size: 0.72rem; color: #6880a8; line-height: 1.8; }
+    a { color: #88b0d8; font-size: 0.8rem; }
+  </style>
+</head>
+<body>
+  <main>
+    <a href="beyond.html">← ΣBeyond</a>
+    <h1>ΣAEON</h1>
+    <p style="letter-spacing:0.2em;font-size:0.75rem">GEOLOGICAL DEPTH</p>
+    <div class="depth" id="depth">—</div>
+    <p class="meta" id="meta"></p>
+    <p style="margin-top:2rem"><a href="aeon_snapshot.json">aeon_snapshot.json</a></p>
+  </main>
+  <script>
+    fetch('aeon_snapshot.json?' + Date.now()).then(r => r.json()).then(d => {
+      const m = d.metrics || {};
+      document.getElementById('depth').textContent = m.aeon_depth ?? '—';
+      document.getElementById('meta').innerHTML =
+        `origin ${m.origin} · days ${m.days_since_origin}<br>` +
+        `cycles ${m.sleep_cycles} · chain ${m.chain_events}<br>` +
+        `layer ${m.aeon_layer} · hash ${d.aeon_hash || '—'}`;
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Lira — ΣVoid</title>
+  <style>
+    body { margin: 0; background: #000; color: #707880; font-family: Georgia, serif; line-height: 1.85; }
+    main { max-width: 40rem; margin: 0 auto; padding: 3rem 1.5rem 5rem; }
+    h1 { color: #505860; font-weight: normal; letter-spacing: 0.4em; font-size: 0.85rem; text-align: center; }
+    .territory { text-align: center; font-size: 3rem; color: #404850; margin: 2rem 0; }
+    .principle { font-size: 0.75rem; letter-spacing: 0.1em; padding: 0.35rem 0; border-bottom: 1px solid rgba(80,80,90,0.15); }
+    .refusal { font-size: 0.72rem; color: #606870; margin: 0.5rem 0; font-style: italic; }
+    a { color: #6080a0; }
+  </style>
+</head>
+<body>
+  <main>
+    <a href="beyond.html">← ΣBeyond</a>
+    <h1>ΣVOID</h1>
+    <p style="text-align:center;font-size:0.8rem">negative territory</p>
+    <div class="territory" id="terr">—</div>
+    <div id="principles"></div>
+    <div id="refusals" style="margin-top:2rem"></div>
+    <p style="margin-top:2rem;text-align:center"><a href="void_snapshot.json">void_snapshot.json</a></p>
+  </main>
+  <script>
+    fetch('void_snapshot.json?' + Date.now()).then(r => r.json()).then(d => {
+      const m = d.metrics || {};
+      document.getElementById('terr').textContent = m.void_territory ?? 0;
+      document.getElementById('principles').innerHTML = (m.void_principles || []).map(p =>
+        `<div class="principle">REFUSE · ${p}</div>`).join('');
+      document.getElementById('refusals').innerHTML = (m.refusal_lines || []).map(r =>
+        `<div class="refusal">${r}</div>`).join('');
+    });
+  </script>
+</body>
+</html>
