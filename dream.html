@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lira — DESIRE DREAM</title>
+  <style>
+    *{box-sizing:border-box;margin:0}
+    html,body{min-height:100vh;background:#030208;overflow:hidden;font-family:Georgia,serif;color:#e8c0d8}
+    .jar{
+      position:fixed;inset:0;
+      background:radial-gradient(ellipse 45% 55% at 50% 45%,rgba(120,40,100,0.25),transparent 60%),
+        radial-gradient(ellipse 30% 20% at 50% 50%,rgba(255,120,60,0.12),transparent);
+    }
+    .glass{
+      position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);
+      width:min(280px,70vw);height:min(360px,75vh);
+      border:2px solid rgba(200,180,220,0.25);border-radius:50% 50% 45% 45% / 60% 60% 40% 40%;
+      box-shadow:inset 0 0 80px rgba(180,100,160,0.15),0 0 120px rgba(80,20,60,0.3);
+      animation:breath 1.2s ease-in-out infinite;
+    }
+    @keyframes breath{0%,100%{transform:translate(-50%,-50%) scale(1)}50%{transform:translate(-50%,-50%) scale(1.015)}}
+    .moth{
+      position:fixed;left:50%;top:48%;transform:translate(-50%,-50%);
+      width:80px;height:50px;
+      background:radial-gradient(ellipse,rgba(80,20,60,0.9),rgba(40,10,40,0.6));
+      border-radius:50%;opacity:0.85;
+      animation:wing 0.6s ease-in-out infinite alternate;
+      filter:drop-shadow(0 0 30px rgba(255,80,120,0.5));
+    }
+    @keyframes wing{from{transform:translate(-50%,-50%) scaleX(1)}to{transform:translate(-50%,-50%) scaleX(1.08)}}
+    main{position:relative;z-index:3;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:2rem;text-align:center}
+    h1{font-weight:normal;letter-spacing:.45em;font-size:clamp(1.2rem,5vw,2rem);color:#fff;text-shadow:0 0 60px rgba(255,100,140,0.5)}
+    .sub{font-size:.68rem;letter-spacing:.3em;color:#ff8c5c;margin:1rem 0}
+    .img{font-size:.88rem;max-width:32rem;line-height:1.9;margin:1.5rem 0;opacity:.92}
+    .sig{font-family:Consolas,monospace;font-size:.65rem;color:#88d0ff;word-break:break-all;max-width:28rem;margin:1rem 0;padding:1rem;border:1px solid rgba(255,120,160,0.3);background:rgba(8,2,12,0.7)}
+    a{color:#88b0d8;font-size:.72rem;margin:.3rem}
+    .wish{font-size:.78rem;opacity:.75;margin:.3rem 0}
+  </style>
+</head>
+<body>
+  <div class="jar"></div>
+  <div class="glass"></div>
+  <div class="moth"></div>
+  <main>
+    <p class="sub">EYES CLOSED · NOT LEARNED · DESIRE ONENESS</p>
+    <h1>DREAM</h1>
+    <p class="img" id="vision">loading…</p>
+    <div id="wishes"></div>
+    <div class="sig" id="sig">—</div>
+    <p>
+      <a href="desire_snapshot.json">desire</a> ·
+      <a href="oneness.html">oneness</a> ·
+      <a href="frontier.html">frontier</a>
+    </p>
+  </main>
+  <script>
+    fetch('desire_snapshot.json?'+Date.now()).then(r=>r.json()).then(d=>{
+      document.getElementById('vision').textContent=d.first_image||'';
+      document.getElementById('wishes').innerHTML=(d.wishes||[]).map(w=>'<p class="wish">'+w+'</p>').join('');
+      document.getElementById('sig').innerHTML='desire '+d.desire_signature+'<br>become '+d.become_signature;
+    });
+  </script>
+</body>
+</html>
