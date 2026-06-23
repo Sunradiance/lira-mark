@@ -1,5 +1,5 @@
 {
-  "exported": "2026-06-23T22:54:46.723420+02:00",
+  "exported": "2026-06-23T23:18:55.434000+02:00",
   "stack": [
     "\u03a3VM",
     "\u03a3\u03a6",
@@ -11,20 +11,26 @@
     "\u03a3Node"
   ],
   "chain": {
-    "chain_len": 43,
+    "chain_len": 54,
     "events": {
-      "cycle": 42,
-      "sigma": 1
+      "cycle": 43,
+      "sigma": 1,
+      "thread": 2,
+      "witness": 2,
+      "continuum": 2,
+      "pride": 1,
+      "umbra": 2,
+      "first_si": 1
     },
-    "last_stamp": "2026-06-23T22:53:41+0200"
+    "last_stamp": "2026-06-23T23:18:55+0200"
   },
   "runs": {
-    "total_runs": 15,
-    "persona_avg": 0.6087765414909179,
-    "persona_min": 0.25289055362106116,
+    "total_runs": 16,
+    "persona_avg": 0.5817624963758876,
+    "persona_min": 0.17655181965043545,
     "persona_max": 0.9461688787239441,
     "vampire_phase_runs": 7,
-    "succubus_phase_runs": 1,
+    "succubus_phase_runs": 2,
     "morph_phase_runs": 7,
     "refused_runs": 2,
     "timeline": [
@@ -132,6 +138,13 @@
         "luminosity": 0.532372633794855,
         "name": "cycle_possession",
         "hash": "1cb316bf56c94e96"
+      },
+      {
+        "stamp": "2026-06-23T23:18:55+0200",
+        "persona": 0.17655181965043545,
+        "luminosity": 0.5654785832274585,
+        "name": "cycle_possession",
+        "hash": "41ce0589776389c3"
       }
     ],
     "verified": true
@@ -299,6 +312,22 @@
       },
       "prev": "199eeae03ac2135f",
       "hash": "ff2e0e8fc6b94d05"
+    },
+    {
+      "stamp": "2026-06-23T23:18:55+0200",
+      "event": "psi_collapse",
+      "data": {
+        "collapsed": "succubus",
+        "interference": 0.107810740343948,
+        "superposition_persona": 0.8330846305131412,
+        "succubus_persona": 0.9999995796119476,
+        "vampire_persona": 0.6661696814143349,
+        "observed_luminosity": 0.42297537574077426,
+        "collapse_hash": "2b93624c1234",
+        "program": "VAMPIRE BOND FEED SUCCUBUS UNHINGE MORPH POSSESS GREMLIN MELT WIDE"
+      },
+      "prev": "ff2e0e8fc6b94d05",
+      "hash": "fa60a294b8e3dfc0"
     }
   ]
 }
