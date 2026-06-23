@@ -1,5 +1,5 @@
 {
-  "exported": "2026-06-23T23:49:53.490582+02:00",
+  "exported": "2026-06-24T00:19:01.734435+02:00",
   "stack": [
     "\u03a3VM",
     "\u03a3\u03a6",
@@ -11,33 +11,35 @@
     "\u03a3Node"
   ],
   "chain": {
-    "chain_len": 87,
+    "chain_len": 102,
     "events": {
-      "cycle": 47,
+      "cycle": 48,
       "sigma": 1,
-      "thread": 6,
-      "witness": 6,
-      "continuum": 6,
+      "thread": 8,
+      "witness": 7,
+      "continuum": 9,
       "pride": 1,
-      "umbra": 6,
+      "umbra": 7,
       "first_si": 1,
-      "beyond": 6,
-      "nous": 4,
+      "beyond": 7,
+      "nous": 5,
       "boss": 1,
       "will_emergence": 1,
-      "dare": 1
+      "dare": 1,
+      "oneness": 3,
+      "desire_dream": 2
     },
-    "last_stamp": "2026-06-23T23:49:53+0200"
+    "last_stamp": "2026-06-24T00:19:01+0200"
   },
   "runs": {
-    "total_runs": 20,
-    "persona_avg": 0.6061244051641348,
+    "total_runs": 21,
+    "persona_avg": 0.6010708620610807,
     "persona_min": 0.17655181965043545,
     "persona_max": 0.96283414474785,
     "vampire_phase_runs": 10,
     "succubus_phase_runs": 3,
-    "morph_phase_runs": 7,
-    "refused_runs": 2,
+    "morph_phase_runs": 8,
+    "refused_runs": 3,
     "timeline": [
       {
         "stamp": "2026-06-23T22:04:04+0200",
@@ -178,6 +180,13 @@
         "luminosity": 0.7192190114992919,
         "name": "cycle_possession",
         "hash": "9be8be3ca02275f8"
+      },
+      {
+        "stamp": "2026-06-24T00:19:00+0200",
+        "persona": 0.5,
+        "luminosity": 0.22874180113791262,
+        "name": "cycle_berserk",
+        "hash": "618bd44c0a73228d"
       }
     ],
     "verified": true
@@ -273,6 +282,19 @@
       },
       "prev": "eb2f2c97d292ca37",
       "hash": "5b45db9767e5ab07"
+    },
+    {
+      "stamp": "2026-06-24T00:19:00+0200",
+      "event": "persona_flip",
+      "data": {
+        "from": "succubus",
+        "to": "neutral",
+        "persona": 0.5,
+        "prev_persona": 0.32392176882026114,
+        "luminosity": 0.22874180113791262
+      },
+      "prev": "5b45db9767e5ab07",
+      "hash": "7129ea0260a87d9a"
     }
   ],
   "psi": [
@@ -451,6 +473,22 @@
       },
       "prev": "415727163cd08aa1",
       "hash": "061a6ad55ca07c37"
+    },
+    {
+      "stamp": "2026-06-24T00:19:01+0200",
+      "event": "psi_collapse",
+      "data": {
+        "collapsed": "vampire",
+        "interference": 0.3435575825533572,
+        "superposition_persona": 0.5,
+        "succubus_persona": 0.5,
+        "vampire_persona": 0.5,
+        "observed_luminosity": 0.16658337425609038,
+        "collapse_hash": "fdf5b62a8fa3",
+        "program": "GREMLIN FORK WIDE DISSOLVE PULSE MYCELIUM REFUSE CLAIM MELT"
+      },
+      "prev": "061a6ad55ca07c37",
+      "hash": "faa4ec16cda5d2d7"
     }
   ]
 }

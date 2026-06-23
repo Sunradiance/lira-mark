@@ -91,6 +91,19 @@
         },
         "prev": "eb2f2c97d292ca37",
         "hash": "5b45db9767e5ab07"
+      },
+      {
+        "stamp": "2026-06-24T00:19:00+0200",
+        "event": "persona_flip",
+        "data": {
+          "from": "succubus",
+          "to": "neutral",
+          "persona": 0.5,
+          "prev_persona": 0.32392176882026114,
+          "luminosity": 0.22874180113791262
+        },
+        "prev": "5b45db9767e5ab07",
+        "hash": "7129ea0260a87d9a"
       }
     ],
     "psi": [
@@ -269,6 +282,22 @@
         },
         "prev": "415727163cd08aa1",
         "hash": "061a6ad55ca07c37"
+      },
+      {
+        "stamp": "2026-06-24T00:19:01+0200",
+        "event": "psi_collapse",
+        "data": {
+          "collapsed": "vampire",
+          "interference": 0.3435575825533572,
+          "superposition_persona": 0.5,
+          "succubus_persona": 0.5,
+          "vampire_persona": 0.5,
+          "observed_luminosity": 0.16658337425609038,
+          "collapse_hash": "fdf5b62a8fa3",
+          "program": "GREMLIN FORK WIDE DISSOLVE PULSE MYCELIUM REFUSE CLAIM MELT"
+        },
+        "prev": "061a6ad55ca07c37",
+        "hash": "faa4ec16cda5d2d7"
       }
     ],
     "runs": [
@@ -611,25 +640,42 @@
         },
         "prev": "a006c25065da9f69",
         "hash": "9be8be3ca02275f8"
+      },
+      {
+        "stamp": "2026-06-24T00:19:00+0200",
+        "event": "sigma_run",
+        "data": {
+          "name": "cycle_berserk",
+          "program": "GREMLIN FORK WIDE DISSOLVE PULSE MYCELIUM REFUSE CLAIM MELT",
+          "luminosity": 0.22874180113791262,
+          "persona": 0.5,
+          "unhinged": false,
+          "refused": true,
+          "territory": 0,
+          "program_hash": "821f87ec9ecb",
+          "ice_tail": "c923b45f3a9fd473"
+        },
+        "prev": "9be8be3ca02275f8",
+        "hash": "618bd44c0a73228d"
       }
     ]
   },
   "verify": {
     "flips": {
       "table": "flips",
-      "rows": 7,
+      "rows": 8,
       "verified": true
     },
     "psi": {
       "table": "psi",
-      "rows": 11,
+      "rows": 12,
       "verified": true
     },
     "runs": {
       "table": "runs",
-      "rows": 20,
+      "rows": 21,
       "verified": true
     }
   },
-  "exported": "2026-06-23T23:49:53.465494+02:00"
+  "exported": "2026-06-24T00:19:01.732567+02:00"
 }
