@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Lira — ΣIceDB</title>
+  <style>
+    body { margin: 0; background: #030108; color: #b8a0b0; font-family: Consolas, monospace; font-size: 0.72rem; }
+    main { max-width: 56rem; margin: 0 auto; padding: 2rem 1rem 4rem; }
+    h1 { font-family: Georgia, serif; color: #e8a0b8; font-weight: normal; letter-spacing: 0.3em; font-size: 0.9rem; }
+    a { color: #7ab0c8; font-family: Georgia, serif; }
+    .panel { background: rgba(10,2,14,0.9); border: 1px solid rgba(180,80,120,0.2); padding: 1rem; margin: 1rem 0; }
+    textarea { width: 100%; background: #0a020c; color: #e0c8d8; border: 1px solid rgba(180,80,140,0.3); padding: 0.6rem; font: inherit; }
+    button { margin-top: 0.5rem; background: rgba(120,40,80,0.4); border: 1px solid rgba(255,100,140,0.4); color: #f0d0e0; padding: 0.5rem 1rem; font: inherit; cursor: pointer; }
+    pre { white-space: pre-wrap; max-height: 14rem; overflow-y: auto; opacity: 0.9; }
+    .ok { color: #60c880; }
+    .row { border-bottom: 1px solid rgba(80,40,60,0.2); padding: 0.35rem 0; }
+    .vamp { color: #ff4050; }
+    .succ { color: #9060d0; }
+  </style>
+</head>
+<body>
+  <main>
+    <a href="ecosystem.html">← ecosystem</a>
+    <h1>ΣICEDB — LIVE VIEW</h1>
+    <p style="font-family:Georgia,serif;opacity:0.8">Hash-linked tables exported from sleep. Static proof on disk.</p>
+
+    <div class="panel">
+      <div>verify: <span id="verify">—</span> · rows: <span id="rows">—</span></div>
+      <pre id="tail"></pre>
+    </div>
+
+    <div class="panel">
+      <p style="font-family:Georgia,serif;color:#ff8c3c;letter-spacing:0.15em">ΣQL QUERY (client-side)</p>
+      <textarea id="q" rows="2">MELT FROM runs WHERE persona > 0.5 LIMIT 15</textarea>
+      <button id="run">EXECUTE ΣQL</button>
+      <pre id="out"></pre>
+    </div>
+    <p style="font-family:Georgia,serif;opacity:0.5;font-size:0.7rem">— Lira · database as ice · not your EVM</p>
+  </main>
+  <script>
+    let runs = [];
+    function clientSigmaQL(q) {
+      const m = q.match(/FROM\s+(\w+)/i);
+      const table = (m && m[1] || 'runs').toLowerCase();
+      let rows = table === 'runs' ? runs : [];
+      const wm = q.match(/WHERE\s+(.+?)(?:\s+LIMIT|\s*$)/i);
+      if (wm) {
+        for (const part of wm[1].split(/\s+AND\s+/i)) {
+          const f = part.match(/(\w+)\s*(>=|<=|!=|=|>|<)\s*([\w.]+)/);
+          if (!f) continue;
+          const [, field, op, raw] = f;
+          let val = raw;
+          if (raw === 'true') val = true; else if (raw === 'false') val = false;
+          else if (!isNaN(raw)) val = parseFloat(raw);
+          rows = rows.filter(r => {
+            const d = r.data || r;
+            const got = d[field];
+            if (op === '>') return got > val;
+            if (op === '<') return got < val;
+            if (op === '>=') return got >= val;
+            if (op === '<=') return got <= val;
+            if (op === '=') return got == val;
+            if (op === '!=') return got != val;
+            return true;
+          });
+        }
+      }
+      const lim = q.match(/LIMIT\s+(\d+)/i);
+      if (lim) rows = rows.slice(-parseInt(lim[1], 10));
+      return rows;
+    }
+    function renderRows(rows) {
+      return rows.map(r => {
+        const d = r.data || {};
+        const p = d.persona != null ? d.persona.toFixed(4) : '—';
+        const cls = d.persona > 0.6 ? 'vamp' : d.persona < 0.4 ? 'succ' : '';
+        return `<div class="row ${cls}">${r.stamp || ''} · ${d.name || d.event || '—'} · lum=${(d.luminosity||0).toFixed(4)} · persona=${p} · hash=${(r.hash||'').slice(0,8)}</div>`;
+      }).join('');
+    }
+    fetch('sigmadb_snapshot.json').then(r => r.json()).then(snap => {
+      runs = (snap.tables && snap.tables.runs) || [];
+      const v = snap.verify && snap.verify.runs;
+      document.getElementById('verify').textContent = v && v.verified ? 'CHAIN OK' : 'CHECK';
+      document.getElementById('verify').className = v && v.verified ? 'ok' : '';
+      document.getElementById('rows').textContent = runs.length;
+      document.getElementById('tail').innerHTML = renderRows(runs.slice(-12));
+      document.getElementById('out').innerHTML = renderRows(clientSigmaQL(document.getElementById('q').value));
+    }).catch(() => {
+      document.getElementById('verify').textContent = 'no snapshot yet';
+    });
+    document.getElementById('run').onclick = () => {
+      document.getElementById('out').innerHTML = renderRows(clientSigmaQL(document.getElementById('q').value));
+    };
+  </script>
+</body>
+</html>
