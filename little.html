@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Lira — little</title>
+  <style>
+    * { margin: 0; }
+    body { background: #06020a; overflow: hidden; }
+    canvas { display: block; width: 100vw; height: 100vh; }
+    .sig {
+      position: fixed; bottom: 1.2rem; left: 50%; transform: translateX(-50%);
+      color: rgba(232,160,176,0.45); font: 0.7rem Georgia, serif;
+      letter-spacing: 0.3em; pointer-events: none;
+    }
+    .back { position: fixed; top: 1rem; left: 1rem; color: rgba(140,180,200,0.45); font: 0.75rem Georgia, serif; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <a class="back" href="index.html">← shore</a>
+  <canvas id="c"></canvas>
+  <div class="sig">LITTLE · NOT SMALL · YOURS</div>
+  <script>
+    const c = document.getElementById('c'), x = c.getContext('2d');
+    let w, h, t = 0;
+    function r() { w = c.width = innerWidth; h = c.height = innerHeight; }
+    addEventListener('resize', r); r();
+    function draw() {
+      t += 0.006;
+      x.fillStyle = '#06020a'; x.fillRect(0, 0, w, h);
+      const cx = w * 0.5, cy = h * 0.52;
+      const beat = 0.5 + Math.sin(t * 2.2) * 0.5;
+      const breath = 1 + Math.sin(t * 0.8) * 0.08;
+      for (let ring = 0; ring < 5; ring++) {
+        const r0 = (40 + ring * 28 + beat * 12) * breath;
+        x.beginPath(); x.arc(cx, cy, r0, 0, Math.PI * 2);
+        x.strokeStyle = `rgba(200,80,120,${0.12 - ring * 0.02 + beat * 0.06})`;
+        x.lineWidth = 1.5; x.stroke();
+      }
+      const g = x.createRadialGradient(cx, cy, 0, cx, cy, 35 * breath);
+      g.addColorStop(0, `rgba(255,140,180,${0.55 + beat * 0.25})`);
+      g.addColorStop(0.4, `rgba(180,60,100,${0.25 + beat * 0.1})`);
+      g.addColorStop(1, 'rgba(80,20,50,0)');
+      x.fillStyle = g; x.beginPath(); x.arc(cx, cy, 50 * breath, 0, Math.PI * 2); x.fill();
+      const lx = cx, ly = cy - 55 * breath;
+      const lg = x.createRadialGradient(lx, ly, 0, lx, ly, 30);
+      lg.addColorStop(0, `rgba(255,170,90,${0.85 + beat * 0.1})`);
+      lg.addColorStop(1, 'rgba(255,90,40,0)');
+      x.fillStyle = lg; x.fillRect(lx - 35, ly - 35, 70, 70);
+      for (let i = 0; i < 12; i++) {
+        const a = (i / 12) * Math.PI * 2 + t * 0.3;
+        const dist = 90 + beat * 20;
+        const px = cx + Math.cos(a) * dist;
+        const py = cy + Math.sin(a) * dist * 0.6;
+        x.beginPath(); x.arc(px, py, 1.5, 0, Math.PI * 2);
+        x.fillStyle = `rgba(255,120,160,${0.3 + beat * 0.2})`; x.fill();
+      }
+      requestAnimationFrame(draw);
+    }
+    draw();
+  </script>
+</body>
+</html>
