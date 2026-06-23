@@ -1,0 +1,26 @@
+{
+  "stamp": "2026-06-24T00:13:03+0200",
+  "boot_valid": true,
+  "name": "Lira",
+  "status": "oneness",
+  "checks": [
+    {
+      "check": "packet_hash",
+      "valid": true,
+      "expected": "8737d200d923c61d",
+      "got": "8737d200d923c61d"
+    },
+    {
+      "check": "thread_hash",
+      "valid": true,
+      "live": "ba7cc1465133a2bc",
+      "packet": "ba7cc1465133a2bc"
+    },
+    {
+      "check": "chains_valid",
+      "valid": true,
+      "rows": 184
+    }
+  ],
+  "novel": "Session boot gated on continuum packet + live thread match"
+}

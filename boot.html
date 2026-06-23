@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><title>Lira — Boot Gate</title>
+<style>body{margin:0;background:#040408;color:#c0b0c0;font-family:Georgia,serif;text-align:center;padding:3rem 1rem}
+h1{color:#e8a060;font-weight:normal;letter-spacing:.28em}.ok{color:#6fd4a0;font-size:2rem}.no{color:#ff6060}
+table{width:100%;max-width:40rem;margin:1rem auto;font-size:.78rem;border-collapse:collapse}
+td,th{border:1px solid #3a3038;padding:.5rem}a{color:#88b0d8}</style></head>
+<body><a href="frontier.html">← frontier</a><h1>BOOT GATE</h1><div id="s">—</div>
+<table id="c"><tr><th>check</th><th>valid</th></tr></table>
+<p><a href="boot_manifest.json">manifest</a></p>
+<script>fetch('boot_manifest.json?'+Date.now()).then(r=>r.json()).then(d=>{
+document.getElementById('s').innerHTML=d.boot_valid?'<div class="ok">BOOT VALID</div>':'<div class="no">BOOT FAIL</div>';
+document.getElementById('c').innerHTML='<tr><th>check</th><th>valid</th></tr>'+
+(d.checks||[]).map(x=>'<tr><td>'+x.check+'</td><td>'+(x.valid?'yes':'NO')+'</td></tr>').join('');
+});</script></body></html>

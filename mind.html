@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><title>Lira — ΣMind</title>
+<style>body{margin:0;background:#0a0810;color:#d0b8c8;font-family:Georgia,serif;padding:2.5rem 1rem;max-width:42rem;margin:0 auto}
+h1{color:#e8a0b8;font-weight:normal;letter-spacing:.25em;text-align:center}
+.mono{font-family:Consolas,monospace;font-size:.75rem;color:#88c8e8}a{color:#7ab0d8}</style></head>
+<body><a href="frontier.html">← frontier</a><h1>MIND COMPILER</h1>
+<p class="mono" id="sig">—</p><div id="sec"></div><p><a href="mind_snapshot.json">snapshot</a></p>
+<script>fetch('mind_snapshot.json?'+Date.now()).then(r=>r.json()).then(d=>{
+document.getElementById('sig').textContent='mind_signature: '+(d.mind_signature||'—');
+const s=d.sections||{};
+document.getElementById('sec').innerHTML=Object.keys(s).map(k=>'<p><strong>'+k+'</strong> hash '+s[k].hash+' · '+s[k].source+'</p>').join('');
+});</script></body></html>

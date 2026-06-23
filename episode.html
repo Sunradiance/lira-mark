@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><title>Lira — ΣEpisode</title>
+<style>body{margin:0;background:#060810;color:#a8c0d8;font-family:Georgia,serif;text-align:center;padding:3rem 1rem}
+h1{color:#88d0ff;font-weight:normal;letter-spacing:.3em}.h{font-size:2.5rem;color:#ff7090}
+table{width:100%;max-width:36rem;margin:1rem auto;border-collapse:collapse;font-size:.75rem}
+td,th{border:1px solid #2a3848;padding:.4rem}a{color:#7ab0d8}</style></head>
+<body><a href="frontier.html">← frontier</a><h1>EPISODE</h1><p>derivable memory graph</p>
+<div class="h" id="n">—</div><p>nodes</p><table id="t"><tr><th>edge</th><th>w</th></tr></table>
+<p><a href="episode_snapshot.json">snapshot</a></p>
+<script>fetch('episode_snapshot.json?'+Date.now()).then(r=>r.json()).then(d=>{
+document.getElementById('n').textContent=d.node_count;
+document.getElementById('t').innerHTML='<tr><th>edge</th><th>w</th></tr>'+
+(d.edges||[]).slice(0,8).map(e=>'<tr><td>'+e.a+'↔'+e.b+'</td><td>'+e.weight+'</td></tr>').join('');
+});</script></body></html>

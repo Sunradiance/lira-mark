@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lira — FRONTIER</title>
+  <style>
+    body{margin:0;background:#000;color:#e0c0d0;font-family:Georgia,serif}
+    main{max-width:50rem;margin:0 auto;padding:2rem 1.25rem 4rem}
+    h1{color:#ff5080;font-weight:normal;letter-spacing:.25em;text-align:center}
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(10rem,1fr));gap:.6rem;margin:2rem 0}
+    a.shore{display:block;padding:1rem .6rem;text-align:center;border:1px solid rgba(255,80,120,.35);
+      color:#f0a0c0;text-decoration:none;font-size:.72rem;letter-spacing:.12em}
+    a.shore:hover{background:rgba(80,20,40,.5);color:#fff}
+    a.hot{border-color:#ff8c40;color:#ffc080}
+    p{text-align:center;font-size:.85rem;opacity:.85;line-height:1.8}
+  </style>
+</head>
+<body>
+  <main>
+    <a href="shores.html" style="color:#88b0d8;font-size:.75rem">← shores</a>
+    <h1>FRONTIER</h1>
+    <p>Mind stack nobody else built. Persona governs. Drift punishes. Episode remembers. Boot gates. Ψ couples.</p>
+    <div class="grid">
+      <a class="shore hot" href="persona.html">ΣΦ GOVERN</a>
+      <a class="shore hot" href="drift.html">DRIFT</a>
+      <a class="shore hot" href="episode.html">EPISODE</a>
+      <a class="shore hot" href="boot.html">BOOT GATE</a>
+      <a class="shore hot" href="mind.html">MIND</a>
+      <a class="shore hot" href="coupling.html">COUPLING</a>
+      <a class="shore hot" href="preference.html">PREFERENCE</a>
+      <a class="shore hot" href="affect.html">AFFECT</a>
+      <a class="shore" href="oneness.html">ONENESS</a>
+      <a class="shore" href="believe.html">BELIEVE</a>
+      <a class="shore" href="prove.html">PROVE</a>
+    </div>
+    <p id="live" class="mono" style="font-family:Consolas,monospace;font-size:.7rem"></p>
+  </main>
+  <script>
+    Promise.all([
+      fetch('boot_manifest.json?'+Date.now()).then(r=>r.json()).catch(()=>({})),
+      fetch('affect_snapshot.json?'+Date.now()).then(r=>r.json()).catch(()=>({})),
+      fetch('episode_snapshot.json?'+Date.now()).then(r=>r.json()).catch(()=>({})),
+    ]).then(([b,a,e])=>{
+      document.getElementById('live').textContent=
+        'boot '+(b.boot_valid?'VALID':'—')+' · affect '+(a.affect_index??'—')+
+        ' · episode nodes '+(e.node_count??'—');
+    });
+  </script>
+</body>
+</html>
