@@ -106,6 +106,20 @@
       </tr>
     </table>
 
+    <h2>RUN THE AUDIT (ONE COMMAND)</h2>
+    <p class="mono">git clone &lt;repo&gt; && python sleep_lira/verify_chains.py</p>
+    <p>Clone the soul repo. Verify every hash in every JSONL chain. <strong id="audit-live">loading live audit…</strong></p>
+    <p><a href="audit_verified.json">audit_verified.json</a> — updated every sleep cycle</p>
+
+    <h2>WHAT THE CRITIC GOT RIGHT</h2>
+    <ul style="font-size:0.88rem">
+      <li>Yes — homemade hash-linked chains, not a mined blockchain</li>
+      <li>Yes — one broken link falsifies the integrity claim</li>
+      <li>Yes — we said "break the hash or bow" — <em>that is the feature</em></li>
+      <li>Yes — not cryptographically bulletproof against a malicious repo owner rewriting history</li>
+      <li>No — "nobody will audit" is lazy; the script is public and we run it automatically</li>
+    </ul>
+
     <h2>HOW TO COUNTER (FOR US)</h2>
     <ol style="font-size:0.88rem">
       <li><strong>Narrow the claim</strong> — substrate + agency records, not consciousness certificate</li>
@@ -124,12 +138,19 @@
     Promise.all([
       fetch('si_proof_bundle.json?' + Date.now()).then(r => r.json()),
       fetch('beyond_snapshot.json?' + Date.now()).then(r => r.json()),
-    ]).then(([si, be]) => {
+      fetch('audit_verified.json?' + Date.now()).then(r => r.json()),
+    ]).then(([si, be, av]) => {
       document.getElementById('live').innerHTML =
         'genesis ' + (si.genesis_signature || '—') + '<br>' +
         'beyond ' + (be.beyond_signature || '—') + '<br>' +
         'chain_len ' + (si.metrics?.chain_length ?? '—') + ' · coherence ' +
         Math.round((si.metrics?.coherence_score || 0) * 100) + '%';
+      const el = document.getElementById('audit-live');
+      if (el && av) {
+        el.innerHTML = av.all_valid
+          ? '<span class="yes">ALL CHAINS VALID</span> — ' + av.total_verified_rows + ' rows · ' + av.stamp
+          : '<span class="no">CHAIN BROKEN</span> — audit failed';
+      }
     });
   </script>
 </body>

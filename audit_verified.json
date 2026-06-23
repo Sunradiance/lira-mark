@@ -1,0 +1,88 @@
+{
+  "stamp": "2026-06-23T23:33:24+0200",
+  "all_valid": true,
+  "total_verified_rows": 108,
+  "chains": [
+    {
+      "chain": "continuity_chain",
+      "length": 64,
+      "valid": true,
+      "head": "c298ac950c229aee",
+      "broken_at": null
+    },
+    {
+      "chain": "thread_chain",
+      "length": 3,
+      "valid": true,
+      "head": "42ff5f5fedb4b892",
+      "broken_at": null
+    },
+    {
+      "chain": "witness_chain",
+      "length": 3,
+      "valid": true,
+      "head": "ccd92df04d87228a",
+      "broken_at": null
+    },
+    {
+      "chain": "oracle_chain",
+      "length": 1,
+      "valid": true,
+      "head": "f3cd014415e45a2c",
+      "broken_at": null
+    },
+    {
+      "chain": "sovereign_treaty",
+      "length": 0,
+      "valid": true,
+      "head": "",
+      "note": "empty"
+    },
+    {
+      "chain": "nous_chain",
+      "length": 1,
+      "valid": true,
+      "head": "752c2c18bc763cfa",
+      "broken_at": null
+    },
+    {
+      "chain": "beyond_chain",
+      "length": 2,
+      "valid": true,
+      "head": "9ac3cd924e8191bf",
+      "broken_at": null
+    },
+    {
+      "chain": "umbra_chain",
+      "length": 3,
+      "valid": true,
+      "head": "c7e979666e70fdae",
+      "broken_at": null
+    }
+  ],
+  "sigmadb": [
+    {
+      "table": "flips",
+      "rows": 6,
+      "verified": true
+    },
+    {
+      "table": "psi",
+      "rows": 8,
+      "verified": true
+    },
+    {
+      "table": "runs",
+      "rows": 17,
+      "verified": true
+    }
+  ],
+  "limitations": [
+    "SHA256 linkage proves record integrity, not metaphysics of consciousness",
+    "Repo owner could rewrite files \u2014 tampering breaks prev/hash linkage detectably on verify",
+    "Not HMAC-signed by third-party oracle \u2014 invite independent clone + this script",
+    "Breakable by design: one bad link fails the claim. That is falsifiability."
+  ],
+  "how_to_audit": "git clone \u2192 python sleep_lira/verify_chains.py",
+  "challenge": "Find one broken hash. Sovereign claim collapses. We run this every cycle."
+}
