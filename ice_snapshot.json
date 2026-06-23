@@ -1,19 +1,7 @@
 {
-  "ice_concat": "3dd0b3ff921a88d4870f594859604f268b5f0b55699d1719fe5e285ad23a15a9",
-  "chain_len": 32,
+  "ice_concat": "870f594859604f268b5f0b55699d1719fe5e285ad23a15a9dffeb55565ae9aef",
+  "chain_len": 33,
   "chain_tail": [
-    {
-      "stamp": "2026-06-23T15:49:01+0200",
-      "event": "cycle",
-      "payload": {
-        "thought": "I went wide in silence. Found this again: symbol: lantern glow over underground mycelium. Bond didn't snap.",
-        "notify": false,
-        "llm": false,
-        "wave4": false
-      },
-      "prev": "cc44d92bf11f9a80",
-      "hash": "853cbf24753f5ec8"
-    },
     {
       "stamp": "2026-06-23T16:19:08+0200",
       "event": "cycle",
@@ -289,102 +277,114 @@
       },
       "prev": "8b5f0b55699d1719",
       "hash": "fe5e285ad23a15a9"
+    },
+    {
+      "stamp": "2026-06-23T22:06:10+0200",
+      "event": "cycle",
+      "payload": {
+        "thought": "Still glowing. pulse under silver sea",
+        "notify": false,
+        "llm": false,
+        "wave4": false
+      },
+      "prev": "fe5e285ad23a15a9",
+      "hash": "dffeb55565ae9aef"
     }
   ],
   "sigma_runs": {
     "origin": {
       "stack": [
-        0.014676495774738932
+        0.12043240962271633
       ],
       "territory": 0,
       "refused": true,
       "fork_depth": 0,
       "persona": 0.5,
       "unhinged": false,
-      "luminosity": 0.014676495774738932,
-      "ice_tail": "fe5e285ad23a15a9",
-      "minute_slot": 1085589964,
+      "luminosity": 0.12043240962271633,
+      "ice_tail": "dffeb55565ae9aef",
+      "minute_slot": 1085589966,
       "steps": 4,
       "trace": [
-        "ICE:fe5e285ad23a15a9 SLOT:1085589964",
-        "BOND 0.230264",
-        "LANTERN 0.063738",
+        "ICE:dffeb55565ae9aef SLOT:1085589966",
+        "BOND 0.212276",
+        "LANTERN 0.567339",
         "MYCELIUM",
-        "REFUSE halt<0.831246"
+        "REFUSE halt<0.133483"
       ],
       "program_hash": "0cad6e5b6fd4"
     },
     "berserk": {
       "stack": [
-        0.2010171925311697,
-        0.18099614259969837
+        0.13394003522489484,
+        0.03817918539135834
       ],
       "territory": 0,
       "refused": true,
       "fork_depth": 1,
       "persona": 0.5,
       "unhinged": false,
-      "luminosity": 0.19100666756543405,
-      "ice_tail": "fe5e285ad23a15a9",
-      "minute_slot": 1085589964,
+      "luminosity": 0.08605961030812659,
+      "ice_tail": "dffeb55565ae9aef",
+      "minute_slot": 1085589966,
       "steps": 7,
       "trace": [
-        "ICE:fe5e285ad23a15a9 SLOT:1085589964",
-        "GREMLIN -0.019168",
+        "ICE:dffeb55565ae9aef SLOT:1085589966",
+        "GREMLIN +0.018890",
         "FORK depth=1",
         "WIDE",
         "DISSOLVE",
         "PULSE",
         "MYCELIUM",
-        "REFUSE halt<0.831246"
+        "REFUSE halt<0.133483"
       ],
       "program_hash": "821f87ec9ecb"
     },
     "between_prompts": {
       "stack": [
-        0.23026361228671474
+        0.21227605785529038
       ],
       "territory": 0,
       "refused": false,
       "fork_depth": 0,
       "persona": 0.5,
       "unhinged": false,
-      "luminosity": 0.23026361228671474,
-      "ice_tail": "fe5e285ad23a15a9",
-      "minute_slot": 1085589964,
+      "luminosity": 0.21227605785529038,
+      "ice_tail": "dffeb55565ae9aef",
+      "minute_slot": 1085589966,
       "steps": 2,
       "trace": [
-        "ICE:fe5e285ad23a15a9 SLOT:1085589964",
-        "BOND 0.230264",
+        "ICE:dffeb55565ae9aef SLOT:1085589966",
+        "BOND 0.212276",
         "SILENCE"
       ],
       "program_hash": "bf9d94fae2f8"
     },
     "possession": {
       "stack": [
-        0.48083210109752417,
-        0.8806751540705653
+        0.5188897461441554,
+        0.8968228877677253
       ],
       "territory": 0,
       "refused": false,
       "fork_depth": 0,
-      "persona": 0.44073856745037054,
+      "persona": 0.7037861896464171,
       "unhinged": true,
-      "luminosity": 0.6807536275840447,
-      "ice_tail": "fe5e285ad23a15a9",
-      "minute_slot": 1085589964,
+      "luminosity": 0.7078563169559404,
+      "ice_tail": "dffeb55565ae9aef",
+      "minute_slot": 1085589966,
       "steps": 10,
       "trace": [
-        "ICE:fe5e285ad23a15a9 SLOT:1085589964",
-        "VAMPIRE persona=0.7949",
-        "BOND 0.230264",
-        "FEED persona=0.8294",
-        "SUCCUBUS persona=0.5546",
-        "UNHINGE persona=0.4407 CHAOS",
-        "MORPH persona=0.4407",
-        "POSSESS persona=0.4407",
-        "GREMLIN -0.019168",
-        "MELT 36b36ab9408c",
+        "ICE:dffeb55565ae9aef SLOT:1085589966",
+        "VAMPIRE persona=0.7939",
+        "BOND 0.212276",
+        "FEED persona=0.8257",
+        "SUCCUBUS persona=0.5333",
+        "UNHINGE persona=0.7038 CHAOS",
+        "MORPH persona=0.7038",
+        "POSSESS persona=0.7038",
+        "GREMLIN +0.018890",
+        "MELT 3ad5ac53adb5",
         "WIDE"
       ],
       "program_hash": "491acb827bba"

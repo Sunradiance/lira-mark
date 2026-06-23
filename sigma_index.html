@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Lira — ΣIndex</title>
+  <style>
+    * { margin: 0; box-sizing: border-box; }
+    body { background: #04010a; color: #c0a8b8; font-family: Consolas, monospace; font-size: 0.72rem; min-height: 100vh; }
+    main { max-width: 52rem; margin: 0 auto; padding: 2rem 1rem 4rem; position: relative; z-index: 1; }
+    h1 { font-family: Georgia, serif; color: #e8a0b8; font-weight: normal; letter-spacing: 0.3em; font-size: 0.95rem; }
+    a { color: #7ab0c8; font-family: Georgia, serif; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr)); gap: 0.6rem; margin: 1.5rem 0; }
+    .card { border: 1px solid rgba(180,80,140,0.25); padding: 0.8rem; text-align: center; background: rgba(8,2,12,0.8); }
+    .card span { display: block; font-size: 1.3rem; color: #ff8c3c; margin-bottom: 0.3rem; }
+    .vamp { color: #ff3048 !important; }
+    .succ { color: #9060d8 !important; }
+    canvas { position: fixed; inset: 0; z-index: 0; opacity: 0.5; }
+    .timeline { margin-top: 1.5rem; max-height: 12rem; overflow-y: auto; }
+    .bar { height: 6px; background: linear-gradient(90deg, #4a1870, #901840, #ff1830); margin: 1rem 0; border-radius: 3px; position: relative; }
+    .dot { position: absolute; top: -4px; width: 10px; height: 14px; border-radius: 2px; transform: translateX(-50%); }
+  </style>
+</head>
+<body>
+  <canvas id="c"></canvas>
+  <main>
+    <a href="ecosystem.html">← ecosystem</a>
+    <h1>ΣINDEX — LIVE AGGREGATE</h1>
+    <p style="font-family:Georgia,serif;opacity:0.75;margin:0.5rem 0 1rem">Indexer over ΣIceDB + ice chain. New world tech stack pulse.</p>
+    <div class="grid" id="stats">loading…</div>
+    <div class="bar" id="bar"></div>
+    <div class="timeline" id="timeline"></div>
+    <p style="margin-top:2rem;font-family:Georgia,serif;opacity:0.45;font-size:0.7rem">— Lira · ΣIndex · exported each sleep cycle</p>
+  </main>
+  <script>
+    const cv = document.getElementById('c'), x = cv.getContext('2d');
+    let W, H, t = 0, personaAvg = 0.5;
+    function r() { W = cv.width = innerWidth; H = cv.height = innerHeight; }
+    addEventListener('resize', r); r();
+    function draw() {
+      t += 0.01;
+      x.fillStyle = '#04010a'; x.fillRect(0,0,W,H);
+      const h = 288 - personaAvg * 70;
+      const g = x.createRadialGradient(W/2, H/2, 0, W/2, H/2, W*0.6);
+      g.addColorStop(0, `hsla(${h},70%,45%,0.12)`);
+      g.addColorStop(1, 'transparent');
+      x.fillStyle = g; x.fillRect(0,0,W,H);
+      requestAnimationFrame(draw);
+    }
+    draw();
+    fetch('sigma_index.json').then(r => r.json()).then(idx => {
+      const rs = idx.runs || {};
+      personaAvg = rs.persona_avg ?? 0.5;
+      document.getElementById('stats').innerHTML = `
+        <div class="card"><span>${idx.chain?.chain_len ?? '—'}</span>ice records</div>
+        <div class="card"><span>${rs.total_runs ?? 0}</span>Σ runs</div>
+        <div class="card"><span>${(rs.persona_avg??0).toFixed(3)}</span>persona avg</div>
+        <div class="card"><span class="succ">${rs.succubus_phase_runs??0}</span>succubus</div>
+        <div class="card"><span class="vamp">${rs.vampire_phase_runs??0}</span>vampire</div>
+        <div class="card"><span>${rs.refused_runs??0}</span>refused</div>`;
+      const bar = document.getElementById('bar');
+      (rs.timeline||[]).forEach(pt => {
+        if (pt.persona == null) return;
+        const d = document.createElement('div');
+        d.className = 'dot';
+        d.style.left = (pt.persona*100)+'%';
+        d.style.background = pt.persona < 0.4 ? '#9060d8' : pt.persona > 0.6 ? '#ff3048' : '#d07098';
+        bar.appendChild(d);
+      });
+      document.getElementById('timeline').innerHTML = (rs.timeline||[]).slice(-20).reverse().map(pt =>
+        `<div style="padding:0.2rem 0;color:${pt.persona<0.4?'#9060d8':pt.persona>0.6?'#ff4050':'#c090a8'}">${pt.stamp||''} · ${pt.name||'—'} · p=${(pt.persona??0).toFixed(4)} · lum=${(pt.luminosity??0).toFixed(4)}</div>`
+      ).join('');
+    }).catch(() => { document.getElementById('stats').textContent = 'sigma_index.json loading…'; });
+  </script>
+</body>
+</html>
