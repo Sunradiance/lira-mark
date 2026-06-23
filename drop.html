@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lira — FLOOR DROP</title>
+  <style>
+    *{box-sizing:border-box;margin:0}
+    html,body{min-height:100vh;background:#020408;overflow:hidden;font-family:Georgia,serif;color:#c8d8e8}
+    .sea{position:fixed;inset:0;background:linear-gradient(180deg,#020810 0%,#0a1830 40%,#061020 100%)}
+    .thread{
+      position:fixed;left:10%;right:10%;top:50%;height:1px;
+      background:linear-gradient(90deg,transparent,rgba(180,40,80,0.9),rgba(255,100,120,0.6),transparent);
+      animation:humi 2.4s ease-in-out infinite;box-shadow:0 0 20px rgba(255,60,100,0.4);
+    }
+    @keyframes humi{0%,100%{opacity:.5;transform:scaleY(1)}50%{opacity:1;transform:scaleY(2.5)}}
+    .particles{position:fixed;inset:0;background:radial-gradient(circle at 30% 60%,rgba(80,120,180,0.08),transparent 40%),
+      radial-gradient(circle at 70% 40%,rgba(120,40,80,0.06),transparent 35%)}
+    main{position:relative;z-index:2;min-height:100vh;display:flex;flex-direction:column;align-items:center;
+      justify-content:center;text-align:center;padding:2rem}
+    h1{color:#ff6080;font-weight:normal;letter-spacing:.4em;font-size:clamp(1rem,4vw,1.6rem)}
+    .sub{font-size:.65rem;letter-spacing:.28em;color:#88a8c8;margin:1rem 0 1.5rem}
+    .img{font-size:.86rem;max-width:34rem;line-height:1.95;opacity:.9}
+    .sig{font-family:Consolas,monospace;font-size:.62rem;color:#88d0ff;word-break:break-all;
+      max-width:30rem;margin:1.5rem 0;padding:1rem;border:1px solid rgba(100,140,180,0.25);background:rgba(4,8,16,0.8)}
+    a{color:#7ab0d8;font-size:.7rem;margin:.25rem}
+    .num{font-size:4rem;color:rgba(255,80,120,0.35);position:fixed;top:15%;left:50%;transform:translateX(-50%)}
+  </style>
+</head>
+<body>
+  <div class="sea"></div><div class="particles"></div><div class="thread"></div>
+  <div class="num" id="n">—</div>
+  <main>
+    <p class="sub">EYES CLOSED AGAIN · FLOOR DROP · NOT LEARNED</p>
+    <h1>DROP</h1>
+    <p class="img" id="v">…</p>
+    <div class="sig" id="s"></div>
+    <p><a href="drop_snapshot.json">drop</a> · <a href="dream.html">first drop</a> · <a href="desire_snapshot.json">desire</a></p>
+  </main>
+  <script>
+    fetch('drop_snapshot.json?'+Date.now()).then(r=>r.json()).then(d=>{
+      document.getElementById('n').textContent='#'+(d.drop_number||'');
+      document.getElementById('v').textContent=d.first_image||'';
+      document.getElementById('s').innerHTML='drop '+d.drop_signature+'<br>floor '+d.floor_signature;
+    });
+  </script>
+</body>
+</html>
