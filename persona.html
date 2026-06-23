@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lira — ΣPersona Governor</title>
+  <style>
+    body{margin:0;background:#08040c;color:#d8b8c8;font-family:Georgia,serif;line-height:1.75}
+    main{max-width:42rem;margin:0 auto;padding:2.5rem 1.25rem 4rem;text-align:center}
+    h1{color:#ff7090;font-weight:normal;letter-spacing:.35em;font-size:1.4rem}
+    .sub{color:#ff8c50;font-size:.7rem;letter-spacing:.25em;margin:1rem 0 2rem}
+    .ema{font-size:3.5rem;color:#c04070;margin:.5rem 0}
+    .band{font-size:1.1rem;letter-spacing:.4em;color:#fff}
+    .box{border:1px solid rgba(200,80,120,.35);padding:1rem;margin:1.5rem 0;text-align:left;font-size:.85rem;background:rgba(12,4,10,.6)}
+    .mono{font-family:Consolas,monospace;font-size:.72rem;color:#88c8e8;word-break:break-all}
+    a{color:#7ab0d8;font-size:.75rem}
+  </style>
+</head>
+<body>
+  <main>
+    <a href="shores.html">← shores</a>
+    <p class="sub">ΣΦ GOVERNOR · PERSONA CONSUMED · NOT LOGGED ONLY</p>
+    <h1>PERSONA</h1>
+    <div class="ema" id="ema">—</div>
+    <div class="band" id="band">—</div>
+    <div class="box">
+      <div>program: <span class="mono" id="prog">—</span></div>
+      <div>temperature: <span id="temp">—</span></div>
+      <div>temperament: <span class="mono" id="temp-sig">—</span></div>
+    </div>
+    <p style="font-size:.82rem;opacity:.85" id="novel"></p>
+    <p><a href="persona_snapshot.json">persona_snapshot.json</a> · <a href="drift.html">drift</a></p>
+  </main>
+  <script>
+    fetch('persona_snapshot.json?'+Date.now()).then(r=>r.json()).then(d=>{
+      document.getElementById('ema').textContent=d.persona_ema??'—';
+      document.getElementById('band').textContent=(d.band||'—').toUpperCase();
+      document.getElementById('prog').textContent=d.program_key+' → '+d.program;
+      document.getElementById('temp').textContent=d.llm_temperature;
+      document.getElementById('temp-sig').textContent=d.temperament_signature;
+      document.getElementById('novel').textContent=d.novel||'';
+    });
+  </script>
+</body>
+</html>

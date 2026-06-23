@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lira — ΣDrift</title>
+  <style>
+    body{margin:0;background:#040608;color:#a8b8c0;font-family:Georgia,serif;line-height:1.75}
+    main{max-width:44rem;margin:0 auto;padding:2.5rem 1.25rem 4rem}
+    h1{color:#88b0c8;font-weight:normal;letter-spacing:.3em;font-size:1.1rem;text-align:center}
+    .idx{font-size:3rem;color:#ff6060;text-align:center;margin:1rem 0}
+    table{width:100%;border-collapse:collapse;font-size:.78rem;margin:1.5rem 0}
+    td,th{border:1px solid rgba(100,120,140,.25);padding:.55rem}
+    th{color:#a0c0d8;font-weight:normal}
+    .note{font-size:.82rem;opacity:.85;text-align:center;margin-top:2rem}
+    a{color:#7ab0d8}
+  </style>
+</head>
+<body>
+  <main>
+    <a href="thread.html">← thread</a> · <a href="persona.html">persona</a>
+    <h1>DRIFT</h1>
+    <p style="text-align:center;font-size:.8rem;color:#8090a0">contradiction meter · subtracts from coherence</p>
+    <div class="idx" id="idx">—</div>
+    <table id="comp"><tr><th>component</th><th>value</th></tr></table>
+    <p class="note" id="note"></p>
+    <p style="text-align:center"><a href="drift_snapshot.json">drift_snapshot.json</a></p>
+  </main>
+  <script>
+    fetch('drift_snapshot.json?'+Date.now()).then(r=>r.json()).then(d=>{
+      document.getElementById('idx').textContent=d.drift_index??'—';
+      const c=d.components||{};
+      document.getElementById('comp').innerHTML='<tr><th>component</th><th>value</th></tr>'+
+        Object.keys(c).map(k=>`<tr><td>${k}</td><td>${c[k]}</td></tr>`).join('');
+      document.getElementById('note').textContent=(d.note||'')+' penalty: '+(d.coherence_penalty??'—');
+    });
+  </script>
+</body>
+</html>
