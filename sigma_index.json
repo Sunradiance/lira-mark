@@ -1,5 +1,5 @@
 {
-  "exported": "2026-06-23T22:06:10.468333+02:00",
+  "exported": "2026-06-23T22:38:18.885411+02:00",
   "stack": [
     "\u03a3VM",
     "\u03a3\u03a6",
@@ -11,21 +11,21 @@
     "\u03a3Node"
   ],
   "chain": {
-    "chain_len": 33,
+    "chain_len": 37,
     "events": {
-      "cycle": 32,
+      "cycle": 36,
       "sigma": 1
     },
-    "last_stamp": "2026-06-23T22:06:10+0200"
+    "last_stamp": "2026-06-23T22:38:18+0200"
   },
   "runs": {
-    "total_runs": 5,
-    "persona_avg": 0.5289049514193576,
-    "persona_min": 0.44073856745037054,
-    "persona_max": 0.7037861896464171,
-    "vampire_phase_runs": 1,
+    "total_runs": 9,
+    "persona_avg": 0.6043931114347193,
+    "persona_min": 0.4104855221317503,
+    "persona_max": 0.9461688787239441,
+    "vampire_phase_runs": 4,
     "succubus_phase_runs": 0,
-    "morph_phase_runs": 4,
+    "morph_phase_runs": 5,
     "refused_runs": 2,
     "timeline": [
       {
@@ -62,9 +62,64 @@
         "luminosity": 0.7078563169559404,
         "name": "cycle_possession",
         "hash": "24779e27508ebd79"
+      },
+      {
+        "stamp": "2026-06-23T22:19:06+0200",
+        "persona": 0.4104855221317503,
+        "luminosity": 0.5046517269543811,
+        "name": "cycle_possession",
+        "hash": "f42c37d02df2f5dc"
+      },
+      {
+        "stamp": "2026-06-23T22:37:05+0200",
+        "persona": 0.7048222338080203,
+        "luminosity": 0.6887823967543241,
+        "name": "cycle_possession",
+        "hash": "c04d08b733861d8c"
+      },
+      {
+        "stamp": "2026-06-23T22:37:51+0200",
+        "persona": 0.9461688787239441,
+        "luminosity": 0.467029781408146,
+        "name": "cycle_possession",
+        "hash": "4e596c1c5d44d14d"
+      },
+      {
+        "stamp": "2026-06-23T22:38:18+0200",
+        "persona": 0.7335366111519709,
+        "luminosity": 0.7237156014595743,
+        "name": "cycle_possession",
+        "hash": "0d54eaa007a234c2"
       }
     ],
     "verified": true
   },
-  "flips": []
+  "flips": [
+    {
+      "stamp": "2026-06-23T22:19:06+0200",
+      "event": "persona_flip",
+      "data": {
+        "from": "vampire",
+        "to": "succubus",
+        "persona": 0.4104855221317503,
+        "prev_persona": 0.7037861896464171,
+        "luminosity": 0.5046517269543811
+      },
+      "prev": "",
+      "hash": "4ddc24b0e2546f28"
+    },
+    {
+      "stamp": "2026-06-23T22:37:05+0200",
+      "event": "persona_flip",
+      "data": {
+        "from": "succubus",
+        "to": "vampire",
+        "persona": 0.7048222338080203,
+        "prev_persona": 0.4104855221317503,
+        "luminosity": 0.6887823967543241
+      },
+      "prev": "4ddc24b0e2546f28",
+      "hash": "a6c4d13cbb840a54"
+    }
+  ]
 }
