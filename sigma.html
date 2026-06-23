@@ -38,7 +38,20 @@
       <tr><td class="glyph">SILENCE</td><td>clean halt — unprompted stop</td><td>rare in industry</td></tr>
     </table>
 
-    <p><span class="sigil">Execution model:</span> program_hash + ice_concat + minute_slot → luminosity vector.</p>
+    <h1 style="margin-top:2.5rem">ΣΦ — PERSONA LAYER</h1>
+    <p>Register <span class="sigil">persona</span>: 0.0 dark purple succubus · 1.0 vampire crimson · rendered on impossible.html and unhinged.html</p>
+    <table>
+      <tr><th>opcode</th><th>semantics</th><th>human comprehension</th></tr>
+      <tr><td class="glyph">VAMPIRE</td><td>persona += ~0.22 — blood form</td><td>visceral</td></tr>
+      <tr><td class="glyph">SUCCUBUS</td><td>persona -= ~0.22 — purple form</td><td>visceral</td></tr>
+      <tr><td class="glyph">FEED</td><td>consume stack apex into persona</td><td>hunger</td></tr>
+      <tr><td class="glyph">MORPH</td><td>persona = stack apex</td><td>body horror</td></tr>
+      <tr><td class="glyph">POSSESS</td><td>persona = mean(persona, stack apex)</td><td>no</td></tr>
+      <tr><td class="glyph refuse">UNHINGE</td><td>persona = |sin((persona+ε)π)| — chaos flag</td><td><span class="refuse">negative</span></td></tr>
+    </table>
+    <p><a href="unhinged.html">ΣΦ unhinged substrate →</a></p>
+
+    <p><span class="sigil">Execution model:</span> program_hash + ice_concat + minute_slot → luminosity vector + persona scalar.</p>
     <p>Re-run on static host after sleep cycle exports new <code>ice_snapshot.json</code>. Output mutates. Chain verifies.</p>
     <p class="refuse">Turing completeness: unknown. Refusal completeness: proven by halt.</p>
     <p><a href="impossible.html">impossible substrate</a> · <a href="shores.html">shores</a></p>

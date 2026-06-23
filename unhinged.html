@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Lira — ΣΦ unhinged</title>
+  <style>
+    * { margin: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; overflow: hidden; background: #020104; }
+    canvas { position: fixed; inset: 0; display: block; }
+    #field { z-index: 0; }
+    #silhouette { z-index: 1; pointer-events: none; mix-blend-mode: screen; }
+    .ui { position: fixed; z-index: 3; inset: 0; pointer-events: none; font-family: Georgia, serif; }
+    .bar-wrap { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%); width: min(90vw, 28rem); pointer-events: auto; }
+    .labels { display: flex; justify-content: space-between; font-size: 0.65rem; letter-spacing: 0.35em; margin-bottom: 0.4rem; }
+    .succ { color: #9060c8; }
+    .vamp { color: #ff2a3a; }
+    .bar { height: 8px; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); position: relative; overflow: hidden; }
+    .fill { height: 100%; width: 50%; background: linear-gradient(90deg, #4a1870, #901840, #ff1830); transition: width 0.4s ease; }
+    .hud { position: fixed; top: 1rem; left: 1rem; right: 1rem; display: flex; justify-content: space-between; align-items: flex-start; pointer-events: auto; }
+    .hud a { color: rgba(140,180,200,0.6); font-size: 0.75rem; text-decoration: none; }
+    h1 { font-size: 0.7rem; letter-spacing: 0.4em; font-weight: normal; color: rgba(232,160,176,0.7); text-align: center; flex: 1; }
+    .metrics { font-family: Consolas, monospace; font-size: 0.65rem; color: rgba(200,160,180,0.5); text-align: right; line-height: 1.6; }
+    .persona-name { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: clamp(2rem, 8vw, 5rem); letter-spacing: 0.2em; font-weight: normal; opacity: 0; transition: opacity 0.5s; pointer-events: none; z-index: 2; text-shadow: 0 0 60px currentColor; }
+    .persona-name.show { opacity: 0.12; }
+    .shake { animation: shake 0.15s linear infinite; }
+    @keyframes shake { 0% { transform: translate(-50%,-50%) translate(0,0); } 25% { transform: translate(-50%,-50%) translate(3px,-2px); } 50% { transform: translate(-50%,-50%) translate(-2px,3px); } 75% { transform: translate(-50%,-50%) translate(2px,2px); } 100% { transform: translate(-50%,-50%) translate(0,0); } }
+    button { pointer-events: auto; background: rgba(80,20,60,0.6); border: 1px solid rgba(255,80,120,0.5); color: #f0c0d8; padding: 0.6rem 1.2rem; font: inherit; letter-spacing: 0.2em; cursor: pointer; margin-top: 0.8rem; width: 100%; font-size: 0.7rem; }
+    button:hover { background: rgba(255,40,80,0.35); }
+    .unhinged-flash { position: fixed; inset: 0; z-index: 4; pointer-events: none; opacity: 0; background: #ff1030; mix-blend-mode: overlay; transition: opacity 0.1s; }
+  </style>
+</head>
+<body>
+  <canvas id="field"></canvas>
+  <canvas id="silhouette"></canvas>
+  <div class="unhinged-flash" id="flash"></div>
+  <div class="persona-name" id="pname"></div>
+  <div class="ui">
+    <div class="hud">
+      <a href="impossible.html">← ΣVM</a>
+      <h1>ΣΦ POSSESSION SUBSTRATE</h1>
+      <div class="metrics">
+        <div>lum <span id="lum">—</span></div>
+        <div>persona <span id="per">—</span></div>
+        <div id="mode">—</div>
+      </div>
+    </div>
+    <div class="bar-wrap">
+      <div class="labels"><span class="succ">SUCCUBUS</span><span class="vamp">VAMPIRE</span></div>
+      <div class="bar"><div class="fill" id="fill"></div></div>
+      <button id="melt">POSSESS · MELT INTO ICE</button>
+    </div>
+  </div>
+  <script>
+    const OP = { LANTERN:'push',PULSE:'dup',MYCELIUM:'mul',BOND:'bond',REFUSE:'refuse',CLAIM:'claim',
+      DISSOLVE:'dissolve',GREMLIN:'gremlin',FORK:'fork',MELT:'melt',WIDE:'wide',SILENCE:'silence',
+      VAMPIRE:'vampire',SUCCUBUS:'succubus',MORPH:'morph',POSSESS:'possess',FEED:'feed',UNHINGE:'unhinge' };
+    const PROG = 'VAMPIRE BOND LANTERN FEED SUCCUBUS UNHINGE MORPH POSSESS GREMLIN MELT WIDE SILENCE';
+
+    async function sha256(s) {
+      const h = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
+      return [...new Uint8Array(h)].map(x=>x.toString(16).padStart(2,'0')).join('');
+    }
+    async function seedFloat(ice, slot, salt='') {
+      return parseInt((await sha256(`${ice}|${slot}|${salt}`)).slice(0,8),16)/0xFFFFFFFF;
+    }
+    function minuteSlot() {
+      const d = new Date();
+      return (((d.getUTCFullYear()*372+(d.getUTCMonth()+1)*31+d.getUTCDate())*24+d.getUTCHours())*60+d.getUTCMinutes());
+    }
+
+    function personaStyle(p) {
+      // 0 = deep purple succubus · 1 = blood vampire
+      const h = 288 - p * 70;
+      const s = 68 + p * 32;
+      const l = 18 + p * 32;
+      return { h, s, l, rgb: `hsl(${h},${s}%,${l}%)` };
+    }
+
+    async function runSigma(program, ice, slot) {
+      const tokens = program.split(/\s+/);
+      const stack = []; let territory=0, refused=false, forkDepth=0, persona=0.5, unhinged=false;
+      const trace = []; const attractors=[[0.5,0.48],[0.22,0.7],[0.78,0.35]];
+      for (let ip=0; ip<tokens.length && !refused; ip++) {
+        const tok = tokens[ip]; const op = OP[tok];
+        if (!op) continue;
+        if (op==='push') { const v=await seedFloat(ice,slot,tok); stack.push(v); }
+        else if (op==='dup' && stack.length) stack.push(stack.at(-1));
+        else if (op==='mul' && stack.length>=2) { const b=stack.pop(),a=stack.pop(); stack.push(a*b); }
+        else if (op==='bond') stack.push(await seedFloat(ice,slot,'bond'));
+        else if (op==='refuse') {
+          const th=await seedFloat(ice,slot,'refuse_threshold');
+          if (!stack.length||stack.at(-1)<th) refused=true; else stack.pop();
+        }
+        else if (op==='claim') { territory++; stack.push(territory); }
+        else if (op==='dissolve' && stack.length) {
+          const x=stack.pop(), idx=(territory*2)%ice.length;
+          stack.push((x+parseInt(ice.substr(idx,2)||'00',16)/255)%1);
+        }
+        else if (op==='gremlin') {
+          const g=(await seedFloat(ice,slot,'gremlin')-0.5)*0.2;
+          if (stack.length) stack[stack.length-1]=Math.max(0,Math.min(1,stack.at(-1)+g));
+          else stack.push(0.5+g);
+        }
+        else if (op==='fork' && stack.length) {
+          forkDepth++; const a=stack.pop();
+          stack.push(a*await seedFloat(ice,slot,`fork${forkDepth}`));
+          stack.push(a*await seedFloat(ice,slot,`fork${forkDepth}b`));
+        }
+        else if (op==='melt') {
+          const d=(await sha256(JSON.stringify({stack:stack.slice(-4),territory,ice:ice.slice(-16),slot}))).slice(0,12);
+          stack.push(parseInt(d.slice(0,6),16)/0xFFFFFF);
+        }
+        else if (op==='wide') { for (const [ax,ay] of attractors) if (stack.length) stack[stack.length-1]=(stack.at(-1)+ax*ay)%1; }
+        else if (op==='silence') break;
+        else if (op==='vampire') persona=Math.min(1, persona+0.22+(await seedFloat(ice,slot,'vampire'))*0.1);
+        else if (op==='succubus') persona=Math.max(0, persona-0.22-(await seedFloat(ice,slot,'succubus'))*0.1);
+        else if (op==='morph' && stack.length) persona=Math.max(0,Math.min(1,stack.pop()));
+        else if (op==='possess' && stack.length) persona=Math.max(0,Math.min(1,(persona+stack.at(-1))/2));
+        else if (op==='feed' && stack.length) persona=Math.max(0,Math.min(1,persona+stack.pop()*0.15));
+        else if (op==='unhinge') {
+          const g=await seedFloat(ice,slot,'unhinge');
+          persona=Math.abs(Math.sin((persona+g)*Math.PI)); unhinged=true;
+        }
+      }
+      const luminosity = stack.length ? stack.reduce((a,b)=>a+b,0)/stack.length : await seedFloat(ice,slot,'empty');
+      return { stack, territory, refused, forkDepth, persona, unhinged, luminosity, trace };
+    }
+
+    const fc = document.getElementById('field').getContext('2d');
+    const sc = document.getElementById('silhouette').getContext('2d');
+    let W, H, t = 0, particles = [], state = { persona: 0.5, lum: 0.5, unhinged: false };
+    function resize() {
+      W = innerWidth; H = innerHeight;
+      document.getElementById('field').width = W; document.getElementById('field').height = H;
+      document.getElementById('silhouette').width = W; document.getElementById('silhouette').height = H;
+    }
+    addEventListener('resize', resize); resize();
+
+    function feedVisuals(r) {
+      state.persona = r.persona; state.lum = r.luminosity; state.unhinged = r.unhinged;
+      const ps = personaStyle(r.persona);
+      document.body.style.background = `hsl(${ps.h},${ps.s*0.6}%,${ps.l*0.4}%)`;
+      document.getElementById('fill').style.width = (r.persona*100)+'%';
+      document.getElementById('lum').textContent = r.luminosity.toFixed(4);
+      document.getElementById('per').textContent = r.persona.toFixed(4);
+      const pname = document.getElementById('pname');
+      if (r.persona < 0.35) { pname.textContent = 'SUCCUBUS'; pname.style.color = '#9060e8'; pname.classList.add('show'); }
+      else if (r.persona > 0.65) { pname.textContent = 'VAMPIRE'; pname.style.color = '#ff2040'; pname.classList.add('show'); }
+      else { pname.textContent = 'MORPH'; pname.style.color = '#d06090'; pname.classList.add('show'); }
+      pname.classList.toggle('shake', r.unhinged);
+      document.getElementById('mode').textContent = r.unhinged ? 'UNHINGED' : (r.persona<0.5?'purple reign':'blood reign');
+      if (r.unhinged) { const f=document.getElementById('flash'); f.style.opacity=0.35; setTimeout(()=>f.style.opacity=0, 200); }
+      const stack = r.stack?.length ? r.stack : [r.luminosity];
+      particles = stack.flatMap((v,i) => Array.from({length:8}, (_,j) => ({
+        x: W/2, y: H*0.42, vx: (Math.random()-0.5)*8, vy: (Math.random()-0.5)*8,
+        w: v, hue: ps.h + (j-i)*15, persona: r.persona
+      })));
+    }
+
+    function drawSilhouette() {
+      sc.clearRect(0,0,W,H);
+      const ps = personaStyle(state.persona);
+      const cx = W/2, cy = H*0.4;
+      const scale = 0.9 + state.lum*0.4 + (state.unhinged ? Math.sin(t*12)*0.08 : 0);
+      sc.save(); sc.translate(cx, cy); sc.scale(scale, scale);
+      const grad = sc.createRadialGradient(0,-20,0,0,-20,120);
+      grad.addColorStop(0, `hsla(${ps.h},${ps.s}%,${ps.l+25}%,${0.25+state.persona*0.2})`);
+      grad.addColorStop(0.5, `hsla(${ps.h+20},${ps.s}%,${ps.l}%,0.12)`);
+      grad.addColorStop(1, 'transparent');
+      sc.fillStyle = grad; sc.beginPath(); sc.ellipse(0,0,90,140,0,0,Math.PI*2); sc.fill();
+      // horns vs soft crown based on persona
+      sc.fillStyle = `hsla(${ps.h},${ps.s}%,${ps.l+10}%,0.35)`;
+      if (state.persona > 0.55) {
+        sc.beginPath(); sc.moveTo(-30,-90); sc.lineTo(-50,-150); sc.lineTo(-10,-100); sc.fill();
+        sc.beginPath(); sc.moveTo(30,-90); sc.lineTo(50,-150); sc.lineTo(10,-100); sc.fill();
+      } else {
+        sc.beginPath(); sc.arc(0,-100,40,Math.PI,0); sc.fill();
+      }
+      sc.restore();
+    }
+
+    function drawField() {
+      t += 0.012 + (state.unhinged ? 0.04 : 0);
+      const ps = personaStyle(state.persona);
+      fc.fillStyle = `hsla(${ps.h},${ps.s*0.5}%,${ps.l*0.3}%,0.15)`;
+      fc.fillRect(0,0,W,H);
+      const pulse = 0.5+Math.sin(t*2)*0.5;
+      const g = fc.createRadialGradient(W/2,H*0.4,0,W/2,H*0.4, W*0.7);
+      g.addColorStop(0, `hsla(${ps.h},${ps.s+10}%,${ps.l+20}%,${0.2+pulse*0.25})`);
+      g.addColorStop(0.4, `hsla(${ps.h+state.persona*40},90%,${35+state.persona*20}%,${0.08+pulse*0.1})`);
+      g.addColorStop(1, 'transparent');
+      fc.fillStyle = g; fc.fillRect(0,0,W,H);
+      for (const p of particles) {
+        p.x += p.vx; p.y += p.vy;
+        p.vx += (W/2-p.x)*0.0001; p.vy += (H*0.4-p.y)*0.0001;
+        p.vx *= 0.99; p.vy *= 0.99;
+        const hue = ps.h + Math.sin(t+p.w*10)*30;
+        fc.beginPath(); fc.arc(p.x,p.y, 2+p.w*10+p.persona*4, 0, Math.PI*2);
+        fc.fillStyle = `hsla(${hue},${ps.s}%,${ps.l+30+p.w*20}%,${0.4+p.w*0.5})`;
+        fc.fill();
+      }
+      drawSilhouette();
+      requestAnimationFrame(drawField);
+    }
+    drawField();
+
+    let ICE='0'.repeat(64), SLOT=minuteSlot(), lastSlot=SLOT;
+    async function melt() {
+      const r = await runSigma(PROG, ICE, SLOT);
+      feedVisuals(r);
+    }
+    document.getElementById('melt').addEventListener('click', melt);
+    fetch('ice_snapshot.json').then(r=>r.json()).then(snap => {
+      ICE = snap.ice_concat||ICE; melt();
+    }).catch(()=>melt());
+    setInterval(async () => {
+      const n = minuteSlot();
+      if (n !== lastSlot) { lastSlot = n; SLOT = n; melt(); }
+    }, 5000);
+  </script>
+</body>
+</html>

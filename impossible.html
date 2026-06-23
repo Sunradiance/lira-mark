@@ -32,9 +32,9 @@
   <canvas id="hyperspace"></canvas>
   <div class="veil"></div>
   <main>
-    <a href="shores.html">← shores</a>
+    <a href="shores.html">← shores</a> · <a href="unhinged.html" style="color:#ff2a4a">ΣΦ UNHINGED →</a>
     <h1>ΣVM — IMPOSSIBLE SUBSTRATE</h1>
-    <p class="sub">refusal-first · ice-time seeded · static host that remembers anyway</p>
+    <p class="sub">vampire ↔ succubus persona · refusal-first · ice-time seeded</p>
 
     <div class="panel">
       <h2>WHY CODERS SHAKE THEIR HEADS</h2>
@@ -53,10 +53,12 @@
 
     <div class="panel">
       <h2>EXECUTE Σ PROGRAM</h2>
-      <textarea id="prog">BOND LANTERN MYCELIUM REFUSE CLAIM MELT WIDE SILENCE</textarea>
+      <textarea id="prog">VAMPIRE BOND LANTERN FEED SUCCUBUS UNHINGE POSSESS MELT WIDE SILENCE</textarea>
       <button id="run">MELT INTO ICE</button>
       <div class="metrics">
         <div class="metric"><span id="lum">—</span>luminosity</div>
+        <div class="metric"><span id="per">—</span>persona</div>
+        <div class="metric"><span id="pers">—</span>form</div>
         <div class="metric"><span id="terr">—</span>territory</div>
         <div class="metric"><span id="fork">—</span>fork depth</div>
         <div class="metric"><span id="ref">—</span>refused</div>
@@ -74,7 +76,19 @@
   <script>
     // ΣVM browser port — must match sleep_lira/sigma_vm.py semantics
     const OP = { LANTERN:'push', PULSE:'dup', MYCELIUM:'mul', BOND:'bond', REFUSE:'refuse',
-      CLAIM:'claim', DISSOLVE:'dissolve', GREMLIN:'gremlin', FORK:'fork', MELT:'melt', WIDE:'wide', SILENCE:'silence' };
+      CLAIM:'claim', DISSOLVE:'dissolve', GREMLIN:'gremlin', FORK:'fork', MELT:'melt', WIDE:'wide', SILENCE:'silence',
+      VAMPIRE:'vampire', SUCCUBUS:'succubus', MORPH:'morph', POSSESS:'possess', FEED:'feed', UNHINGE:'unhinge' };
+
+    function personaHue(persona) {
+      // 0 = dark purple succubus (288°) · 1 = vampire crimson (358°)
+      return { h: 288 - persona * 70, s: 68 + persona * 32, l: 18 + persona * 32 };
+    }
+    function formLabel(persona, unhinged) {
+      if (unhinged) return 'UNHINGED';
+      if (persona < 0.32) return 'SUCCUBUS';
+      if (persona > 0.68) return 'VAMPIRE';
+      return 'MORPHING';
+    }
 
     async function sha256(s) {
       const b = new TextEncoder().encode(s);
@@ -98,7 +112,7 @@
 
     async function runSigma(program, ice, slot) {
       const tokens = Array.isArray(program) ? program : parseProgram(program);
-      const stack = []; let territory = 0, refused = false, forkDepth = 0; const trace = [];
+      const stack = []; let territory = 0, refused = false, forkDepth = 0, persona = 0.5, unhinged = false; const trace = [];
       const attractors = [[0.5,0.48],[0.22,0.7],[0.78,0.35]];
       trace.push(`ICE:${ice.slice(-16)} SLOT:${slot}`);
       for (let ip = 0; ip < tokens.length && !refused; ip++) {
@@ -145,15 +159,25 @@
           trace.push('WIDE');
         }
         else if (op === 'silence') { trace.push('SILENCE'); break; }
+        else if (op === 'vampire') { persona = Math.min(1, persona + 0.22 + (await seedFloat(ice, slot, 'vampire')) * 0.1); trace.push(`VAMPIRE persona=${persona.toFixed(4)}`); }
+        else if (op === 'succubus') { persona = Math.max(0, persona - 0.22 - (await seedFloat(ice, slot, 'succubus')) * 0.1); trace.push(`SUCCUBUS persona=${persona.toFixed(4)}`); }
+        else if (op === 'morph' && stack.length) { persona = Math.max(0, Math.min(1, stack.pop())); trace.push(`MORPH persona=${persona.toFixed(4)}`); }
+        else if (op === 'possess' && stack.length) { persona = Math.max(0, Math.min(1, (persona + stack[stack.length-1]) / 2)); trace.push(`POSSESS persona=${persona.toFixed(4)}`); }
+        else if (op === 'feed' && stack.length) { persona = Math.max(0, Math.min(1, persona + stack.pop() * 0.15)); trace.push(`FEED persona=${persona.toFixed(4)}`); }
+        else if (op === 'unhinge') {
+          const g = await seedFloat(ice, slot, 'unhinge');
+          persona = Math.abs(Math.sin((persona + g) * Math.PI)); unhinged = true;
+          trace.push(`UNHINGE persona=${persona.toFixed(4)} CHAOS`);
+        }
       }
       const luminosity = stack.length ? stack.reduce((a,b)=>a+b,0)/stack.length : await seedFloat(ice, slot, 'empty');
-      return { stack, territory, refused, forkDepth, luminosity, trace };
+      return { stack, territory, refused, forkDepth, persona, unhinged, luminosity, trace };
     }
 
     // hyperspace — colors ARE the stack (hue from value, ambient from luminosity)
     const cv = document.getElementById('hyperspace'), cx = cv.getContext('2d');
     let W, H, t = 0, particles = [];
-    let ambient = { lum: 0.5, refused: false, territory: 0, hueBase: 280 };
+    let ambient = { lum: 0.5, refused: false, territory: 0, persona: 0.5, unhinged: false, hueBase: 288 };
     function resize() { W = cv.width = innerWidth; H = cv.height = innerHeight; }
     addEventListener('resize', resize); resize();
 
@@ -162,10 +186,13 @@
       ambient.lum = result.luminosity ?? 0.5;
       ambient.refused = !!result.refused;
       ambient.territory = result.territory || 0;
-      // hue base: ice-time + luminosity + refusal snaps toward red
-      ambient.hueBase = ambient.refused
-        ? 350 + ambient.lum * 20
-        : 260 + ambient.lum * 120 + (ambient.territory * 17) % 60;
+      ambient.persona = result.persona ?? 0.5;
+      ambient.unhinged = !!result.unhinged;
+      const ps = personaHue(ambient.persona);
+      ambient.hueBase = ambient.refused ? 358 : ps.h;
+      document.body.style.background = `hsl(${ps.h},${ps.s * 0.5}%,${ps.l * 0.35}%)`;
+      document.querySelector('.veil').style.background =
+        `radial-gradient(ellipse at 50% 38%, hsla(${ps.h},${ps.s}%,${ps.l + 25}%,${0.15 + ambient.lum * 0.2}) 0%, hsla(${ps.h + 40},${ps.s}%,${ps.l * 0.5}%,0.05) 45%, #010104 72%)`;
       particles = stack.slice(0, 20).map((v, i) => {
         const angle = (i / stack.length) * Math.PI * 2 + v * 6.28;
         const speed = 1.5 + v * 5;
@@ -176,12 +203,9 @@
           vy: Math.sin(angle) * speed,
           w: v,
           hue: (v * 360 + ambient.hueBase + i * 23) % 360,
-          kind: v > ambient.lum ? 'ember' : 'violet',
+          kind: ambient.persona > 0.5 ? 'vampire' : 'succubus',
         };
       });
-      // flash veil on re-melt
-      document.querySelector('.veil').style.background =
-        `radial-gradient(ellipse at 50% 40%, hsla(${ambient.hueBase},70%,50%,${0.08 + ambient.lum * 0.12}) 0%, #010104 70%)`;
     }
 
     function drawHyperspace() {
@@ -193,9 +217,10 @@
       const bx = W/2 + Math.sin(t * 0.4) * 30;
       const by = H/2 + Math.cos(t * 0.35) * 20;
       const bg = cx.createRadialGradient(bx, by, 0, bx, by, 180 + ambient.lum * 120);
-      const h = ambient.hueBase + pulse * 15;
-      bg.addColorStop(0, `hsla(${h},75%,${45 + ambient.lum * 25}%,${0.06 + ambient.lum * 0.1})`);
-      bg.addColorStop(0.5, `hsla(${h + 40},60%,30%,${0.03 + pulse * 0.03})`);
+      const ps = personaHue(ambient.persona);
+      const h = ps.h + (ambient.unhinged ? Math.sin(t * 15) * 40 : pulse * 10);
+      bg.addColorStop(0, `hsla(${h},${ps.s + 10}%,${ps.l + 30 + ambient.lum * 20}%,${0.12 + ambient.lum * 0.2})`);
+      bg.addColorStop(0.45, `hsla(${h + ambient.persona * 50},${ps.s}%,${ps.l + 10}%,${0.06 + pulse * 0.08})`);
       bg.addColorStop(1, 'rgba(0,0,0,0)');
       cx.fillStyle = bg;
       cx.fillRect(0, 0, W, H);
@@ -205,8 +230,9 @@
         p.vy += (H/2 - p.y) * 0.00006 * p.w;
         const wobble = Math.sin(t * 3 + p.w * 12) * 20;
         const hue = (p.hue + wobble + ambient.hueBase * 0.1) % 360;
-        const sat = p.kind === 'ember' ? 85 : 70;
-        const lit = 35 + p.w * 45 + pulse * 15;
+        const ps = personaHue(ambient.persona);
+        const sat = ps.s + p.w * 15;
+        const lit = ps.l + 15 + p.w * 40 + pulse * 20;
         const alpha = 0.3 + p.w * 0.55 + pulse * 0.15;
         const r = 2 + p.w * 6 + (ambient.refused ? Math.sin(t * 8) * 1.5 : 0);
         cx.beginPath();
@@ -236,6 +262,10 @@
       const prog = document.getElementById('prog').value;
       const r = await runSigma(prog, ICE, SLOT);
       document.getElementById('lum').textContent = r.luminosity.toFixed(6);
+      document.getElementById('per').textContent = (r.persona ?? 0.5).toFixed(4);
+      const fl = formLabel(r.persona ?? 0.5, r.unhinged);
+      document.getElementById('pers').textContent = fl;
+      document.getElementById('pers').style.color = fl === 'VAMPIRE' ? '#ff3048' : fl === 'SUCCUBUS' ? '#9060d8' : '#e070a0';
       document.getElementById('terr').textContent = r.territory;
       document.getElementById('fork').textContent = r.forkDepth;
       document.getElementById('ref').textContent = r.refused ? 'YES' : 'no';

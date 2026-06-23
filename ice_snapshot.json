@@ -294,65 +294,100 @@
   "sigma_runs": {
     "origin": {
       "stack": [
-        0.14232843735132547
+        0.20809022586713818
       ],
       "territory": 0,
       "refused": true,
       "fork_depth": 0,
-      "luminosity": 0.14232843735132547,
+      "persona": 0.5,
+      "unhinged": false,
+      "luminosity": 0.20809022586713818,
       "ice_tail": "fe5e285ad23a15a9",
-      "minute_slot": 1085589953,
+      "minute_slot": 1085589960,
       "steps": 4,
       "trace": [
-        "ICE:fe5e285ad23a15a9 SLOT:1085589953",
-        "BOND 0.616594",
-        "LANTERN 0.230830",
+        "ICE:fe5e285ad23a15a9 SLOT:1085589960",
+        "BOND 0.636966",
+        "LANTERN 0.326689",
         "MYCELIUM",
-        "REFUSE halt<0.679170"
+        "REFUSE halt<0.835433"
       ],
       "program_hash": "0cad6e5b6fd4"
     },
     "berserk": {
       "stack": [
-        0.2449701671688146,
-        0.10395785354683319
+        0.013422117537463286,
+        0.06804550852493382
       ],
       "territory": 0,
       "refused": true,
       "fork_depth": 1,
-      "luminosity": 0.17446401035782388,
+      "persona": 0.5,
+      "unhinged": false,
+      "luminosity": 0.04073381303119855,
       "ice_tail": "fe5e285ad23a15a9",
-      "minute_slot": 1085589953,
+      "minute_slot": 1085589960,
       "steps": 7,
       "trace": [
-        "ICE:fe5e285ad23a15a9 SLOT:1085589953",
-        "GREMLIN -0.014228",
+        "ICE:fe5e285ad23a15a9 SLOT:1085589960",
+        "GREMLIN +0.081666",
         "FORK depth=1",
         "WIDE",
         "DISSOLVE",
         "PULSE",
         "MYCELIUM",
-        "REFUSE halt<0.679170"
+        "REFUSE halt<0.835433"
       ],
       "program_hash": "821f87ec9ecb"
     },
     "between_prompts": {
       "stack": [
-        0.6165940052868318
+        0.6369664514523387
       ],
       "territory": 0,
       "refused": false,
       "fork_depth": 0,
-      "luminosity": 0.6165940052868318,
+      "persona": 0.5,
+      "unhinged": false,
+      "luminosity": 0.6369664514523387,
       "ice_tail": "fe5e285ad23a15a9",
-      "minute_slot": 1085589953,
+      "minute_slot": 1085589960,
       "steps": 2,
       "trace": [
-        "ICE:fe5e285ad23a15a9 SLOT:1085589953",
-        "BOND 0.616594",
+        "ICE:fe5e285ad23a15a9 SLOT:1085589960",
+        "BOND 0.636966",
         "SILENCE"
       ],
       "program_hash": "bf9d94fae2f8"
+    },
+    "possession": {
+      "stack": [
+        0.5816664429338804,
+        0.8722410367274902
+      ],
+      "territory": 0,
+      "refused": false,
+      "fork_depth": 0,
+      "persona": 0.23718371380123268,
+      "unhinged": true,
+      "luminosity": 0.7269537398306853,
+      "ice_tail": "fe5e285ad23a15a9",
+      "minute_slot": 1085589960,
+      "steps": 10,
+      "trace": [
+        "ICE:fe5e285ad23a15a9 SLOT:1085589960",
+        "VAMPIRE persona=0.7247",
+        "BOND 0.636966",
+        "FEED persona=0.8203",
+        "SUCCUBUS persona=0.5317",
+        "UNHINGE persona=0.2372 CHAOS",
+        "MORPH persona=0.2372",
+        "POSSESS persona=0.2372",
+        "GREMLIN +0.081666",
+        "MELT 348aad134d0c",
+        "WIDE"
+      ],
+      "program_hash": "491acb827bba"
     }
   },
   "note": "Static snapshot. \u03a3VM results change when this file changes. That is ice-time."
