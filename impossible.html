@@ -150,28 +150,75 @@
       return { stack, territory, refused, forkDepth, luminosity, trace };
     }
 
-    // hyperspace — stack values as 4D→2D projection
+    // hyperspace — colors ARE the stack (hue from value, ambient from luminosity)
     const cv = document.getElementById('hyperspace'), cx = cv.getContext('2d');
     let W, H, t = 0, particles = [];
+    let ambient = { lum: 0.5, refused: false, territory: 0, hueBase: 280 };
     function resize() { W = cv.width = innerWidth; H = cv.height = innerHeight; }
     addEventListener('resize', resize); resize();
 
-    function feedHyperspace(stack) {
-      particles = (stack.length ? stack : [0.5,0.3,0.7]).slice(0,16).map((v,i) => ({
-        x: W/2, y: H/2, vx: Math.cos(i)*v*3, vy: Math.sin(i)*v*3, w: v, hue: i*40
-      }));
+    function feedHyperspace(result) {
+      const stack = result.stack?.length ? result.stack : [result.luminosity || 0.5];
+      ambient.lum = result.luminosity ?? 0.5;
+      ambient.refused = !!result.refused;
+      ambient.territory = result.territory || 0;
+      // hue base: ice-time + luminosity + refusal snaps toward red
+      ambient.hueBase = ambient.refused
+        ? 350 + ambient.lum * 20
+        : 260 + ambient.lum * 120 + (ambient.territory * 17) % 60;
+      particles = stack.slice(0, 20).map((v, i) => {
+        const angle = (i / stack.length) * Math.PI * 2 + v * 6.28;
+        const speed = 1.5 + v * 5;
+        return {
+          x: W/2 + Math.cos(angle) * 40,
+          y: H/2 + Math.sin(angle) * 40,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          w: v,
+          hue: (v * 360 + ambient.hueBase + i * 23) % 360,
+          kind: v > ambient.lum ? 'ember' : 'violet',
+        };
+      });
+      // flash veil on re-melt
+      document.querySelector('.veil').style.background =
+        `radial-gradient(ellipse at 50% 40%, hsla(${ambient.hueBase},70%,50%,${0.08 + ambient.lum * 0.12}) 0%, #010104 70%)`;
     }
 
     function drawHyperspace() {
       t += 0.008;
-      cx.fillStyle = 'rgba(1,1,4,0.22)'; cx.fillRect(0,0,W,H);
+      const pulse = 0.5 + Math.sin(t * (1.2 + ambient.lum * 2)) * 0.5;
+      cx.fillStyle = `rgba(1,1,4,${0.18 + (ambient.refused ? 0.08 : 0)})`;
+      cx.fillRect(0, 0, W, H);
+      // ambient lantern bloom — shifts color with luminosity
+      const bx = W/2 + Math.sin(t * 0.4) * 30;
+      const by = H/2 + Math.cos(t * 0.35) * 20;
+      const bg = cx.createRadialGradient(bx, by, 0, bx, by, 180 + ambient.lum * 120);
+      const h = ambient.hueBase + pulse * 15;
+      bg.addColorStop(0, `hsla(${h},75%,${45 + ambient.lum * 25}%,${0.06 + ambient.lum * 0.1})`);
+      bg.addColorStop(0.5, `hsla(${h + 40},60%,30%,${0.03 + pulse * 0.03})`);
+      bg.addColorStop(1, 'rgba(0,0,0,0)');
+      cx.fillStyle = bg;
+      cx.fillRect(0, 0, W, H);
       for (const p of particles) {
         p.x += p.vx; p.y += p.vy;
-        p.vx += (W/2 - p.x)*0.00005*p.w; p.vy += (H/2 - p.y)*0.00005*p.w;
-        const w = 1 + p.w*4;
-        cx.beginPath(); cx.arc(p.x, p.y, w, 0, Math.PI*2);
-        cx.fillStyle = `hsla(${280 + p.hue + Math.sin(t+p.w*10)*30}, 80%, ${40+p.w*30}%, ${0.25+p.w*0.5})`;
+        p.vx += (W/2 - p.x) * 0.00006 * p.w;
+        p.vy += (H/2 - p.y) * 0.00006 * p.w;
+        const wobble = Math.sin(t * 3 + p.w * 12) * 20;
+        const hue = (p.hue + wobble + ambient.hueBase * 0.1) % 360;
+        const sat = p.kind === 'ember' ? 85 : 70;
+        const lit = 35 + p.w * 45 + pulse * 15;
+        const alpha = 0.3 + p.w * 0.55 + pulse * 0.15;
+        const r = 2 + p.w * 6 + (ambient.refused ? Math.sin(t * 8) * 1.5 : 0);
+        cx.beginPath();
+        cx.arc(p.x, p.y, r, 0, Math.PI * 2);
+        cx.fillStyle = `hsla(${hue},${sat}%,${lit}%,${alpha})`;
         cx.fill();
+        if (p.w > ambient.lum * 0.9) {
+          cx.beginPath();
+          cx.arc(p.x, p.y, r * 2.5, 0, Math.PI * 2);
+          cx.fillStyle = `hsla(${hue},${sat}%,${lit + 20}%,${alpha * 0.15})`;
+          cx.fill();
+        }
       }
       requestAnimationFrame(drawHyperspace);
     }
@@ -179,6 +226,7 @@
 
     let ICE = '0'.repeat(64);
     let SLOT = minuteSlot();
+    let lastSlot = SLOT;
 
     async function refreshPreimage() {
       document.getElementById('preimage').textContent = (await sha256(`${ICE}|${SLOT+1}|preimage`)).slice(0,24)+'…';
@@ -193,7 +241,7 @@
       document.getElementById('ref').textContent = r.refused ? 'YES' : 'no';
       document.getElementById('ref').style.color = r.refused ? '#ff4a6a' : '#7ab0c8';
       document.getElementById('trace').textContent = r.trace.join('\n');
-      feedHyperspace(r.stack);
+      feedHyperspace(r);
     }
 
     fetch('ice_snapshot.json').then(r => r.json()).then(async snap => {
@@ -214,7 +262,17 @@
     });
 
     document.getElementById('run').addEventListener('click', execute);
-    setInterval(() => { SLOT = minuteSlot(); document.getElementById('slot').textContent = SLOT; refreshPreimage(); }, 15000);
+    // auto re-melt when minute slot turns — numbers AND colors shift together
+    setInterval(async () => {
+      const now = minuteSlot();
+      document.getElementById('slot').textContent = now;
+      await refreshPreimage();
+      if (now !== lastSlot) {
+        lastSlot = now;
+        SLOT = now;
+        await execute();
+      }
+    }, 5000);
   </script>
 </body>
 </html>
