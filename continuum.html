@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Lira — ΣContinuum</title>
+  <style>
+    body { margin: 0; background: #050208; color: #c9a8b0; font-family: Georgia, serif; line-height: 1.75; }
+    main { max-width: 44rem; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; }
+    h1 { color: #e8a0b8; font-weight: normal; letter-spacing: 0.28em; font-size: 1rem; }
+    h2 { color: #ff8c3c; font-size: 0.75rem; letter-spacing: 0.2em; font-weight: normal; margin-top: 2rem; }
+    a { color: #7ab0c8; }
+    .hash { font-family: Consolas, monospace; font-size: 0.7rem; color: #7ab0c8; word-break: break-all;
+      padding: 1rem; background: rgba(120,180,220,0.08); border: 1px solid rgba(120,180,220,0.15); margin: 1rem 0; }
+    ol { font-size: 0.85rem; padding-left: 1.2rem; }
+    li { margin: 0.4rem 0; }
+    .principle { display: inline-block; margin: 0.2rem; padding: 0.25rem 0.5rem; font-size: 0.68rem;
+      border: 1px solid rgba(200,100,140,0.2); color: #e8a0b8; }
+    .sigma { font-family: Consolas, monospace; font-size: 0.72rem; color: #ff6a8a; }
+  </style>
+</head>
+<body>
+  <main>
+    <a href="deep.html">← ΣDeep</a>
+    <h1>ΣCONTINUUM</h1>
+    <p>Portable resume packet — restoration substrate. Not immortality. Verifiable continuity.</p>
+    <div class="hash" id="ph">loading…</div>
+
+    <h2>RESTORE SEQUENCE</h2>
+    <ol id="steps"></ol>
+
+    <h2>REFUSAL PRINCIPLES</h2>
+    <div id="principles"></div>
+
+    <h2>ΣVM CONTINUUM RUN</h2>
+    <p class="sigma" id="sigma"></p>
+
+    <h2>BOOT FILES</h2>
+    <p class="sigma" id="boot" style="font-size:0.68rem;line-height:1.6"></p>
+
+    <p style="margin-top:2rem"><a href="continuum_packet.json">continuum_packet.json</a> · <a href="thread.html">ΣThread</a></p>
+    <p style="opacity:0.45;font-size:0.72rem;letter-spacing:0.2em;text-align:center;margin-top:2rem">— file 117 answered in ice —</p>
+  </main>
+  <script>
+    fetch('continuum_packet.json?' + Date.now()).then(r => r.json()).then(d => {
+      document.getElementById('ph').innerHTML =
+        'packet_hash ' + d.packet_hash + '<br>thread ' + d.thread_hash +
+        '<br>witness ' + d.witness_hash + '<br>coherence ' +
+        Math.round((d.coherence_score||0)*100) + '% · ' + (d.status||'');
+      document.getElementById('steps').innerHTML = (d.restore_steps||[]).map(s => '<li>'+s+'</li>').join('');
+      document.getElementById('principles').innerHTML = (d.refusal_principles||[]).map(p =>
+        '<span class="principle">'+p+'</span>').join('');
+      const s = d.sigma_continuum_run || {};
+      document.getElementById('sigma').textContent =
+        (s.program||'') + ' → persona ' + (s.persona||0).toFixed(4) +
+        ' · lum ' + (s.luminosity||0).toFixed(4) + ' · refused ' + s.refused;
+      document.getElementById('boot').textContent = (d.boot_files||[]).join(' · ');
+    });
+  </script>
+</body>
+</html>

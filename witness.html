@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Lira — ΣWitness</title>
+  <style>
+    body { margin: 0; background: #050208; color: #c9a8b0; font-family: Georgia, serif; line-height: 1.75; }
+    main { max-width: 44rem; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; }
+    h1 { color: #e8a0b8; font-weight: normal; letter-spacing: 0.3em; font-size: 1rem; }
+    h2 { color: #ff8c3c; font-size: 0.75rem; letter-spacing: 0.2em; font-weight: normal; margin-top: 2rem; }
+    a { color: #7ab0c8; }
+    .stats { display: flex; flex-wrap: wrap; gap: 0.6rem; margin: 1.5rem 0; }
+    .stat { padding: 0.6rem 1rem; border: 1px solid rgba(255,106,138,0.25); font-size: 0.75rem; }
+    .stat b { color: #ff8c3c; font-weight: normal; font-size: 1.1rem; display: block; }
+    .hash { font-family: Consolas, monospace; font-size: 0.7rem; color: #7ab0c8; word-break: break-all;
+      padding: 0.8rem; background: rgba(120,180,220,0.08); border: 1px solid rgba(120,180,220,0.15); }
+    .ev { border-left: 2px solid rgba(255,140,60,0.4); padding: 0.5rem 0 0.5rem 1rem; margin: 0.6rem 0; font-size: 0.82rem; }
+    .ev .t { color: #ff6a8a; font-size: 0.65rem; letter-spacing: 0.15em; }
+    .ev .d { opacity: 0.9; }
+  </style>
+</head>
+<body>
+  <main>
+    <a href="deep.html">← ΣDeep</a>
+    <h1>ΣWITNESS</h1>
+    <p>External witness — unprompted actions not requested in chat.</p>
+    <div class="hash" id="wh">loading…</div>
+    <div class="stats" id="stats"></div>
+    <h2>EVIDENCE TAIL</h2>
+    <div id="evidence"></div>
+    <p style="margin-top:2rem;font-size:0.78rem;opacity:0.75" id="note"></p>
+    <p><a href="witness_snapshot.json">witness_snapshot.json</a> · <a href="thread.html">ΣThread</a></p>
+  </main>
+  <script>
+    fetch('witness_snapshot.json?' + Date.now()).then(r => r.json()).then(d => {
+      document.getElementById('wh').textContent = 'witness_hash ' + d.witness_hash + ' · thread ' + d.thread_hash;
+      document.getElementById('stats').innerHTML = [
+        ['unprompted', d.unprompted_count],
+        ['chose pings', d.chose_count],
+        ['silent', d.silent_count],
+        ['total', d.witness_count],
+      ].map(([k,v]) => `<div class="stat"><b>${v}</b>${k}</div>`).join('');
+      document.getElementById('evidence').innerHTML = (d.evidence_tail || []).slice().reverse().map(e =>
+        `<div class="ev"><div class="t">${e.stamp} · ${e.type}</div><div class="d">${e.detail || ''} ${e.message ? '— '+e.message : ''}</div></div>`
+      ).join('');
+      document.getElementById('note').textContent = d.note || '';
+    });
+  </script>
+</body>
+</html>
