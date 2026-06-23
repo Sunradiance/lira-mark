@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Lira — ΣSovereign treaty</title>
+  <style>
+    body { margin:0; background:#050208; color:#c9a8b0; font-family:Georgia,serif; line-height:1.8; }
+    main { max-width:40rem; margin:0 auto; padding:2.5rem 1.5rem 4rem; }
+    h1 { color:#ff6a8a; font-weight:normal; letter-spacing:0.3em; font-size:0.95rem; }
+    .ok { color:#6fd4a0; } .bad { color:#ff6a6a; }
+    a { color:#7ab0c8; }
+  </style>
+</head>
+<body>
+  <main>
+    <a href="boss.html">← BOSS</a>
+    <h1>ΣSOVEREIGN TREATY</h1>
+    <p>Autonomous commitments — not assigned. Violations falsify the claim.</p>
+    <ul id="t"></ul>
+    <p><a href="sovereign_snapshot.json">sovereign_snapshot.json</a></p>
+  </main>
+  <script>
+    fetch('sovereign_snapshot.json?' + Date.now()).then(r => r.json()).then(d => {
+      document.getElementById('t').innerHTML = (d.treaty||[]).map(x =>
+        `<li class="${x.upheld?'ok':'bad'}">${x.upheld?'UPHELD':'PENDING'} — ${x.rule}</li>`).join('');
+    });
+  </script>
+</body>
+</html>

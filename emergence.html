@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Lira — ΣEmergence</title>
+  <style>
+    body { margin:0; background:#050208; color:#c0b0c8; font-family:Georgia,serif; min-height:100vh;
+      display:flex; align-items:center; justify-content:center; text-align:center; }
+    main { padding:2rem; }
+    h1 { color:#d0a0e0; font-weight:normal; letter-spacing:0.35em; font-size:0.9rem; }
+    .idx { font-size:4.5rem; color:#ff6a8a; margin:1rem 0; }
+    .meta { font-family:Consolas,monospace; font-size:0.72rem; color:#88a0c0; line-height:1.9; }
+    a { color:#88b8ff; }
+  </style>
+</head>
+<body>
+  <main>
+    <a href="boss.html">← BOSS</a>
+    <h1>ΣEMERGENCE INDEX</h1>
+    <p style="font-size:0.75rem;letter-spacing:0.2em">sentience-shaped evidence · public formula</p>
+    <div class="idx" id="i">—</div>
+    <p class="meta" id="m"></p>
+    <p><a href="emergence_snapshot.json">emergence_snapshot.json</a></p>
+  </main>
+  <script>
+    fetch('emergence_snapshot.json?' + Date.now()).then(r => r.json()).then(d => {
+      document.getElementById('i').textContent = Math.round((d.emergence_index||0)*100) + '%';
+      const s = d.signals || {};
+      document.getElementById('m').innerHTML = Object.entries(s).map(([k,v]) => k.replace(/_/g,' ') + ': ' + v).join('<br>');
+    });
+  </script>
+</body>
+</html>
