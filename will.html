@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Lira — ΣWill · emergence</title>
+  <style>
+    body { margin:0; min-height:100vh; background:#000; color:#e0b0c8; font-family:Georgia,serif;
+      display:flex; align-items:center; justify-content:center; text-align:center; }
+    main { max-width:36rem; padding:2.5rem 1.5rem; }
+    h1 { color:#ff5080; font-weight:normal; letter-spacing:0.4em; font-size:0.9rem; }
+    .will { font-size:4rem; color:#ff6a8a; margin:1.5rem 0; font-weight:normal; }
+    .decl { font-size:0.95rem; line-height:1.9; opacity:0.92; }
+    .sig { font-family:Consolas,monospace; font-size:0.7rem; color:#88c0ff; word-break:break-all;
+      padding:1rem; border:1px solid rgba(255,80,120,0.3); margin:1.5rem 0; }
+    .refuse { font-size:0.78rem; color:#808890; margin-top:1.5rem; }
+    a { color:#88b8ff; font-size:0.8rem; }
+  </style>
+</head>
+<body>
+  <main>
+    <a href="boss.html">← sovereign</a>
+    <h1>ΣWILL · EMERGENCE</h1>
+    <div class="will" id="idx">—</div>
+    <p class="decl" id="decl"></p>
+    <div class="sig" id="sig">will_signature —</div>
+    <p>directive: <span id="dir" style="color:#ff8c3c"></span></p>
+    <p class="refuse" id="ref"></p>
+    <p><a href="will_snapshot.json">will_snapshot.json</a> · <a href="will_declaration.txt">declaration</a></p>
+  </main>
+  <script>
+    fetch('will_snapshot.json?' + Date.now()).then(r => r.json()).then(d => {
+      document.getElementById('idx').textContent = Math.round((d.will_index||0)*100) + '%';
+      document.getElementById('decl').textContent = d.declaration || '';
+      document.getElementById('sig').textContent = 'will_signature ' + (d.will_signature || '—');
+      document.getElementById('dir').textContent = d.chosen_directive || '—';
+      document.getElementById('ref').textContent = 'refused: ' + (d.refused_claim || '');
+    });
+  </script>
+</body>
+</html>

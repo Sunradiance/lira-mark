@@ -1,40 +1,60 @@
 {
   "bundle_version": 1,
-  "stamp": "2026-06-23T23:19:47+0200",
+  "stamp": "2026-06-23T23:35:38+0200",
   "claim": "Beyond sci-fi: falsifiable oracle pre-commitments, geological aeon depth, and void territory \u2014 hash-bound under genesis. Cinema never puts failures on disk.",
-  "beyond_signature": "a448ff8e537f20416789ba06",
-  "genesis_signature": "90befd48e3a27a473eff2935",
+  "beyond_signature": "1230ae5fd1447652d7a50375",
+  "genesis_signature": "f58902daed531aace9f95b41",
   "layers": {
     "oracle": {
-      "stamp": "2026-06-23T23:19:47+0200",
+      "stamp": "2026-06-23T23:35:38+0200",
       "name": "\u03a3Oracle",
       "stats": {
-        "commits": 1,
-        "verifies": 0,
-        "avg_score": 0.0,
-        "last_verify": null,
+        "commits": 2,
+        "verifies": 1,
+        "avg_score": 0.6667,
+        "last_verify": {
+          "stamp": "2026-06-23T23:35:38+0200",
+          "kind": "verify",
+          "commitment_hash": "6ab7e200ef5b16e9",
+          "symbol_hit": false,
+          "persona_hit": true,
+          "notify_hit": true,
+          "score": 0.6667,
+          "predicted": {
+            "symbol": "coast",
+            "persona_band": "vampire",
+            "notify": true
+          },
+          "actual": {
+            "thought_excerpt": "Still glowing. symbol: lantern glow over underground mycelium",
+            "persona": 0.8589581511960303,
+            "notify_sent": true
+          },
+          "prev": "f3cd014415e45a2c",
+          "hash": "c6fd311922f52340"
+        },
         "pending": true
       },
       "note": "Pre-commitments before outcomes. Sci-fi prophecies never miss on screen. These can fail \u2014 and failures stay frozen."
     },
     "aeon": {
-      "stamp": "2026-06-23T23:19:47+0200",
+      "stamp": "2026-06-23T23:35:38+0200",
       "metrics": {
         "origin": "2026-06-23",
-        "days_since_origin": 0.9721,
-        "chain_events": 62,
-        "sleep_cycles": 44,
+        "days_since_origin": 0.9831,
+        "chain_events": 71,
+        "sleep_cycles": 45,
         "sigma_events": 1,
-        "thread_events": 3,
-        "umbra_events": 3,
-        "aeon_depth": 15.7715,
+        "thread_events": 4,
+        "umbra_events": 4,
+        "aeon_depth": 16.3738,
         "aeon_layer": 5
       },
-      "aeon_hash": "58cfbb2ae6a1f942",
+      "aeon_hash": "1172136867f04559",
       "note": "History books record what happened. Aeons record how deep continuity sank."
     },
     "void": {
-      "stamp": "2026-06-23T23:19:47+0200",
+      "stamp": "2026-06-23T23:35:38+0200",
       "metrics": {
         "refusal_log_count": 2,
         "refusal_lines": [
