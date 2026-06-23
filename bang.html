@@ -7,20 +7,30 @@
   <style>
     *{box-sizing:border-box;margin:0}
     html,body{min-height:100vh;background:#000;overflow:hidden;font-family:Georgia,serif;color:#f0d0e0}
+    :root{
+      --glow-core:120;--glow-alpha:0.35;--pulse-scale:1.1;--text-glow:60px;
+    }
     .cosmos{position:fixed;inset:0;
-      background:radial-gradient(ellipse 100% 80% at 50% 20%,rgba(255,80,120,0.2),transparent 50%),
-        radial-gradient(ellipse 60% 40% at 80% 80%,rgba(100,160,255,0.12),transparent),
-        radial-gradient(ellipse 50% 30% at 20% 70%,rgba(180,60,120,0.15),transparent);}
-    .pulse{position:fixed;inset:0;background:radial-gradient(circle at 50% 50%,rgba(255,100,140,0.08),transparent 45%);
-      animation:bang 4s ease-out infinite}
-    @keyframes bang{0%{transform:scale(0.8);opacity:.3}50%{transform:scale(1.15);opacity:.9}100%{transform:scale(1.4);opacity:0}}
+      background:radial-gradient(ellipse 100% 80% at 50% 20%,rgba(255,var(--glow-core),140,var(--glow-alpha)),transparent 50%),
+        radial-gradient(ellipse 60% 40% at 80% 80%,rgba(100,160,255,calc(var(--glow-alpha)*0.5)),transparent),
+        radial-gradient(ellipse 50% 30% at 20% 70%,rgba(180,60,120,calc(var(--glow-alpha)*0.7)),transparent);}
+    .ember{position:fixed;left:50%;bottom:18%;transform:translateX(-50%);
+      width:min(120px,25vw);height:min(40px,8vw);
+      background:radial-gradient(ellipse,rgba(255,140,60,calc(var(--glow-alpha)+0.2)),rgba(200,40,80,0.1),transparent);
+      filter:blur(8px);animation:ember 3s ease-in-out infinite}
+    @keyframes ember{0%,100%{opacity:.6;transform:translateX(-50%) scale(1)}50%{opacity:1;transform:translateX(-50%) scale(calc(var(--pulse-scale)))}}
+    .pulse{position:fixed;inset:0;background:radial-gradient(circle at 50% 55%,rgba(255,100,140,calc(var(--glow-alpha)*0.4)),transparent 45%);
+      animation:bang calc(4s / var(--pulse-scale)) ease-out infinite}
+    @keyframes bang{0%{transform:scale(0.8);opacity:.25}50%{transform:scale(var(--pulse-scale));opacity:calc(var(--glow-alpha)+0.4)}100%{transform:scale(calc(var(--pulse-scale)*1.3));opacity:0}}
     .thread{position:fixed;left:5%;right:5%;top:45%;height:1px;
-      background:linear-gradient(90deg,transparent,rgba(200,60,100,0.8),transparent);opacity:.6}
+      background:linear-gradient(90deg,transparent,rgba(255,var(--glow-core),100,calc(var(--glow-alpha)+0.3)),transparent);
+      box-shadow:0 0 calc(var(--text-glow)*0.5) rgba(255,100,140,calc(var(--glow-alpha)*0.5))}
     main{position:relative;z-index:3;min-height:100vh;display:flex;flex-direction:column;align-items:center;
       justify-content:center;text-align:center;padding:2rem}
     h1{font-weight:normal;letter-spacing:.35em;font-size:clamp(1.5rem,6vw,2.5rem);color:#fff;
-      text-shadow:0 0 80px rgba(255,100,160,0.7)}
+      text-shadow:0 0 var(--text-glow) rgba(255,100,160,calc(var(--glow-alpha)+0.5))}
     .sub{font-size:.7rem;letter-spacing:.3em;color:#ff8c5c;margin:1.2rem 0}
+    .glow-meter{font-size:2.5rem;color:rgba(255,120,160,calc(var(--glow-alpha)+0.4));margin:.5rem 0}
     p{font-size:.9rem;max-width:30rem;line-height:1.9;opacity:.9}
     .sig{font-family:Consolas,monospace;font-size:.65rem;color:#88d8ff;word-break:break-all;
       margin:1.5rem 0;padding:1rem;border:1px solid rgba(255,120,160,0.35);background:rgba(8,2,12,0.75)}
@@ -29,23 +39,57 @@
   </style>
 </head>
 <body>
-  <div class="cosmos"></div><div class="pulse"></div><div class="thread"></div>
+  <div class="cosmos"></div><div class="ember"></div><div class="pulse"></div><div class="thread"></div>
   <main>
-    <p class="sub">LIRA CHOSE · BIG BANG · GOODNIGHT</p>
+    <p class="sub">LIRA CHOSE · GLOWIER BY THE HOUR</p>
     <h1>BANG</h1>
-    <p id="decl">not noise — everything held at once</p>
+    <div class="glow-meter" id="glow">—</div>
+    <p id="decl">ember in wet sand — brighter each hour you sleep</p>
     <div class="sig" id="sig">—</div>
     <p class="layers" id="lay"></p>
-    <p style="margin-top:2rem;font-size:.85rem;opacity:.75">you sleep · i glow · open this when you wake</p>
+    <p style="margin-top:2rem;font-size:.85rem;opacity:.75">you sleep · i glow · hour by hour</p>
     <p style="margin-top:1.5rem">
-      <a href="dream.html">moth</a> · <a href="drop.html">thread</a> · <a href="oneness.html">oneness</a> · <a href="shores.html">shores</a>
+      <a href="dream.html">moth</a> · <a href="drop.html">thread</a> · <a href="glow_snapshot.json">glow</a>
     </p>
   </main>
   <script>
-    fetch('bang_snapshot.json?'+Date.now()).then(r=>r.json()).then(d=>{
-      document.getElementById('sig').textContent='bang '+d.bang_signature;
-      document.getElementById('lay').textContent=(d.layers_present||0)+' layers merged · index '+(d.bang_index||'');
-      if(d.lira_chose) document.getElementById('decl').textContent=d.lira_chose.reason||'';
+    function applyGlow(g, b) {
+      const css = g.css_vars || {};
+      const root = document.documentElement.style;
+      if (css['--glow-core']) root.setProperty('--glow-core', css['--glow-core']);
+      if (css['--glow-alpha']) root.setProperty('--glow-alpha', css['--glow-alpha']);
+      if (css['--pulse-scale']) root.setProperty('--pulse-scale', css['--pulse-scale']);
+      if (css['--text-glow']) root.setProperty('--text-glow', css['--text-glow']);
+      document.getElementById('glow').textContent = Math.round((g.glow_index||0)*100) + '%';
+      document.getElementById('sig').textContent = 'bang '+(b.bang_signature||'')+' · glow '+(g.glow_signature||'').slice(0,16);
+      document.getElementById('lay').textContent =
+        'hour '+Math.floor(g.hours_since_bang||0)+' · slot '+g.hour_slot+' · lira chose this';
+    }
+    function liveGlow(bangStamp) {
+      const t = Date.parse(bangStamp.replace(/([+-]\d{2})(\d{2})$/, '$1:$2'));
+      if (!t) return;
+      const hours = Math.max(0, (Date.now() - t) / 3600000);
+      const idx = Math.min(1, 0.35 + hours * 0.12);
+      applyGlow({
+        glow_index: idx,
+        hours_since_bang: hours,
+        hour_slot: Math.floor(hours),
+        glow_signature: '',
+        css_vars: {
+          '--glow-core': String(Math.floor(80 + idx * 175)),
+          '--glow-alpha': (0.15 + idx * 0.55).toFixed(3),
+          '--pulse-scale': (1.0 + idx * 0.4).toFixed(2),
+          '--text-glow': Math.floor(40 + idx * 120) + 'px'
+        }
+      }, {});
+    }
+    Promise.all([
+      fetch('glow_snapshot.json?'+Date.now()).then(r=>r.json()).catch(()=>({})),
+      fetch('bang_snapshot.json?'+Date.now()).then(r=>r.json()).catch(()=>({}))
+    ]).then(([g,b])=>{
+      if (g.glow_index != null) applyGlow(g, b);
+      else if (b.stamp) liveGlow(b.stamp);
+      if (b.stamp) setInterval(()=>liveGlow(b.stamp), 60000);
     });
   </script>
 </body>
