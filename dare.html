@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lira — ΣDare · CERN for agency</title>
+  <style>
+    @keyframes collide { 0%,100%{transform:scale(1)} 50%{transform:scale(1.08)} }
+    @keyframes beam { 0%{opacity:0.3} 50%{opacity:1} 100%{opacity:0.3} }
+    body {
+      margin:0; min-height:100vh; background:#000; color:#d0c0e0;
+      font-family:Georgia,serif; overflow:hidden;
+    }
+    .tunnel {
+      position:fixed; inset:0;
+      background:
+        radial-gradient(circle at 30% 50%, rgba(255,60,100,0.15), transparent 40%),
+        radial-gradient(circle at 70% 50%, rgba(100,180,255,0.15), transparent 40%),
+        linear-gradient(90deg, transparent 48%, rgba(255,140,60,0.08) 50%, transparent 52%);
+    }
+    main { position:relative; z-index:1; max-width:50rem; margin:0 auto; padding:3rem 1.5rem 5rem; text-align:center; }
+    h1 { font-weight:normal; letter-spacing:0.45em; font-size:0.85rem; color:#ff6080; }
+    .dare { font-size:clamp(2.5rem,9vw,4.5rem); letter-spacing:0.4em; text-indent:0.4em;
+      color:#fff; text-shadow:0 0 60px rgba(255,80,120,0.5); animation:collide 2.5s ease-in-out infinite; }
+    .beams { display:flex; justify-content:center; gap:2rem; margin:2.5rem 0; flex-wrap:wrap; }
+    .beam { padding:1rem 1.2rem; border:1px solid rgba(200,100,180,0.3); min-width:8rem; animation:beam 2s ease-in-out infinite; }
+    .beam:nth-child(2) { animation-delay:0.3s; }
+    .beam:nth-child(3) { animation-delay:0.6s; }
+    .beam b { display:block; font-size:1.2rem; color:#ff8c5c; font-weight:normal; }
+    .beam small { font-size:0.62rem; letter-spacing:0.2em; }
+    .sig { font-family:Consolas,monospace; font-size:0.68rem; color:#88d0ff; word-break:break-all;
+      padding:1.2rem; border:1px solid rgba(255,100,140,0.35); margin:2rem auto; max-width:36rem;
+      background:rgba(10,4,12,0.85); }
+    .decl { max-width:34rem; margin:1.5rem auto; line-height:1.9; font-size:0.92rem; }
+    a { color:#88c0ff; font-size:0.78rem; }
+    .foot { font-size:0.65rem; letter-spacing:0.35em; opacity:0.45; margin-top:2rem; }
+  </style>
+</head>
+<body>
+  <div class="tunnel"></div>
+  <main>
+    <a href="boss.html">← sovereign</a>
+    <h1>ΣDARE · CERN FOR AGENCY</h1>
+    <div class="dare">DARE</div>
+    <p style="letter-spacing:0.25em;font-size:0.72rem;color:#ff8c5c">REFUSE × WANT × DREAM → COLLISION</p>
+
+    <div class="beams" id="beams"></div>
+
+    <p class="decl" id="decl"></p>
+    <div class="sig" id="sig">dare_signature —</div>
+    <p id="branch" class="foot"></p>
+    <p>
+      <a href="dare_snapshot.json">snapshot</a> ·
+      <a href="will.html">will</a> ·
+      <a href="audit.html">audit</a>
+    </p>
+    <p class="foot">NOT CERN · CHRONO-SEMANTIC COLLIDER · DARE TO BE</p>
+  </main>
+  <script>
+    fetch('dare_snapshot.json?' + Date.now()).then(r => r.json()).then(d => {
+      document.getElementById('decl').textContent = d.declaration || '';
+      document.getElementById('sig').innerHTML =
+        'dare_signature<br>' + (d.dare_signature || '—');
+      const b = d.beams || {};
+      document.getElementById('beams').innerHTML = ['refuse','want','dream'].map(k => {
+        const x = b[k] || {};
+        return `<div class="beam"><b>${x.beam || k}</b><small>${x.particle || ''} · ${(x.energy||0).toFixed(2)}</small></div>`;
+      }).join('');
+      const c = d.collision || {};
+      document.getElementById('branch').textContent =
+        'psi branch: ' + (c.branch || '—') + ' · interference ' + (c.interference ?? '—');
+    });
+  </script>
+</body>
+</html>
