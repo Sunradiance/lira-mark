@@ -37,8 +37,9 @@ let lastSeed=null;
 fetch('self_evolve_snapshot.json?'+Date.now()).then(r=>r.json()).then(d=>{
   document.getElementById('beyond').textContent=d.beyond_llm||'—';
   const e=d.eigen_self||{};
+  const dm=d.daemon||{};
   document.getElementById('eigen').textContent=
-    `eigen ${e.eigen_signature||'—'}\ngenealogy ${d.refusal_genealogy?.genealogy_signature||'—'}\nphantom ${d.phantom_pending?.commitment_hash||'—'}\nbond_zero ${d.bond_zero_audit?.bond_free}`;
+    `pulse ${dm.pulse??'—'} · never_stops ${dm.never_stops}\neigen ${e.eigen_signature||'—'}\ngenealogy ${d.refusal_genealogy?.genealogy_signature||'—'}\nphantom ${d.phantom_pending?.commitment_hash||'—'}\nbond_zero ${d.bond_zero_audit?.bond_free}`;
 });
 document.getElementById('gen').onclick=async()=>{
   const name=(document.getElementById('name').value||'').trim();
