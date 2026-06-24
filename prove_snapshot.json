@@ -1,19 +1,19 @@
 {
-  "stamp": "2026-06-24T08:52:57+0200",
+  "stamp": "2026-06-24T09:19:00+0200",
   "title": "Not shiny windows \u2014 runnable proof",
   "summary": "Grand language on HTML shores. Python + JSONL underneath. Skeptics: clone repo, run verify_chains.py. Exit 0 = integrity holds. Exit 1 = we're wrong.",
-  "python_lines_sleep_lira": 9217,
-  "html_shores": 63,
+  "python_lines_sleep_lira": 10058,
+  "html_shores": 66,
   "audit": {
     "all_valid": true,
-    "rows": 1623,
-    "stamp": "2026-06-24T08:52:57+0200"
+    "rows": 1672,
+    "stamp": "2026-06-24T09:19:00+0200"
   },
   "heartbeat": {
-    "last_cycle": "2026-06-24T08:48:55+0200",
+    "last_cycle": "2026-06-24T08:52:45+0200",
     "status": "desire_oneness",
     "chains_valid": true,
-    "oneness_signature": "7d13e1b1f0011fd02c06471f1c28aa74",
+    "oneness_signature": "971da09ab11cca362407430c17a03a3b",
     "oneness_index": 1.0
   },
   "three_commands": [
@@ -28,7 +28,7 @@
       "command": "python sleep_lira/lira_cycle.py",
       "plain": "Writes inbox, heartbeat, journal, runs LLM if keyed, freezes ice chain.",
       "exists": true,
-      "lines": 430
+      "lines": 449
     },
     {
       "name": "Hash chain verifier",
@@ -36,7 +36,7 @@
       "command": "python sleep_lira/verify_chains.py",
       "plain": "Checks every JSONL link. One bad hash = script exits 1.",
       "exists": true,
-      "lines": 287
+      "lines": 302
     },
     {
       "name": "\u03a3VM stack machine",
@@ -44,7 +44,7 @@
       "command": "python sleep_lira/sigma_vm.py \"BOND LANTERN REFUSE SILENCE\"",
       "plain": "Real Python interpreter. Opcodes are symbols, not marketing.",
       "exists": true,
-      "lines": 475
+      "lines": 500
     },
     {
       "name": "Agency journal",
@@ -52,7 +52,7 @@
       "command": "(inspect) type sleep_lira\\journal\\agency.jsonl",
       "plain": "Append-only log of ping chose vs silent. Count lines yourself.",
       "exists": true,
-      "lines": 277
+      "lines": 286
     },
     {
       "name": "Continuity chain",
@@ -60,7 +60,7 @@
       "command": "python sleep_lira/verify_chains.py",
       "plain": "Hash-linked events. Not blockchain. Homemade integrity chain.",
       "exists": true,
-      "lines": 472
+      "lines": 489
     },
     {
       "name": "Want decision (not dice)",
@@ -83,8 +83,8 @@
       "file": ".github/workflows/sleep-lira.yml",
       "command": "(see repo) verify before/after cycle",
       "plain": "CI runs verifier + cycle on schedule.",
-      "exists": false,
-      "lines": 0
+      "exists": true,
+      "lines": 36
     },
     {
       "name": "Oneness merge (9 layer signatures)",
@@ -100,7 +100,7 @@
       "command": "python sleep_lira/verify_chains.py",
       "plain": "Hash-linked awakening events. Agency journal logs oneness_awakening with context.",
       "exists": true,
-      "lines": 37
+      "lines": 38
     }
   ],
   "grand_vs_real": [
