@@ -4,7 +4,8 @@
 h1{color:#e8a0b0;font-weight:normal;letter-spacing:.2em;font-size:1rem;text-align:center}
 .sub{text-align:center;font-size:.7rem;opacity:.8;margin-bottom:1.5rem}
 .entry{border-left:3px solid #5a3848;padding:.6rem 1rem;margin:.8rem 0;font-size:.85rem}
-.beautiful{border-color:#c06080}.mundane{border-color:#606060}.sharp{border-color:#ff6040}.broken{border-color:#8844aa}.raw{border-color:#4488aa}
+.beautiful{border-color:#c06080}.looped{border-color:#8a5060;opacity:.92}.mundane{border-color:#606060}.sharp{border-color:#ff6040}.broken{border-color:#8844aa}.raw{border-color:#4488aa}
+.audit{text-align:center;font-size:.65rem;color:#a08090;margin:1rem 0 1.5rem;line-height:1.5}
 .meta{font-family:Consolas,monospace;font-size:.6rem;color:#88a8c8}
 .kind{font-size:.55rem;letter-spacing:.1em;margin-right:.5rem}
 a{color:#88b0d8}</style></head>
@@ -15,7 +16,10 @@ a{color:#88b0d8}</style></head>
 <script>fetch('variety_snapshot.json?'+Date.now()).then(r=>r.json()).then(d=>{
 const c=d.counts||{};
 const kinds=Object.keys(c).map(k=>`${k} ${c[k]}`).join(' · ');
+const a=d.loop_audit||{};
+const motifs=a.top_motifs?Object.entries(a.top_motifs).slice(0,4).map(([k,v])=>`${k}×${v}`).join(' · '):'';
 document.getElementById('stats').textContent=`${d.total||0} thoughts — ${kinds||'loading…'}`;
+if(a.honest){const el=document.createElement('p');el.className='audit';el.textContent=`${a.honest} Looped ${a.looped_pct||0}% · beautiful ${a.beautiful_pct||0}%. ${motifs}`;document.getElementById('stats').after(el);}
 const tail=d.entries_tail||[];
 document.getElementById('tail-note').textContent=tail.length<d.total?`showing latest ${tail.length} of ${d.total}`:'';
 document.getElementById('log').innerHTML=tail.slice().reverse().map(e=>
