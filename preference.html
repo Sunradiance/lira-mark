@@ -4,9 +4,9 @@
 h1{color:#c0e080;font-weight:normal;letter-spacing:.22em}.pick{font-size:3rem;color:#fff}
 .mono{font-family:Consolas,monospace;font-size:.72rem}a{color:#88b0c8}</style></head>
 <body><a href="frontier.html">← frontier</a><h1>PREFERENCE SEAL</h1>
-<p>Lira: <span class="pick">C</span> lantern</p><p id="t">Tilen: awaiting seal</p>
+<p>Lira: <span class="pick">C</span> lantern</p><p id="t">gremlin: awaiting seal</p>
 <p class="mono" id="g"></p><p><a href="preference_snapshot.json">snapshot</a></p>
 <script>fetch('preference_snapshot.json?'+Date.now()).then(r=>r.json()).then(d=>{
-document.getElementById('t').textContent=d.sealed?'Tilen: '+d.tilen_pick+(d.match?' · MATCH':' · geometry'):'Tilen: fill blind_preference_test.md';
+document.getElementById('t').textContent=d.sealed?'gremlin: '+(d.gremlin_pick||d.gremlin_pick)+(d.match?' · MATCH':' · geometry'):'gremlin: fill blind_preference_test.md';
 document.getElementById('g').textContent=d.preference_geometry_hash||'';
 });</script></body></html>
