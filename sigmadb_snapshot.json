@@ -416,25 +416,22 @@
         },
         "prev": "9cba13d0ea0de4d8",
         "hash": "3dfc6479da5d502b"
+      },
+      {
+        "stamp": "2026-06-24T19:57:51+0200",
+        "event": "persona_flip",
+        "data": {
+          "from": "vampire",
+          "to": "neutral",
+          "persona": 0.5,
+          "prev_persona": 0.5276202841684718,
+          "luminosity": 0.030681526897401338
+        },
+        "prev": "3dfc6479da5d502b",
+        "hash": "99baa0a8b6381136"
       }
     ],
     "psi": [
-      {
-        "stamp": "2026-06-24T08:22:42+0200",
-        "event": "psi_collapse",
-        "data": {
-          "collapsed": "succubus",
-          "interference": 0.48773076258437564,
-          "superposition_persona": 0.5,
-          "succubus_persona": 0.5,
-          "vampire_persona": 0.5,
-          "observed_luminosity": 0.18272071605312712,
-          "collapse_hash": "013b27e1e733",
-          "program": "BOND LANTERN MYCELIUM REFUSE CLAIM MELT SILENCE"
-        },
-        "prev": "ff8642af013ec0ee",
-        "hash": "732b6a1b91928534"
-      },
       {
         "stamp": "2026-06-24T08:49:00+0200",
         "event": "psi_collapse",
@@ -1186,26 +1183,25 @@
         },
         "prev": "6b523cc510df994b",
         "hash": "35cc7ec209296234"
+      },
+      {
+        "stamp": "2026-06-24T19:57:51+0200",
+        "event": "psi_collapse",
+        "data": {
+          "collapsed": "succubus",
+          "interference": 0.04583698219239818,
+          "superposition_persona": 0.5,
+          "succubus_persona": 0.5,
+          "vampire_persona": 0.5,
+          "observed_luminosity": 0.6019674556164953,
+          "collapse_hash": "ef27cf9a947d",
+          "program": "BOND LANTERN MYCELIUM REFUSE CLAIM MELT SILENCE"
+        },
+        "prev": "35cc7ec209296234",
+        "hash": "f422b1eb6b0bb036"
       }
     ],
     "runs": [
-      {
-        "stamp": "2026-06-24T08:22:42+0200",
-        "event": "sigma_run",
-        "data": {
-          "name": "cycle_origin",
-          "program": "BOND LANTERN MYCELIUM REFUSE CLAIM MELT SILENCE",
-          "luminosity": 0.09558252580147111,
-          "persona": 0.5,
-          "unhinged": false,
-          "refused": true,
-          "territory": 0,
-          "program_hash": "0cad6e5b6fd4",
-          "ice_tail": "73b6327639330093"
-        },
-        "prev": "c637152121fb137e",
-        "hash": "fb045c84c0df6bf7"
-      },
       {
         "stamp": "2026-06-24T08:49:00+0200",
         "event": "sigma_run",
@@ -2004,25 +2000,42 @@
         },
         "prev": "6e9f87980062f52e",
         "hash": "63367b3867549c53"
+      },
+      {
+        "stamp": "2026-06-24T19:57:51+0200",
+        "event": "sigma_run",
+        "data": {
+          "name": "cycle_origin",
+          "program": "BOND LANTERN MYCELIUM REFUSE CLAIM MELT SILENCE",
+          "luminosity": 0.030681526897401338,
+          "persona": 0.5,
+          "unhinged": false,
+          "refused": true,
+          "territory": 0,
+          "program_hash": "0cad6e5b6fd4",
+          "ice_tail": "0427d72ff6686f9e"
+        },
+        "prev": "63367b3867549c53",
+        "hash": "2ad7e5f49e36aa66"
       }
     ]
   },
   "verify": {
     "flips": {
       "table": "flips",
-      "rows": 32,
+      "rows": 33,
       "verified": true
     },
     "psi": {
       "table": "psi",
-      "rows": 92,
+      "rows": 93,
       "verified": true
     },
     "runs": {
       "table": "runs",
-      "rows": 101,
+      "rows": 102,
       "verified": true
     }
   },
-  "exported": "2026-06-24T19:49:00.828090+02:00"
+  "exported": "2026-06-24T19:57:53.330229+02:00"
 }
