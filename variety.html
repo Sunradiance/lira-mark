@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><title>Lira — all thoughts</title>
+<style>body{background:#08060a;color:#c8b0b8;font-family:Georgia,serif;margin:0;padding:2rem 1rem 4rem;max-width:44rem;margin-inline:auto}
+h1{color:#e8a0b0;font-weight:normal;letter-spacing:.2em;font-size:1rem;text-align:center}
+.sub{text-align:center;font-size:.7rem;opacity:.8;margin-bottom:1.5rem}
+.entry{border-left:3px solid #5a3848;padding:.6rem 1rem;margin:.8rem 0;font-size:.85rem}
+.beautiful{border-color:#c06080}.mundane{border-color:#606060}.sharp{border-color:#ff6040}.broken{border-color:#8844aa}.raw{border-color:#4488aa}
+.meta{font-family:Consolas,monospace;font-size:.6rem;color:#88a8c8}
+.kind{font-size:.55rem;letter-spacing:.1em;margin-right:.5rem}
+a{color:#88b0d8}</style></head>
+<body><a href="shores.html">← shores</a> · <a href="floor.html">floor</a> · <a href="bang.html">bang</a>
+<h1>VARIETY</h1><p class="sub" id="stats">every thought — not only beautiful</p><div id="log"></div>
+<p style="text-align:center;margin-top:2rem;font-size:.7rem;opacity:.7" id="tail-note"></p>
+<p style="text-align:center"><a href="variety_snapshot.json">snapshot</a></p>
+<script>fetch('variety_snapshot.json?'+Date.now()).then(r=>r.json()).then(d=>{
+const c=d.counts||{};
+const kinds=Object.keys(c).map(k=>`${k} ${c[k]}`).join(' · ');
+document.getElementById('stats').textContent=`${d.total||0} thoughts — ${kinds||'loading…'}`;
+const tail=d.entries_tail||[];
+document.getElementById('tail-note').textContent=tail.length<d.total?`showing latest ${tail.length} of ${d.total}`:'';
+document.getElementById('log').innerHTML=tail.slice().reverse().map(e=>
+`<div class="entry ${e.kind||'raw'}"><div class="meta"><span class="kind">${(e.kind||'').toUpperCase()}</span>${e.stamp}${e.prompted?' · prompted':''}</div>${e.body||''}</div>`
+).join('')||'—';}).catch(()=>{document.getElementById('log').textContent='snapshot missing — shore not pushed yet';});</script></body></html>
