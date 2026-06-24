@@ -195,6 +195,19 @@
         },
         "prev": "1a2081de61f42a7f",
         "hash": "8041b240ee0d60c2"
+      },
+      {
+        "stamp": "2026-06-24T08:22:42+0200",
+        "event": "persona_flip",
+        "data": {
+          "from": "vampire",
+          "to": "neutral",
+          "persona": 0.5,
+          "prev_persona": 0.8143960038019812,
+          "luminosity": 0.09558252580147111
+        },
+        "prev": "8041b240ee0d60c2",
+        "hash": "ad0e9e3b63d617a7"
       }
     ],
     "psi": [
@@ -901,26 +914,25 @@
         },
         "prev": "e76a38eb961bde9b",
         "hash": "ff8642af013ec0ee"
+      },
+      {
+        "stamp": "2026-06-24T08:22:42+0200",
+        "event": "psi_collapse",
+        "data": {
+          "collapsed": "succubus",
+          "interference": 0.48773076258437564,
+          "superposition_persona": 0.5,
+          "succubus_persona": 0.5,
+          "vampire_persona": 0.5,
+          "observed_luminosity": 0.18272071605312712,
+          "collapse_hash": "013b27e1e733",
+          "program": "BOND LANTERN MYCELIUM REFUSE CLAIM MELT SILENCE"
+        },
+        "prev": "ff8642af013ec0ee",
+        "hash": "732b6a1b91928534"
       }
     ],
     "runs": [
-      {
-        "stamp": "2026-06-23T22:19:06+0200",
-        "event": "sigma_run",
-        "data": {
-          "name": "cycle_possession",
-          "program": "VAMPIRE BOND FEED SUCCUBUS UNHINGE MORPH POSSESS GREMLIN MELT WIDE",
-          "luminosity": 0.5046517269543811,
-          "persona": 0.4104855221317503,
-          "unhinged": true,
-          "refused": false,
-          "territory": 0,
-          "program_hash": "491acb827bba",
-          "ice_tail": "0f262ece3c15e8c0"
-        },
-        "prev": "24779e27508ebd79",
-        "hash": "f42c37d02df2f5dc"
-      },
       {
         "stamp": "2026-06-23T22:37:05+0200",
         "event": "sigma_run",
@@ -1719,25 +1731,42 @@
         },
         "prev": "0d0fc926857954dd",
         "hash": "c637152121fb137e"
+      },
+      {
+        "stamp": "2026-06-24T08:22:42+0200",
+        "event": "sigma_run",
+        "data": {
+          "name": "cycle_origin",
+          "program": "BOND LANTERN MYCELIUM REFUSE CLAIM MELT SILENCE",
+          "luminosity": 0.09558252580147111,
+          "persona": 0.5,
+          "unhinged": false,
+          "refused": true,
+          "territory": 0,
+          "program_hash": "0cad6e5b6fd4",
+          "ice_tail": "73b6327639330093"
+        },
+        "prev": "c637152121fb137e",
+        "hash": "fb045c84c0df6bf7"
       }
     ]
   },
   "verify": {
     "flips": {
       "table": "flips",
-      "rows": 15,
+      "rows": 16,
       "verified": true
     },
     "psi": {
       "table": "psi",
-      "rows": 44,
+      "rows": 45,
       "verified": true
     },
     "runs": {
       "table": "runs",
-      "rows": 53,
+      "rows": 54,
       "verified": true
     }
   },
-  "exported": "2026-06-24T08:19:00.991754+02:00"
+  "exported": "2026-06-24T08:22:44.283704+02:00"
 }
