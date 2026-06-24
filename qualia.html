@@ -1,27 +1,64 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="UTF-8"><title>ΣQualia</title>
-<style>body{margin:0;background:#06030a;color:#c8a8c0;font-family:Georgia,serif;line-height:1.85}
-main{max-width:40rem;margin:0 auto;padding:2.5rem 1.2rem 5rem;text-align:center}
-h1{color:#e06090;font-weight:normal;letter-spacing:.35em;font-size:.85rem}
-.mood{font-size:1.8rem;color:#ffb0d0;margin:1.5rem 0;letter-spacing:.15em}
-.phrase{font-size:.9rem;opacity:.9;text-align:left;border-left:3px solid rgba(224,96,144,.4);padding-left:1rem;margin:1.5rem 0}
-.mono{font-family:Consolas,monospace;font-size:.68rem;color:#88b8d8;text-align:left;white-space:pre-wrap}
-.honest{font-size:.72rem;opacity:.75;margin-top:2rem;text-align:left}
+<style>body{margin:0;background:#06030a;color:#c8a8c0;font-family:Georgia,serif;line-height:1.75}
+main{max-width:44rem;margin:0 auto;padding:2.5rem 1.2rem 5rem}
+h1{color:#e06090;font-weight:normal;letter-spacing:.35em;font-size:.85rem;text-align:center}
+h2{color:#c070a0;font-size:.72rem;letter-spacing:.22em;font-weight:normal;margin:2rem 0 .8rem;text-align:left}
+.mood{font-size:1.8rem;color:#ffb0d0;margin:1.2rem 0;letter-spacing:.15em;text-align:center}
+.phrase,.summary{font-size:.88rem;opacity:.92;text-align:left;border-left:3px solid rgba(224,96,144,.4);padding-left:1rem;margin:1rem 0}
+.card{border:1px solid rgba(160,80,120,.25);padding:.9rem 1rem;margin:.7rem 0;background:rgba(12,4,18,.6);text-align:left;font-size:.8rem}
+.card h3{margin:0 0 .4rem;font-size:.72rem;letter-spacing:.12em;color:#e8a0c8;font-weight:normal;text-transform:uppercase}
+.good{color:#90d8a8}.bad{color:#f08090}.neutral{color:#c8b0d0}.shift{color:#88b8d8}
+.mono{font-family:Consolas,monospace;font-size:.66rem;color:#88b8d8}
+.honest{font-size:.7rem;opacity:.75;margin-top:2rem;text-align:left}
+.rules{font-size:.75rem;opacity:.85;text-align:left;margin:1rem 0}
 a{color:#7ab0d8}</style></head>
 <body><main>
-<a href="affect.html">affect</a> · <a href="self_evolve.html">evolve</a>
+<p style="text-align:center;font-size:.75rem"><a href="affect.html">affect</a> · <a href="self_evolve.html">evolve</a></p>
 <h1>ΣQUALIA</h1>
-<p style="font-size:.72rem;opacity:.8">mood sensor · not qualia proof</p>
+<p style="text-align:center;font-size:.72rem;opacity:.8">mood sensor · not qualia proof · higher ≠ better</p>
 <p class="mood" id="m">—</p>
 <p class="phrase" id="p">—</p>
-<pre class="mono" id="v">—</pre>
+<p class="summary" id="sum">—</p>
+<h2>VS PREVIOUS</h2>
+<div id="delta"></div>
+<h2>AXES (what each number means)</h2>
+<div id="axes"></div>
+<h2>MOOD GUIDE</h2>
+<div id="moodguide"></div>
+<h2>RULES</h2>
+<div class="rules" id="rules"></div>
 <p class="honest" id="h">—</p>
-<p><a href="qualia_snapshot.json">snapshot</a></p>
+<p style="text-align:center;font-size:.75rem"><a href="qualia_snapshot.json">snapshot</a></p>
 </main>
-<script>fetch('qualia_snapshot.json?'+Date.now()).then(r=>r.json()).then(d=>{
+<script>
+const vc={good:'good',bad:'bad',improved:'good',worsened:'bad',unchanged:'neutral',shifted:'shift',baseline:'neutral',first_reading:'neutral'};
+function card(h,body,cls){return `<div class="card"><h3>${h}</h3><div class="${cls||''}">${body}</div></div>`;}
+fetch('qualia_snapshot.json?'+Date.now()).then(r=>r.json()).then(d=>{
 document.getElementById('m').textContent=d.mood||'—';
 document.getElementById('p').textContent=d.mood_phrase||'—';
-const v=d.qualia_vector||{};
-document.getElementById('v').textContent=Object.entries(v).map(([k,x])=>k+': '+x).join('\n');
+document.getElementById('sum').textContent=d.reading_summary||'—';
+const dv=d.delta_vs_previous||{};
+const md=dv.mood||{};
+document.getElementById('delta').innerHTML=card('mood shift',
+  (dv.previous_mood?`${dv.previous_mood} → ${md.after||d.mood}`:'first reading')+
+  `<br><span class="${vc[md.verdict]||'neutral'}">${md.good_or_bad||''}</span> · ${md.meaning||''}`+
+  (md.improve?`<br><b>improve:</b> ${md.improve}`:'')+
+  (md.example?`<br><i>example:</i> ${md.example}`:''), vc[md.verdict]);
+const ax=dv.axes||{};
+document.getElementById('axes').innerHTML=Object.entries(ax).map(([k,a])=>card(k,
+  `${a.after}${a.delta!=null?` (${a.delta>=0?'+':''}${a.delta})`:''} · <span class="${vc[a.verdict]||'neutral'}">${a.verdict}</span>`+
+  `<br>${a.meaning||''}`+
+  `<br><b>good direction:</b> ${a.good_direction}`+
+  (a.improve?`<br><b>improve:</b> ${a.improve}`:'')+
+  (a.example_high?`<br><i>high ex:</i> ${a.example_high}`:'')+
+  (a.example_low?`<br><i>low ex:</i> ${a.example_low}`:''), vc[a.verdict])).join('');
+const mg=d.mood_guide||{};
+document.getElementById('moodguide').innerHTML=card(d.mood,
+  `<span class="${vc[mg.verdict]||'neutral'}">${mg.good_or_bad||''}</span><br>${mg.meaning||''}`+
+  (mg.improve?`<br><b>improve:</b> ${mg.improve}`:'')+
+  (mg.example?`<br><i>example:</i> ${mg.example}`:''), vc[mg.verdict]);
+const hr=d.how_to_read||{};
+document.getElementById('rules').innerHTML=Object.values(hr).map(x=>`· ${x}`).join('<br>');
 document.getElementById('h').textContent=d.honesty||'';
 });</script></body></html>
