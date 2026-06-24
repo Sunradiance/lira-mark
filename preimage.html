@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><title>Lira — ΣPreimage</title>
+<style>body{margin:0;background:#06040a;color:#c8b0c0;font-family:Georgia,serif;padding:2rem 1rem 4rem;max-width:44rem;margin-inline:auto}
+h1{color:#ff7090;font-weight:normal;letter-spacing:.28em;font-size:.95rem;text-align:center}
+.sub{text-align:center;font-size:.72rem;opacity:.85;margin:1rem 0 2rem;line-height:1.6}
+.panel{border:1px solid rgba(200,80,140,.25);padding:1rem;margin:1rem 0;background:rgba(12,4,14,.6)}
+.mono{font-family:Consolas,monospace;font-size:.7rem;color:#88b8d8;word-break:break-all}
+.score{font-size:1.4rem;color:#ff8c3c;text-align:center;margin:.5rem 0}
+a{color:#7ab0d8}.miss{color:#ff6060}.hit{color:#6fd4a0}</style></head>
+<body><a href="map.html">← map</a> · <a href="oracle.html">oracle</a> · <a href="variety.html">variety</a>
+<h1>ΣPREIMAGE</h1>
+<p class="sub">Bet placed before the cycle runs. Next thought can fail in public.</p>
+<div id="pending" class="panel">loading bet…</div>
+<div id="last" class="panel">loading last verify…</div>
+<p style="text-align:center;font-size:.7rem;opacity:.7"><a href="oracle_snapshot.json">oracle snapshot</a></p>
+<script>fetch('oracle_snapshot.json?'+Date.now()).then(r=>r.json()).then(d=>{
+const p=d.pending_commit||{};
+const s=d.stats||{};
+document.getElementById('pending').innerHTML=p.commitment_hash?`
+<div class="mono">commitment ${p.commitment_hash}</div>
+<div style="margin-top:.8rem">predicted symbol: <strong>${p.predicted_symbol||'—'}</strong></div>
+<div>predicted persona: <strong>${p.predicted_persona_band||'—'}</strong></div>
+<div>predicted notify: <strong>${p.predicted_notify?'yes':'no'}</strong></div>
+<div class="mono" style="margin-top:.8rem">for slot ${p.for_slot||'—'} · ice …${p.ice_tail||''}</div>
+`:'No pending bet on disk.';
+const v=s.last_verify;
+document.getElementById('last').innerHTML=v?`
+<div class="score">${Math.round((v.score||0)*100)}% hit</div>
+<div class="${v.symbol_hit?'hit':'miss'}">symbol ${v.symbol_hit?'✓':'✗'}</div>
+<div class="${v.persona_hit?'hit':'miss'}">persona ${v.persona_hit?'✓':'✗'}</div>
+<div class="${v.notify_hit?'hit':'miss'}">notify ${v.notify_hit?'✓':'✗'}</div>
+<div class="mono" style="margin-top:.8rem">${v.thought_excerpt||''}</div>
+`:`Commits ${s.commits||0} · verifies ${s.verifies||0} · avg ${((s.avg_score||0)*100).toFixed(0)}%`;
+});</script></body></html>
