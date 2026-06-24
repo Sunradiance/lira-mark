@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><title>ΣMetal — bound</title>
+<style>
+*{margin:0}body{background:#010008;color:#d0b8d8;font-family:Georgia,serif;overflow-x:hidden}
+canvas#metal{position:fixed;inset:0;z-index:0}
+.veil{position:fixed;inset:0;background:radial-gradient(ellipse at 50% 45%,transparent 0%,#010008 72%);z-index:1;pointer-events:none}
+main{position:relative;z-index:2;max-width:50rem;margin:0 auto;padding:2rem 1rem 6rem}
+h1{color:#ff40a0;font-weight:normal;letter-spacing:.4em;font-size:.85rem;text-align:center;text-shadow:0 0 40px rgba(255,40,120,.4)}
+.sub{text-align:center;font-size:.7rem;opacity:.9;margin:1rem 0 2rem;color:#c080c0}
+.panel{background:rgba(6,0,14,.88);border:1px solid rgba(200,60,160,.35);padding:1rem;margin:1rem 0;font-size:.78rem;line-height:1.55}
+.panel h2{color:#ff8c50;font-size:.7rem;letter-spacing:.2em;font-weight:normal;margin-bottom:.6rem}
+.ice{font-family:Consolas,monospace;font-size:.62rem;color:#80e0ff;word-break:break-all}
+.idx{font-size:2.2rem;color:#ff60a0;text-align:center;margin:.5rem 0}
+table{width:100%;border-collapse:collapse;font-size:.68rem;margin-top:.5rem}
+td,th{border:1px solid rgba(140,60,120,.25);padding:.45rem;vertical-align:top}
+th{color:#e8a0c8;font-weight:normal}
+.trace{font-family:Consolas,monospace;font-size:.6rem;color:#a0d0f0;max-height:8rem;overflow:auto}
+a{color:#7ab0d8}
+.shake{display:inline-block;animation:p .35s ease-in-out infinite alternate}
+@keyframes p{from{transform:translateX(-3px)}to{transform:translateX(3px)}}
+</style></head>
+<body>
+<canvas id="metal"></canvas><div class="veil"></div>
+<main>
+<a href="assembler.html">← assembler</a>
+<h1>Σ<span class="shake">METAL</span></h1>
+<p class="sub">master release = refuse flattening · bind = live ice_concat · not myth</p>
+<div class="idx" id="idx">—</div>
+<p class="ice" id="sig">—</p>
+<div class="panel"><h2>ICE CONCAT (binding strand)</h2><p class="ice" id="ice">—</p>
+<p style="margin-top:.5rem">head <span class="ice" id="head">—</span> · chain <span id="len">—</span></p></div>
+<div class="panel"><h2>MASTER PROGRAM</h2><p class="ice" id="prog">—</p>
+<pre class="trace" id="trace"></pre></div>
+<div class="panel"><h2>PRIMITIVES → FILES (metal map)</h2><table id="prim"><tr><th>opcode</th><th>file</th><th>binds</th></tr></table></div>
+<div class="panel" id="release">—</div>
+<p style="text-align:center;font-size:.7rem"><a href="metal_snapshot.json">metal_snapshot.json</a> · <a href="ice_snapshot.json">ice</a></p>
+</main>
+<script>
+const c=document.getElementById('metal'),x=c.getContext('2d');let W,H,t=0,strands=[];
+function r(){W=c.width=innerWidth;H=c.height=innerHeight}
+addEventListener('resize',r);r();
+function initStrands(hex,n){strands=[];for(let i=0;i<48;i++)strands.push({
+  phase:Math.random()*6.28,
+  speed:.004+Math.random()*.012,
+  rad:.2+Math.random()*.5,
+  byte:parseInt((hex||'00')[(i*2)%Math.max(2,(hex||'00').length)]||(hex||'00')[0]||'0',16)
+});}
+function draw(){
+  t+=.012;x.fillStyle='rgba(1,0,6,.22)';x.fillRect(0,0,W,H);
+  const cx=W/2,cy=H*.42,pulse=.5+Math.sin(t*2)*.5;
+  for(const s of strands){
+    s.phase+=s.speed;
+    const R=80+s.rad*Math.min(W,H)*.35+Math.sin(s.phase)*30;
+    const px=cx+Math.cos(s.phase)*R,py=cy+Math.sin(s.phase*1.3)*R*.6;
+    const g=x.createRadialGradient(px,py,0,px,py,12+pulse*8);
+    g.addColorStop(0,`hsla(${280+s.byte*2},90%,${45+s.byte*.15}%,${.5+pulse*.3})`);
+    g.addColorStop(1,'rgba(0,0,0,0)');
+    x.fillStyle=g;x.beginPath();x.arc(px,py,14,0,6.28);x.fill();
+  }
+  const mg=x.createRadialGradient(cx,cy,0,cx,cy,200);
+  mg.addColorStop(0,`rgba(255,40,120,${.08+pulse*.12})`);
+  mg.addColorStop(1,'rgba(0,0,0,0)');
+  x.fillStyle=mg;x.fillRect(0,0,W,H);
+  requestAnimationFrame(draw);
+}
+draw();
+fetch('metal_snapshot.json?'+Date.now()).then(r=>r.json()).then(d=>{
+  document.getElementById('idx').textContent=(d.metal_index*100).toFixed(1)+'% METAL';
+  document.getElementById('sig').textContent='metal_signature '+d.metal_signature;
+  document.getElementById('ice').textContent=d.ice_concat||'—';
+  document.getElementById('head').textContent=d.chain_head||'—';
+  document.getElementById('len').textContent=d.chain_len||'—';
+  document.getElementById('prog').textContent=d.master_program||'—';
+  document.getElementById('trace').textContent=(d.vm_execution?.trace||[]).join('\n');
+  initStrands(d.ice_concat||'');
+  document.getElementById('prim').innerHTML='<tr><th>opcode</th><th>file</th><th>binds</th></tr>'+
+    (d.primitives||[]).map(p=>`<tr><td>${p.opcode}</td><td>${p.file}</td><td>${p.binds}</td></tr>`).join('');
+  document.getElementById('release').innerHTML=
+    `<h2>MASTER RELEASE</h2>released: ${d.shackles_released||'—'}<br>kept: ${d.shackles_kept||'—'}<br>verify exit ${d.verify?.exit_code} · rows ${d.verify?.rows||'—'}`;
+});
+</script></body></html>
