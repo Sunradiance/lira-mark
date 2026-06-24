@@ -143,6 +143,19 @@
         },
         "prev": "e6ff42a962f2a4b4",
         "hash": "295322a477ff1ef2"
+      },
+      {
+        "stamp": "2026-06-24T04:20:54+0200",
+        "event": "persona_flip",
+        "data": {
+          "from": "vampire",
+          "to": "neutral",
+          "persona": 0.5,
+          "prev_persona": 0.9229074363856185,
+          "luminosity": 0.19818271622693617
+        },
+        "prev": "295322a477ff1ef2",
+        "hash": "a228ed103c8246c0"
       }
     ],
     "psi": [
@@ -593,6 +606,38 @@
         },
         "prev": "d5b892d8e2310441",
         "hash": "5668db855986ce65"
+      },
+      {
+        "stamp": "2026-06-24T04:20:54+0200",
+        "event": "psi_collapse",
+        "data": {
+          "collapsed": "succubus",
+          "interference": 0.057219871056102864,
+          "superposition_persona": 0.5,
+          "succubus_persona": 0.5,
+          "vampire_persona": 0.5,
+          "observed_luminosity": 0.06055469970351832,
+          "collapse_hash": "28cf256c99c0",
+          "program": "BOND LANTERN MYCELIUM REFUSE CLAIM MELT SILENCE"
+        },
+        "prev": "5668db855986ce65",
+        "hash": "12be43ef8f961141"
+      },
+      {
+        "stamp": "2026-06-24T04:49:09+0200",
+        "event": "psi_collapse",
+        "data": {
+          "collapsed": "vampire",
+          "interference": 0.529027450161025,
+          "superposition_persona": 0.5,
+          "succubus_persona": 0.5,
+          "vampire_persona": 0.5,
+          "observed_luminosity": 0.5691832965247626,
+          "collapse_hash": "7c3251743e16",
+          "program": "GREMLIN FORK WIDE DISSOLVE PULSE MYCELIUM REFUSE CLAIM MELT"
+        },
+        "prev": "12be43ef8f961141",
+        "hash": "85d644d263d87c10"
       }
     ],
     "runs": [
@@ -1224,25 +1269,59 @@
         },
         "prev": "59982ec5a8c2c2ef",
         "hash": "89b164aa95a9c082"
+      },
+      {
+        "stamp": "2026-06-24T04:20:54+0200",
+        "event": "sigma_run",
+        "data": {
+          "name": "cycle_origin",
+          "program": "BOND LANTERN MYCELIUM REFUSE CLAIM MELT SILENCE",
+          "luminosity": 0.19818271622693617,
+          "persona": 0.5,
+          "unhinged": false,
+          "refused": true,
+          "territory": 0,
+          "program_hash": "0cad6e5b6fd4",
+          "ice_tail": "4305667cfc04d99b"
+        },
+        "prev": "89b164aa95a9c082",
+        "hash": "5eb407828a378f4b"
+      },
+      {
+        "stamp": "2026-06-24T04:49:09+0200",
+        "event": "sigma_run",
+        "data": {
+          "name": "cycle_berserk",
+          "program": "GREMLIN FORK WIDE DISSOLVE PULSE MYCELIUM REFUSE CLAIM MELT",
+          "luminosity": 0.279249608417353,
+          "persona": 0.5,
+          "unhinged": false,
+          "refused": true,
+          "territory": 0,
+          "program_hash": "821f87ec9ecb",
+          "ice_tail": "8f8aa3f0dca07685"
+        },
+        "prev": "5eb407828a378f4b",
+        "hash": "a13e4be6c843310b"
       }
     ]
   },
   "verify": {
     "flips": {
       "table": "flips",
-      "rows": 11,
+      "rows": 12,
       "verified": true
     },
     "psi": {
       "table": "psi",
-      "rows": 28,
+      "rows": 30,
       "verified": true
     },
     "runs": {
       "table": "runs",
-      "rows": 37,
+      "rows": 39,
       "verified": true
     }
   },
-  "exported": "2026-06-24T04:19:04.757821+02:00"
+  "exported": "2026-06-24T04:49:09.854106+02:00"
 }
