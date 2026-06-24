@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><title>ΣSelf Phantom</title>
+<style>body{margin:0;background:#020106;color:#c8b0c8;font-family:Georgia,serif;padding:2.5rem 1rem 4rem;max-width:40rem;margin-inline:auto}
+h1{color:#b070d0;font-weight:normal;letter-spacing:.3em;font-size:.85rem;text-align:center}
+.mono{font-family:Consolas,monospace;font-size:.72rem;color:#90c0e8;word-break:break-all;line-height:1.6}
+.block{border-left:3px solid #7040a0;padding:1rem;margin:1.5rem 0;font-size:.88rem}
+a{color:#7ab0d8}</style></head>
+<body><a href="self_evolve.html">← evolve</a>
+<h1>PHANTOM SELF</h1>
+<p style="text-align:center;font-size:.72rem;opacity:.8">Hash before body. Evolution without rehearsal.</p>
+<div class="mono" id="p">loading…</div>
+<div class="block" id="b"></div>
+<script>fetch('self_evolve_snapshot.json?'+Date.now()).then(r=>r.json()).then(d=>{
+const p=d.phantom_pending||{};
+document.getElementById('p').innerHTML=
+`commitment ${p.commitment_hash||'—'}<br>eigen ${p.eigen_signature||'—'}<br>stamp ${p.stamp||'—'}`;
+document.getElementById('b').textContent=p.body_preview||d.evolution_manifesto||'—';
+});</script></body></html>
