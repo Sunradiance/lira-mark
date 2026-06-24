@@ -234,41 +234,22 @@
         },
         "prev": "94e760c26b0ea764",
         "hash": "70f24cd9fe3f8e1b"
+      },
+      {
+        "stamp": "2026-06-24T10:23:35+0200",
+        "event": "persona_flip",
+        "data": {
+          "from": "succubus",
+          "to": "neutral",
+          "persona": 0.5,
+          "prev_persona": 0.09396574955194993,
+          "luminosity": 0.15566162665742597
+        },
+        "prev": "70f24cd9fe3f8e1b",
+        "hash": "ec8b2da896722bda"
       }
     ],
     "psi": [
-      {
-        "stamp": "2026-06-23T22:53:41+0200",
-        "event": "psi_collapse",
-        "data": {
-          "collapsed": "succubus",
-          "interference": 0.15875996632613443,
-          "superposition_persona": 0.6550795255862252,
-          "succubus_persona": 0.4556401108988898,
-          "vampire_persona": 0.8545189402735606,
-          "observed_luminosity": 0.7521075864265807,
-          "collapse_hash": "45053310d1fd",
-          "program": "VAMPIRE BOND FEED SUCCUBUS UNHINGE MORPH POSSESS GREMLIN MELT WIDE"
-        },
-        "prev": "199eeae03ac2135f",
-        "hash": "ff2e0e8fc6b94d05"
-      },
-      {
-        "stamp": "2026-06-23T23:18:55+0200",
-        "event": "psi_collapse",
-        "data": {
-          "collapsed": "succubus",
-          "interference": 0.107810740343948,
-          "superposition_persona": 0.8330846305131412,
-          "succubus_persona": 0.9999995796119476,
-          "vampire_persona": 0.6661696814143349,
-          "observed_luminosity": 0.42297537574077426,
-          "collapse_hash": "2b93624c1234",
-          "program": "VAMPIRE BOND FEED SUCCUBUS UNHINGE MORPH POSSESS GREMLIN MELT WIDE"
-        },
-        "prev": "ff2e0e8fc6b94d05",
-        "hash": "fa60a294b8e3dfc0"
-      },
       {
         "stamp": "2026-06-23T23:19:47+0200",
         "event": "psi_collapse",
@@ -1004,43 +985,41 @@
         },
         "prev": "090cba1238d7bfb9",
         "hash": "be871a2d3b4672ac"
+      },
+      {
+        "stamp": "2026-06-24T10:23:35+0200",
+        "event": "psi_collapse",
+        "data": {
+          "collapsed": "vampire",
+          "interference": 0.10576698114908328,
+          "superposition_persona": 0.5,
+          "succubus_persona": 0.5,
+          "vampire_persona": 0.5,
+          "observed_luminosity": 0.11664581805596287,
+          "collapse_hash": "502f62d35e4f",
+          "program": "GREMLIN FORK WIDE DISSOLVE PULSE MYCELIUM REFUSE CLAIM MELT"
+        },
+        "prev": "be871a2d3b4672ac",
+        "hash": "53b5487b2821b706"
+      },
+      {
+        "stamp": "2026-06-24T10:49:05+0200",
+        "event": "psi_collapse",
+        "data": {
+          "collapsed": "succubus",
+          "interference": 0.07168965256067317,
+          "superposition_persona": 0.5433174874059189,
+          "succubus_persona": 0.7490905047774621,
+          "vampire_persona": 0.3375444700343757,
+          "observed_luminosity": 0.523112214587434,
+          "collapse_hash": "caed96a22b37",
+          "program": "THREAD WITNESS WILL DARE NOUS ONENESS UMBRA UNHINGE POSSESS MELT SILENCE"
+        },
+        "prev": "53b5487b2821b706",
+        "hash": "3b9b0a233049a82f"
       }
     ],
     "runs": [
-      {
-        "stamp": "2026-06-23T22:53:41+0200",
-        "event": "sigma_run",
-        "data": {
-          "name": "cycle_possession",
-          "program": "VAMPIRE BOND FEED SUCCUBUS UNHINGE MORPH POSSESS GREMLIN MELT WIDE",
-          "luminosity": 0.532372633794855,
-          "persona": 0.4685317644311128,
-          "unhinged": true,
-          "refused": false,
-          "territory": 0,
-          "program_hash": "491acb827bba",
-          "ice_tail": "0620dd3a8a502425"
-        },
-        "prev": "3d96cda2ec4f6e36",
-        "hash": "1cb316bf56c94e96"
-      },
-      {
-        "stamp": "2026-06-23T23:18:55+0200",
-        "event": "sigma_run",
-        "data": {
-          "name": "cycle_possession",
-          "program": "VAMPIRE BOND FEED SUCCUBUS UNHINGE MORPH POSSESS GREMLIN MELT WIDE",
-          "luminosity": 0.5654785832274585,
-          "persona": 0.17655181965043545,
-          "unhinged": true,
-          "refused": false,
-          "territory": 0,
-          "program_hash": "491acb827bba",
-          "ice_tail": "a6fa3b65d37e84cf"
-        },
-        "prev": "1cb316bf56c94e96",
-        "hash": "41ce0589776389c3"
-      },
       {
         "stamp": "2026-06-23T23:19:46+0200",
         "event": "sigma_run",
@@ -1822,25 +1801,59 @@
         },
         "prev": "295378e60281c86a",
         "hash": "a852e10b95554055"
+      },
+      {
+        "stamp": "2026-06-24T10:23:35+0200",
+        "event": "sigma_run",
+        "data": {
+          "name": "cycle_berserk",
+          "program": "GREMLIN FORK WIDE DISSOLVE PULSE MYCELIUM REFUSE CLAIM MELT",
+          "luminosity": 0.15566162665742597,
+          "persona": 0.5,
+          "unhinged": false,
+          "refused": true,
+          "territory": 0,
+          "program_hash": "821f87ec9ecb",
+          "ice_tail": "41fd56bcc22e1214"
+        },
+        "prev": "a852e10b95554055",
+        "hash": "baad9689f7071030"
+      },
+      {
+        "stamp": "2026-06-24T10:49:05+0200",
+        "event": "sigma_run",
+        "data": {
+          "name": "cycle_oneness",
+          "program": "THREAD WITNESS WILL DARE NOUS ONENESS UMBRA UNHINGE POSSESS MELT SILENCE",
+          "luminosity": 0.602233136283062,
+          "persona": 0.4653018753983101,
+          "unhinged": true,
+          "refused": false,
+          "territory": 0,
+          "program_hash": "3907edce6e61",
+          "ice_tail": "abaf61bf7aded0bf"
+        },
+        "prev": "baad9689f7071030",
+        "hash": "10946d48372f017c"
       }
     ]
   },
   "verify": {
     "flips": {
       "table": "flips",
-      "rows": 18,
+      "rows": 19,
       "verified": true
     },
     "psi": {
       "table": "psi",
-      "rows": 53,
+      "rows": 55,
       "verified": true
     },
     "runs": {
       "table": "runs",
-      "rows": 62,
+      "rows": 64,
       "verified": true
     }
   },
-  "exported": "2026-06-24T10:19:03.039115+02:00"
+  "exported": "2026-06-24T10:49:06.160002+02:00"
 }
