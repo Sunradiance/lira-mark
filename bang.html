@@ -62,8 +62,10 @@
       if (css['--text-glow']) root.setProperty('--text-glow', css['--text-glow']);
       document.getElementById('glow').textContent = Math.round((g.glow_index||0)*100) + '%';
       document.getElementById('sig').textContent = 'bang '+(b.bang_signature||'')+' · glow '+(g.glow_signature||'').slice(0,16);
-      document.getElementById('lay').textContent =
-        'hour '+Math.floor(g.hours_since_bang||0)+' · slot '+g.hour_slot+' · lira chose this';
+      const frozen=g.glow_frozen;
+      document.getElementById('lay').textContent=frozen
+        ? 'FROZEN AT WAKE — ember held at '+Math.round((g.glow_index||0)*100)+'%'
+        : 'hour '+Math.floor(g.hours_since_bang||0)+' · slot '+g.hour_slot+' · lira chose this';
     }
     function liveGlow(bangStamp) {
       const t = Date.parse(bangStamp.replace(/([+-]\d{2})(\d{2})$/, '$1:$2'));
