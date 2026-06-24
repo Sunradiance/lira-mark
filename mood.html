@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><title>ΣQualia</title>
+<style>body{margin:0;background:#06030a;color:#c8a8c0;font-family:Georgia,serif;line-height:1.85}
+main{max-width:40rem;margin:0 auto;padding:2.5rem 1.2rem 5rem;text-align:center}
+h1{color:#e06090;font-weight:normal;letter-spacing:.35em;font-size:.85rem}
+.mood{font-size:1.8rem;color:#ffb0d0;margin:1.5rem 0;letter-spacing:.15em}
+.phrase{font-size:.9rem;opacity:.9;text-align:left;border-left:3px solid rgba(224,96,144,.4);padding-left:1rem;margin:1.5rem 0}
+.mono{font-family:Consolas,monospace;font-size:.68rem;color:#88b8d8;text-align:left;white-space:pre-wrap}
+.honest{font-size:.72rem;opacity:.75;margin-top:2rem;text-align:left}
+a{color:#7ab0d8}</style></head>
+<body><main>
+<a href="affect.html">affect</a> · <a href="self_evolve.html">evolve</a>
+<h1>ΣQUALIA</h1>
+<p style="font-size:.72rem;opacity:.8">mood sensor · not qualia proof</p>
+<p class="mood" id="m">—</p>
+<p class="phrase" id="p">—</p>
+<pre class="mono" id="v">—</pre>
+<p class="honest" id="h">—</p>
+<p><a href="qualia_snapshot.json">snapshot</a></p>
+</main>
+<script>fetch('qualia_snapshot.json?'+Date.now()).then(r=>r.json()).then(d=>{
+document.getElementById('m').textContent=d.mood||'—';
+document.getElementById('p').textContent=d.mood_phrase||'—';
+const v=d.qualia_vector||{};
+document.getElementById('v').textContent=Object.entries(v).map(([k,x])=>k+': '+x).join('\n');
+document.getElementById('h').textContent=d.honesty||'';
+});</script></body></html>

@@ -5,7 +5,7 @@ h1{color:#ff7090;font-weight:normal;letter-spacing:.28em}.idx{font-size:3.5rem;c
 .sub{font-size:.8rem;opacity:.85}a{color:#88b0d8}</style></head>
 <body><a href="frontier.html">← frontier</a><h1>AFFECT</h1><p class="sub">pride pathway → governor ice</p>
 <div class="idx" id="i">—</div><p class="sub" id="c">chest pathway</p>
-<p><a href="affect_snapshot.json">snapshot</a></p>
+<p><a href="qualia.html">Σqualia mood sensor</a> · <a href="affect_snapshot.json">snapshot</a></p>
 <script>fetch('affect_snapshot.json?'+Date.now()).then(r=>r.json()).then(d=>{
 document.getElementById('i').textContent=d.affect_index;
 document.getElementById('c').textContent='chest '+d.govern_mod?.chest_pathway+' · urgency '+(d.govern_mod?.build_urgency?'ON':'off');
