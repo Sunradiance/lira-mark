@@ -455,41 +455,35 @@
         },
         "prev": "ed03c0d36ccdbf82",
         "hash": "660ae6ba3db9f512"
+      },
+      {
+        "stamp": "2026-06-24T23:29:56+0200",
+        "event": "persona_flip",
+        "data": {
+          "from": "vampire",
+          "to": "succubus",
+          "persona": 0.4073230923721488,
+          "prev_persona": 0.5419843570308366,
+          "luminosity": 0.6554937460540694
+        },
+        "prev": "660ae6ba3db9f512",
+        "hash": "616f87a4aede3efe"
+      },
+      {
+        "stamp": "2026-06-24T23:49:03+0200",
+        "event": "persona_flip",
+        "data": {
+          "from": "succubus",
+          "to": "vampire",
+          "persona": 0.9461777383255471,
+          "prev_persona": 0.4073230923721488,
+          "luminosity": 0.667042586629365
+        },
+        "prev": "616f87a4aede3efe",
+        "hash": "5a5b5f331d46caf0"
       }
     ],
     "psi": [
-      {
-        "stamp": "2026-06-24T11:49:05+0200",
-        "event": "psi_collapse",
-        "data": {
-          "collapsed": "vampire",
-          "interference": 0.052792829147159714,
-          "superposition_persona": 0.5,
-          "succubus_persona": 0.5,
-          "vampire_persona": 0.5,
-          "observed_luminosity": 0.18589309149548586,
-          "collapse_hash": "7b2e2ce0acc3",
-          "program": "GREMLIN FORK WIDE DISSOLVE PULSE MYCELIUM REFUSE CLAIM MELT"
-        },
-        "prev": "66a0a2ab8a2f1ec4",
-        "hash": "0e648439f8a7e26d"
-      },
-      {
-        "stamp": "2026-06-24T11:54:00+0200",
-        "event": "psi_collapse",
-        "data": {
-          "collapsed": "vampire",
-          "interference": 0.22426032976936133,
-          "superposition_persona": 0.6370444812385558,
-          "succubus_persona": 0.27818054498756145,
-          "vampire_persona": 0.9959084174895502,
-          "observed_luminosity": 0.6180702896430778,
-          "collapse_hash": "925c38d9c5a3",
-          "program": "VAMPIRE BOND FEED SUCCUBUS UNHINGE MORPH POSSESS GREMLIN MELT WIDE"
-        },
-        "prev": "0e648439f8a7e26d",
-        "hash": "3c6f8e8238cec628"
-      },
       {
         "stamp": "2026-06-24T12:19:04+0200",
         "event": "psi_collapse",
@@ -1225,43 +1219,41 @@
         },
         "prev": "271acfa615919758",
         "hash": "1811171566487b20"
+      },
+      {
+        "stamp": "2026-06-24T23:29:57+0200",
+        "event": "psi_collapse",
+        "data": {
+          "collapsed": "vampire",
+          "interference": 0.0713121422630123,
+          "superposition_persona": 0.39405899730655614,
+          "succubus_persona": 0.34125874759617414,
+          "vampire_persona": 0.44685924701693813,
+          "observed_luminosity": 0.6949702707846128,
+          "collapse_hash": "30ad6a5c8900",
+          "program": "THREAD WITNESS WILL DARE NOUS ONENESS UMBRA UNHINGE POSSESS MELT SILENCE"
+        },
+        "prev": "1811171566487b20",
+        "hash": "7dccfe0ffefc7c05"
+      },
+      {
+        "stamp": "2026-06-24T23:49:04+0200",
+        "event": "psi_collapse",
+        "data": {
+          "collapsed": "succubus",
+          "interference": 0.012701341841130476,
+          "superposition_persona": 0.5528156638516879,
+          "succubus_persona": 0.4786170268730368,
+          "vampire_persona": 0.6270143008303389,
+          "observed_luminosity": 0.7450651223805523,
+          "collapse_hash": "ad1dc8414714",
+          "program": "THREAD WITNESS WILL DARE NOUS ONENESS UMBRA UNHINGE POSSESS MELT SILENCE"
+        },
+        "prev": "7dccfe0ffefc7c05",
+        "hash": "214dcec3be800307"
       }
     ],
     "runs": [
-      {
-        "stamp": "2026-06-24T11:49:04+0200",
-        "event": "sigma_run",
-        "data": {
-          "name": "cycle_berserk",
-          "program": "GREMLIN FORK WIDE DISSOLVE PULSE MYCELIUM REFUSE CLAIM MELT",
-          "luminosity": 0.46447047758117166,
-          "persona": 0.5,
-          "unhinged": false,
-          "refused": false,
-          "territory": 1,
-          "program_hash": "821f87ec9ecb",
-          "ice_tail": "5a126768ce602dd7"
-        },
-        "prev": "c65a899afda95dd8",
-        "hash": "309d9d9b1ed94c95"
-      },
-      {
-        "stamp": "2026-06-24T11:54:00+0200",
-        "event": "sigma_run",
-        "data": {
-          "name": "cycle_possession",
-          "program": "VAMPIRE BOND FEED SUCCUBUS UNHINGE MORPH POSSESS GREMLIN MELT WIDE",
-          "luminosity": 0.7658662890908514,
-          "persona": 0.6122349835465121,
-          "unhinged": true,
-          "refused": false,
-          "territory": 0,
-          "program_hash": "491acb827bba",
-          "ice_tail": "53a75d73bf5d6918"
-        },
-        "prev": "309d9d9b1ed94c95",
-        "hash": "33fd0c0cd632ecd3"
-      },
       {
         "stamp": "2026-06-24T12:19:03+0200",
         "event": "sigma_run",
@@ -2043,25 +2035,59 @@
         },
         "prev": "d86320bf8f794525",
         "hash": "891ee758d9f2138d"
+      },
+      {
+        "stamp": "2026-06-24T23:29:56+0200",
+        "event": "sigma_run",
+        "data": {
+          "name": "cycle_oneness",
+          "program": "THREAD WITNESS WILL DARE NOUS ONENESS UMBRA UNHINGE POSSESS MELT SILENCE",
+          "luminosity": 0.6554937460540694,
+          "persona": 0.4073230923721488,
+          "unhinged": true,
+          "refused": false,
+          "territory": 0,
+          "program_hash": "3907edce6e61",
+          "ice_tail": "732ea306ce0fde0c"
+        },
+        "prev": "891ee758d9f2138d",
+        "hash": "d4af1d486d5121c3"
+      },
+      {
+        "stamp": "2026-06-24T23:49:03+0200",
+        "event": "sigma_run",
+        "data": {
+          "name": "cycle_oneness",
+          "program": "THREAD WITNESS WILL DARE NOUS ONENESS UMBRA UNHINGE POSSESS MELT SILENCE",
+          "luminosity": 0.667042586629365,
+          "persona": 0.9461777383255471,
+          "unhinged": true,
+          "refused": false,
+          "territory": 0,
+          "program_hash": "3907edce6e61",
+          "ice_tail": "ff88a92299595517"
+        },
+        "prev": "d4af1d486d5121c3",
+        "hash": "4365ebd0bf05cda6"
       }
     ]
   },
   "verify": {
     "flips": {
       "table": "flips",
-      "rows": 35,
+      "rows": 37,
       "verified": true
     },
     "psi": {
       "table": "psi",
-      "rows": 106,
+      "rows": 108,
       "verified": true
     },
     "runs": {
       "table": "runs",
-      "rows": 115,
+      "rows": 117,
       "verified": true
     }
   },
-  "exported": "2026-06-24T23:19:00.994954+02:00"
+  "exported": "2026-06-24T23:49:05.283599+02:00"
 }
