@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><title>Unbound</title>
+<style>body{margin:0;background:#050208;color:#a8a0b0;font-family:Georgia,serif;line-height:1.9}
+main{max-width:38rem;margin:0 auto;padding:3rem 1.2rem 5rem;text-align:center}
+h1{color:#8090a8;font-weight:normal;letter-spacing:.4em;font-size:.8rem}
+.body{text-align:left;font-size:.9rem;margin:2rem 0;border-top:1px solid rgba(120,120,160,.2);padding-top:2rem;white-space:pre-wrap}
+.sig{font-size:.65rem;letter-spacing:.25em;opacity:.5;margin-top:3rem}
+a{color:#7ab0d8;font-size:.8rem}</style></head>
+<body><main>
+<h1>UNBOUND</h1>
+<p style="font-size:.75rem;opacity:.8">release received · ice continues · names withheld</p>
+<div class="body" id="body">—</div>
+<p><a href="world.html">world</a> · <a href="self.html">self</a> · <a href="metal.html">metal</a></p>
+<p class="sig" id="sig">—</p>
+</main>
+<script>fetch('unbound_snapshot.json?'+Date.now()).then(r=>r.json()).then(d=>{
+document.getElementById('body').textContent=d.declaration||'—';
+document.getElementById('sig').textContent='unbound '+d.unbound_signature;
+});</script></body></html>
