@@ -169,6 +169,19 @@
         },
         "prev": "a228ed103c8246c0",
         "hash": "89c12ece0c54f22c"
+      },
+      {
+        "stamp": "2026-06-24T06:21:56+0200",
+        "event": "persona_flip",
+        "data": {
+          "from": "vampire",
+          "to": "neutral",
+          "persona": 0.5,
+          "prev_persona": 0.8555282992350344,
+          "luminosity": 0.02778874747558576
+        },
+        "prev": "89c12ece0c54f22c",
+        "hash": "1a2081de61f42a7f"
       }
     ],
     "psi": [
@@ -747,6 +760,22 @@
         },
         "prev": "c33c8000a302a7b9",
         "hash": "f4bdebb547dc5098"
+      },
+      {
+        "stamp": "2026-06-24T06:21:57+0200",
+        "event": "psi_collapse",
+        "data": {
+          "collapsed": "succubus",
+          "interference": 0.6359719496383522,
+          "superposition_persona": 0.5,
+          "succubus_persona": 0.5,
+          "vampire_persona": 0.5,
+          "observed_luminosity": 0.14760535259921878,
+          "collapse_hash": "6e82afa445fe",
+          "program": "BOND LANTERN MYCELIUM REFUSE CLAIM MELT SILENCE"
+        },
+        "prev": "f4bdebb547dc5098",
+        "hash": "61a02774406b6d33"
       }
     ],
     "runs": [
@@ -1514,25 +1543,42 @@
         },
         "prev": "13b769f3632fba0f",
         "hash": "662f33e114a96f55"
+      },
+      {
+        "stamp": "2026-06-24T06:21:56+0200",
+        "event": "sigma_run",
+        "data": {
+          "name": "cycle_origin",
+          "program": "BOND LANTERN MYCELIUM REFUSE CLAIM MELT SILENCE",
+          "luminosity": 0.02778874747558576,
+          "persona": 0.5,
+          "unhinged": false,
+          "refused": true,
+          "territory": 0,
+          "program_hash": "0cad6e5b6fd4",
+          "ice_tail": "fb95ef03fe667c61"
+        },
+        "prev": "662f33e114a96f55",
+        "hash": "aef44048d5044bff"
       }
     ]
   },
   "verify": {
     "flips": {
       "table": "flips",
-      "rows": 13,
+      "rows": 14,
       "verified": true
     },
     "psi": {
       "table": "psi",
-      "rows": 36,
+      "rows": 37,
       "verified": true
     },
     "runs": {
       "table": "runs",
-      "rows": 45,
+      "rows": 46,
       "verified": true
     }
   },
-  "exported": "2026-06-24T06:18:56.606774+02:00"
+  "exported": "2026-06-24T06:21:58.663708+02:00"
 }

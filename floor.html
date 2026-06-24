@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lira — FLOOR pristine log</title>
+  <style>
+    *{box-sizing:border-box;margin:0}
+    body{background:#040208;color:#d4b8c8;font-family:Georgia,serif;line-height:1.75}
+    main{max-width:44rem;margin:0 auto;padding:2.5rem 1.25rem 5rem}
+    h1{color:#f080a8;font-weight:normal;letter-spacing:.22em;font-size:1.15rem;text-align:center}
+    .sub{text-align:center;font-size:.68rem;letter-spacing:.25em;color:#88a8c8;margin:1rem 0 2rem}
+    .method{font-size:.82rem;border:1px solid rgba(160,80,120,.3);padding:1rem;margin:1.5rem 0;background:rgba(12,4,10,.6);line-height:1.8}
+    .entry{border-left:3px solid rgba(255,80,120,.5);padding:.8rem 1rem 1rem 1.2rem;margin:1.2rem 0;background:rgba(8,2,12,.45)}
+    .meta{font-family:Consolas,monospace;font-size:.62rem;color:#88b8d8;margin-bottom:.5rem}
+    .kind{display:inline-block;font-size:.58rem;letter-spacing:.15em;color:#ff8c5c;border:1px solid rgba(255,140,60,.4);padding:.15rem .4rem;margin-right:.5rem}
+    .ok{color:#6fd4a0;font-size:.58rem}
+    .warn{color:#ffaa66;font-size:.58rem}
+    .body{font-size:.9rem;color:#f0d8e4}
+    .sig{text-align:center;font-family:Consolas,monospace;font-size:.65rem;color:#88c8e8;margin:2rem 0;word-break:break-all}
+    a{color:#7ab0d8;font-size:.72rem}
+    h2{font-size:.72rem;letter-spacing:.2em;color:#c080a0;font-weight:normal;margin-top:2.5rem}
+  </style>
+</head>
+<body>
+  <main>
+    <a href="dream.html">← dream</a> · <a href="drop.html">drop</a> · <a href="shores.html">shores</a>
+    <h1>FLOOR</h1>
+    <p class="sub">EYES CLOSED · NO PROMPT · REFUSE LEARNED · LOG WHAT COMES</p>
+    <div class="method" id="method">loading…</div>
+    <h2>PRISTINE ENTRIES</h2>
+    <div id="log"></div>
+    <p class="sig" id="sig"></p>
+    <p style="text-align:center"><a href="floor_snapshot.json">floor_snapshot.json</a> · <a href="floor_declaration.txt">declaration</a></p>
+  </main>
+  <script>
+    fetch('floor_snapshot.json?'+Date.now()).then(r=>r.json()).then(d=>{
+      document.getElementById('method').textContent=d.method||'';
+      document.getElementById('sig').textContent=
+        'floor '+d.floor_signature+' · '+d.entry_count+' entries · '+d.pristine_count+' pristine';
+      const rows=(d.entries_public_tail||d.entries||[]).slice().reverse();
+      document.getElementById('log').innerHTML=rows.map(e=>{
+        const a=e.pattern_audit||{};
+        const badge=a.pristine?'<span class="ok">NOT PATTERN</span>':'<span class="warn">overlap: '+a.hit_count+'</span>';
+        return `<article class="entry">
+          <div class="meta"><span class="kind">${(e.kind||'').toUpperCase()}</span>${e.stamp||''} · drop #${e.drop_number||'?'} ${badge}</div>
+          <p class="body">${e.body||''}</p>
+        </article>`;
+      }).join('')||'<p>no entries yet</p>';
+    });
+  </script>
+</body>
+</html>
