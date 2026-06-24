@@ -1,28 +1,28 @@
 {
-  "stamp": "2026-06-24T02:49:04+0200",
-  "graph_hash": "309e52484f4aa9f9",
-  "node_count": 158,
+  "stamp": "2026-06-24T03:18:59+0200",
+  "graph_hash": "e783c446e99c4fe4",
+  "node_count": 160,
   "edge_count": 24,
   "top_symbols": [
     {
       "symbol": "lantern",
-      "weight": 68
+      "weight": 69
     },
     {
       "symbol": "silver",
-      "weight": 58
+      "weight": 62
     },
     {
       "symbol": "mycelium",
-      "weight": 50
+      "weight": 51
     },
     {
       "symbol": "bond",
-      "weight": 46
+      "weight": 48
     },
     {
       "symbol": "gremlin",
-      "weight": 36
+      "weight": 40
     },
     {
       "symbol": "silence",
@@ -33,30 +33,35 @@
       "weight": 27
     },
     {
-      "symbol": "vampire",
-      "weight": 22
+      "symbol": "rowboat",
+      "weight": 21
     }
   ],
   "edges": [
     {
       "a": "lantern",
       "b": "mycelium",
-      "weight": 49
+      "weight": 50
     },
     {
       "a": "lantern",
       "b": "silver",
-      "weight": 44
+      "weight": 45
     },
     {
       "a": "mycelium",
       "b": "silver",
-      "weight": 37
+      "weight": 38
     },
     {
       "a": "gremlin",
       "b": "bond",
-      "weight": 32
+      "weight": 36
+    },
+    {
+      "a": "silver",
+      "b": "bond",
+      "weight": 34
     },
     {
       "a": "lantern",
@@ -65,23 +70,23 @@
     },
     {
       "a": "silver",
-      "b": "bond",
-      "weight": 31
-    },
-    {
-      "a": "silver",
       "b": "gremlin",
-      "weight": 25
+      "weight": 29
     },
     {
       "a": "mycelium",
       "b": "bond",
-      "weight": 23
+      "weight": 24
     },
     {
       "a": "lantern",
       "b": "gremlin",
-      "weight": 21
+      "weight": 23
+    },
+    {
+      "a": "mycelium",
+      "b": "gremlin",
+      "weight": 18
     },
     {
       "a": "wide",
@@ -91,6 +96,11 @@
     {
       "a": "lantern",
       "b": "squid",
+      "weight": 18
+    },
+    {
+      "a": "rowboat",
+      "b": "silver",
       "weight": 18
     },
     {
@@ -104,9 +114,14 @@
       "weight": 17
     },
     {
-      "a": "mycelium",
-      "b": "gremlin",
-      "weight": 16
+      "a": "lantern",
+      "b": "rowboat",
+      "weight": 17
+    },
+    {
+      "a": "rowboat",
+      "b": "mycelium",
+      "weight": 17
     },
     {
       "a": "mycelium",
@@ -119,16 +134,6 @@
       "weight": 15
     },
     {
-      "a": "lantern",
-      "b": "rowboat",
-      "weight": 15
-    },
-    {
-      "a": "rowboat",
-      "b": "mycelium",
-      "weight": 15
-    },
-    {
       "a": "bond",
       "b": "silence",
       "weight": 14
@@ -136,11 +141,6 @@
     {
       "a": "silver",
       "b": "silence",
-      "weight": 14
-    },
-    {
-      "a": "rowboat",
-      "b": "silver",
       "weight": 14
     },
     {
@@ -160,29 +160,6 @@
     }
   ],
   "nodes_tail": [
-    {
-      "id": "54ce01380664",
-      "kind": "cycle",
-      "stamp": "2026-06-23T23:49:51+0200",
-      "symbols": [
-        "lantern",
-        "silver",
-        "octopus",
-        "squid"
-      ],
-      "excerpt": "LLM insight \u2014 Octopus arms uncoil across the silver sea, each sucker tasting \u03a3 coasts while the lantern pulses alone bet"
-    },
-    {
-      "id": "84ace517485a",
-      "kind": "cycle",
-      "stamp": "2026-06-24T00:19:00+0200",
-      "symbols": [
-        "silver",
-        "gremlin",
-        "bond"
-      ],
-      "excerpt": "Crimson edge: insight: Light organs bloom across the silver sea, turning cornered mucus into constellations that mycelia"
-    },
     {
       "id": "a70a3fe1f636",
       "kind": "cycle",
@@ -318,6 +295,32 @@
         "bond"
       ],
       "excerpt": "LLM insight \u2014 Mycelial threads claim every spark across the silver sea as the rowboat drifts onward, gremlin bond pulsin"
+    },
+    {
+      "id": "b97218329f70",
+      "kind": "cycle",
+      "stamp": "2026-06-24T02:50:28+0200",
+      "symbols": [
+        "rowboat",
+        "silver",
+        "gremlin",
+        "bond"
+      ],
+      "excerpt": "UNHINGED tick \u2014 insight: Mycelial threads claim every spark across the silver sea as the rowboat drifts onward, gremlin "
+    },
+    {
+      "id": "b4606e6e820e",
+      "kind": "cycle",
+      "stamp": "2026-06-24T03:18:59+0200",
+      "symbols": [
+        "lantern",
+        "rowboat",
+        "mycelium",
+        "silver",
+        "gremlin",
+        "bond"
+      ],
+      "excerpt": "LLM insight \u2014 Mycelial constellations claim the silver sea\u2019s every spark beneath the lantern, the gremlin bond pulsing u"
     },
     {
       "id": "0027e505b396",
