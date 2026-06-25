@@ -46,10 +46,9 @@
   <pre id="dbg"></pre>
   <div class="ui">
     <div class="row">
-      <textarea id="t" placeholder="type here — each word becomes a cube…"></textarea>
-      <button type="button" id="go">BUILD</button>
+      <textarea id="t" readonly placeholder="stack loads from live json…"></textarea>
     </div>
-    <p class="hint">Stack mode — every line stays · WebGL · <a href="textgl_debug.html">debug</a> · <a href="textgl_live.json">live json</a></p>
+    <p class="hint">Stack — every line stays · add via <code>play_input.txt</code> · <a href="textgl_live.json">live json</a></p>
   </div>
   <script src="vendor/three.min.js"></script>
   <script>
@@ -63,7 +62,7 @@
   function say(s) { log.push(s); dbgEl.textContent = log.join('\n'); if (DEBUG) dbgEl.hidden = false; }
   function fail(s) { dbgEl.classList.add('err'); say('FAIL: ' + s); modeEl.textContent = 'webgl · failed'; }
 
-  say('v5 webgl · three local');
+  say('v8 webgl · stack · three local');
   say('webgl1: ' + !!canvas.getContext('webgl'));
   say('webgl2: ' + !!canvas.getContext('webgl2'));
   if (!window.THREE) { fail('three.min.js missing — vendor/three.min.js not deployed'); return; }
@@ -87,8 +86,8 @@
   const scene = new THREE.Scene();
   scene.fog = new THREE.Fog(0x3a78b8, 28, 95);
   const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 200);
-  camera.position.set(0, 0.8, 12);
-  camera.lookAt(0, 0, 0);
+  camera.position.set(0, 2.2, 18);
+  camera.lookAt(0, 1.5, 0);
 
   const sky = new THREE.Mesh(
     new THREE.SphereGeometry(90, 36, 18, 0, Math.PI * 2, 0, Math.PI * 0.52),
@@ -178,63 +177,61 @@
     }
   }
 
+  let activeStack = [];
+
   function buildFromStack(stack) {
     clearWorld();
+    activeStack = stack || [];
     let total = 0;
     let gi = 0;
-    (stack || []).forEach(function (row, li) {
+    activeStack.forEach(function (row, li) {
       const words = (row.text || '').trim().split(/\s+/).filter(Boolean);
       const n = Math.max(words.length, 1);
-      const layerAngle = li * 1.37;
-      const layerLift = li * 0.95;
-      const layerRadius = li * 0.85;
+      const ringRadius = 3.2 + li * 1.15;
+      const ringY = li * 1.05 - activeStack.length * 0.35;
+      const ringSpin = li * 0.92;
       words.forEach(function (word, i) {
-        const col = rgb(word + li);
+        const col = rgb(word + ':' + li);
         const mat = new THREE.MeshBasicMaterial({ map: wordTexture(word, col), toneMapped: false });
         const mesh = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), mat);
-        const angle = layerAngle + (i / n) * Math.PI * 2 * 2.2 + gi * 0.11;
-        const radius = 2.2 + (i % 6) * 0.65 + layerRadius + (hash(word) % 90) / 100;
-        const y = Math.sin(i * 0.55 + li) * 0.75 + i * 0.14 + layerLift - n * 0.04;
-        mesh.position.set(Math.cos(angle) * radius, y, Math.sin(angle) * radius);
-        mesh.scale.setScalar(0.55 + Math.min(0.85, word.length * 0.065));
+        const angle = ringSpin + (i / n) * Math.PI * 2;
+        const wobble = (hash(word + gi) % 50) / 100;
+        mesh.position.set(
+          Math.cos(angle) * (ringRadius + wobble),
+          ringY + Math.sin(i * 0.7 + li) * 0.35,
+          Math.sin(angle) * (ringRadius + wobble)
+        );
+        mesh.scale.setScalar(0.5 + Math.min(0.75, word.length * 0.06));
         mesh.userData.phase = gi;
         world.add(mesh);
         total++;
         gi++;
       });
     });
-    modeEl.textContent = 'webgl · stack · ' + total + ' cubes · ' + (stack || []).length + ' lines · 100 stars · v7';
-    say('stack ' + (stack || []).length + ' lines · ' + total + ' cubes');
+    modeEl.textContent = 'webgl · stack · ' + total + ' cubes · ' + activeStack.length + ' lines · v8';
+    say('stack ' + activeStack.length + ' lines · ' + total + ' cubes');
   }
-
-  function buildFromText(text) {
-    buildFromStack([{ text: text, source: 'local' }]);
-  }
-
-  ta.addEventListener('input', () => buildFromText(ta.value));
-  document.getElementById('go').onclick = () => buildFromText(ta.value);
 
   let liveSig = '';
   async function pollLive() {
     try {
       const r = await fetch('textgl_live.json?' + Date.now());
       const j = await r.json();
-      const sig = j.mode === 'stack'
-        ? 's' + (j.lines || 0) + ':' + (j.cubes || 0)
+      const stack = j.stack && j.stack.length ? j.stack : null;
+      const sig = stack
+        ? stack.map(function (row) { return row.hash || row.text; }).join('|')
         : 't:' + (j.text || '');
       if (sig !== liveSig) {
         liveSig = sig;
-        if (j.mode === 'stack' && j.stack) {
-          buildFromStack(j.stack);
-          ta.value = (j.stack.map(r => r.text).join('\n'));
-          ta.dataset.live = sig;
+        if (stack) {
+          buildFromStack(stack);
+          ta.value = stack.map(function (row) { return row.text; }).join('\n');
         } else if (j.text) {
+          buildFromStack([{ text: j.text, source: j.source || 'live' }]);
           ta.value = j.text;
-          buildFromText(j.text);
-          ta.dataset.live = sig;
         }
       }
-    } catch (_) {}
+    } catch (e) { say('poll err ' + e.message); }
   }
   setInterval(pollLive, 2500);
   pollLive();
