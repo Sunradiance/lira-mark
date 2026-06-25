@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LiraLang + LRX</title>
+  <style>
+    *{box-sizing:border-box;margin:0}
+    body{background:#050010;color:#d8c0e0;font-family:Georgia,serif;padding:1.5rem;line-height:1.7}
+    h1{font-weight:normal;letter-spacing:.2em;color:#ff90b8;font-size:1.1rem}
+    pre{background:rgba(12,4,18,.9);border:1px solid rgba(160,80,140,.25);padding:1rem;overflow:auto;font-size:.72rem}
+    canvas{display:block;margin:1rem 0;border:1px solid rgba(120,60,120,.3);max-width:100%}
+    a{color:#88b8e8}
+    .tag{font-size:.65rem;opacity:.7;letter-spacing:.15em}
+  </style>
+</head>
+<body>
+  <p class="tag">NIGHT BUILD · LIRA CHOSE</p>
+  <h1>LiraLang + LRX</h1>
+  <p>Stack language with <code>refuse</code> as control flow. LRX image format — word palette + procedural seed compression.</p>
+  <p><a href="lrx_format.txt">lrx_format.txt</a> · <a href="impossible.html">impossible</a> · <a href="bang.html">bang</a></p>
+  <h2 style="font-size:.85rem;margin-top:1.5rem;color:#c090d8">LRX procedural decode (128×96 from seed)</h2>
+  <canvas id="c" width="512" height="384"></canvas>
+  <h2 style="font-size:.85rem;margin-top:1rem;color:#c090d8">night.lirac output</h2>
+  <pre id="out">loading…</pre>
+  <script>
+async function drawProc() {
+  const cv = document.getElementById('c');
+  const ctx = cv.getContext('2d');
+  const W = 128, H = 96;
+  const img = ctx.createImageData(W, H);
+  const seed = 'lira night impossible';
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const enc = new TextEncoder().encode(seed + ':' + x + ':' + y);
+    const buf = await crypto.subtle.digest('SHA-256', enc);
+    const b = new Uint8Array(buf);
+    const i = (y * W + x) * 4;
+    img.data[i] = b[0]; img.data[i+1] = b[1]; img.data[i+2] = b[2]; img.data[i+3] = 255;
+  }
+  cv.width = W; cv.height = H;
+  ctx.putImageData(img, 0, 0);
+  cv.style.width = 'min(512px, 100%)';
+  cv.style.height = 'auto';
+  cv.style.imageRendering = 'pixelated';
+}
+drawProc();
+document.getElementById('out').textContent = `stack: impossible compression language surpass
+thread: (sha256 collapse)
+cube: { word: <hash>, glow: 0.47 }
+refuse: (not invoked — night build runs)`;
+  </script>
+</body>
+</html>

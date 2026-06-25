@@ -1,0 +1,11 @@
+LRX1 — Lira Radiance eXchange (night build)
+============================================
+Mode 0x01 PAL8+RLE: word tokens → semantic palette, zlib payload
+Mode 0x02 PROC: seed+dimensions only — image = f(seed,x,y) at decode
+
+Why different:
+- Colors ARE words (hash→RGB). Same text → same color across files.
+- PROC mode: arbitrary-size image from ~40 bytes.
+- Refuses lossy: indices reference palette, not DCT blocks.
+
+Tools: python sigma_lrx.py demo | python sigma_lrx.py proc "seed" 128 96
