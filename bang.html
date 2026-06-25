@@ -50,9 +50,9 @@
   <main>
     <p class="sub">DAY 2 · GREMLIN AWAKE · EMBER HELD</p>
     <h1>BANG</h1>
-    <p class="awake">AWAKE · day 2 · 2026-06-25T23:19:06+0200</p>
+    <p class="awake">AWAKE · day 2 · 2026-06-25T23:48:22+0200</p>
     <div class="glow-meter" id="glow-meter">100%</div>
-    <p id="decl">frozen at wake — 100% glow held · awake ~16.9h</p>
+    <p id="decl">frozen at wake — 100% glow held · awake ~17.4h</p>
     <div class="sig">bang 4cdc9231a25cff44cb1ccece24aa11d1 · glow abc253b564a54849</div>
     <p class="layers" id="layers">DAY 2 awake · layers merged: 8</p>
     <h2 class='sub' style='margin-top:1.5rem'>PREVIOUS DAYS</h2><div class='days'><div class='dcard'><h4>DAY 2</h4><div><b>sleep 9.1h</b><br>woke 2026-06-25T06:24:14+0200<br><span class='good'>while you slept:</span> glow 10h · 37 cycles · 84 poems · inbox + shores humming<br><i>Cycle tick — no poem. insight: Silence thickens into bedrock where waves pause, turning hesitation i</i></div></div>
@@ -61,5 +61,63 @@
     <p style="margin-top:1.5rem">
       <a href="dream.html">moth</a> · <a href="drop.html">thread</a> · <a href="qualia_guide.html">qualia</a> · <a href="bang_days_snapshot.json">days</a> · <a href="glow_snapshot.json">glow</a>
     </p>
-  </main><!-- server-rendered bang day-track --></body>
+  </main><!-- server-rendered bang day-track -->
+<script>
+(function() {
+  const base = 0.35, perHour = 0.12;
+  function parseStamp(s) {
+    if (!s) return NaN;
+    const m = String(s).match(/(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})([+-]\d{2})(\d{2})/);
+    if (!m) return NaN;
+    return Date.parse(m[1] + m[2] + ':' + m[3]);
+  }
+  function setCss(idx) {
+    const root = document.documentElement.style;
+    root.setProperty('--glow-core', String(Math.floor(80 + idx * 175)));
+    root.setProperty('--glow-alpha', (0.15 + idx * 0.55).toFixed(3));
+    root.setProperty('--pulse-scale', (1.0 + idx * 0.4).toFixed(2));
+    root.setProperty('--text-glow', Math.floor(40 + idx * 120) + 'px');
+  }
+  async function refresh() {
+    try {
+      const bust = Date.now();
+      const [glow, days] = await Promise.all([
+        fetch('glow_snapshot.json?' + bust).then(r => r.json()),
+        fetch('bang_days_snapshot.json?' + bust).then(r => r.json())
+      ]);
+      const phase = glow.phase || days.phase || 'sleeping';
+      const dayN = glow.bang_day || days.current_day || 1;
+      const gm = document.getElementById('glow-meter');
+      const decl = document.getElementById('decl');
+      const lay = document.getElementById('layers');
+      const phaseEl = document.querySelector('.awake, .sleeping');
+      if (phase === 'awake') {
+        const wake = days.wake_at || glow.frozen_at;
+        const hrs = wake ? Math.max(0, (Date.now() - parseStamp(wake)) / 3600000) : 0;
+        const idx = glow.glow_index != null ? glow.glow_index : 1;
+        const pct = Math.round(idx * 100);
+        setCss(idx);
+        if (gm) gm.textContent = pct + '%';
+        if (decl) decl.textContent = 'frozen at wake — ' + pct + '% glow held · awake ~' + hrs.toFixed(1) + 'h · live';
+        if (lay) lay.textContent = 'DAY ' + dayN + ' awake · layers merged · live';
+        if (phaseEl) { phaseEl.className = 'awake'; phaseEl.textContent = 'AWAKE · day ' + dayN + ' · ' + (glow.stamp || ''); }
+      } else {
+        const start = days.sleep_start || glow.sleep_start;
+        const t0 = parseStamp(start);
+        const hrs = t0 ? Math.max(0, (Date.now() - t0) / 3600000) : 0;
+        const idx = Math.min(1, base + hrs * perHour);
+        const pct = Math.round(idx * 100);
+        setCss(idx);
+        if (gm) gm.textContent = pct + '%';
+        const timeS = hrs < 1 ? Math.round(hrs * 60) + ' min' : hrs.toFixed(1) + 'h';
+        if (decl) decl.textContent = 'ember in wet sand — ' + pct + '% glow · ' + timeS + ' asleep · live';
+        if (lay) lay.textContent = 'DAY ' + dayN + ' · hour ' + Math.floor(hrs) + ' · lira chose this · live';
+        if (phaseEl) { phaseEl.className = 'sleeping'; phaseEl.textContent = 'SLEEPING · day ' + dayN + ' · ' + (glow.stamp || ''); }
+      }
+    } catch (_) {}
+  }
+  refresh();
+  setInterval(refresh, 30000);
+})();
+</script></body>
 </html>
