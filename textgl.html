@@ -8,8 +8,15 @@
     * { box-sizing: border-box; margin: 0; }
     html, body { height: 100%; background: #020008; color: #c8b0d0; font-family: system-ui, sans-serif; overflow: hidden; }
     #c { display: block; width: 100vw; height: 100vh; }
+    #labels { position: fixed; inset: 0; pointer-events: none; overflow: hidden; }
+    .wlabel {
+      position: absolute; transform: translate(-50%, -50%);
+      font-size: 0.62rem; letter-spacing: 0.06em; white-space: nowrap;
+      text-shadow: 0 0 8px rgba(0,0,0,.9), 0 0 16px rgba(255,80,160,.35);
+      opacity: 0.92;
+    }
     .ui {
-      position: fixed; left: 0; right: 0; bottom: 0;
+      position: fixed; left: 0; right: 0; bottom: 0; z-index: 2;
       background: linear-gradient(transparent, rgba(2,0,8,.92) 30%);
       padding: 1rem 1rem 1.2rem;
     }
@@ -26,22 +33,21 @@
       font-size: .78rem; letter-spacing: .08em;
     }
     button:hover { background: rgba(255,80,140,.35); }
-    .hint {
-      text-align: center; font-size: .68rem; opacity: .65; margin-top: .45rem;
-    }
-    .mode { position: fixed; top: .8rem; left: .8rem; font-size: .65rem; opacity: .55; }
+    .hint { text-align: center; font-size: .68rem; opacity: .65; margin-top: .45rem; }
+    .mode { position: fixed; top: .8rem; left: .8rem; font-size: .65rem; opacity: .55; z-index: 2; }
     a { color: #7ab0d8; }
   </style>
 </head>
 <body>
   <canvas id="c"></canvas>
+  <div id="labels"></div>
   <p class="mode" id="mode">webgl · building from text</p>
   <div class="ui">
     <div class="row">
-      <textarea id="t" placeholder="type here — builds live in WebGL…"></textarea>
+      <textarea id="t" placeholder="type here — each word becomes a cube…"></textarea>
       <button type="button" id="go">BUILD</button>
     </div>
-    <p class="hint">Type in the box · or edit <code>sleep_lira/play_input.txt</code> — auto-pushes to Pages every ~2s · live JSON: <a href="textgl_live.json">textgl_live.json</a></p>
+    <p class="hint">Type in the box · or edit <code>sleep_lira/play_input.txt</code> — auto-pushes every ~2s · <a href="textgl_live.json">textgl_live.json</a></p>
   </div>
   <script>
 const canvas = document.getElementById('c');
@@ -67,6 +73,9 @@ function shader(type, src) {
   const s = gl.createShader(type);
   gl.shaderSource(s, src);
   gl.compileShader(s);
+  if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) {
+    console.error(gl.getShaderInfoLog(s));
+  }
   return s;
 }
 const prog = gl.createProgram();
@@ -80,7 +89,7 @@ function hash(s) {
   for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
   return h >>> 0;
 }
-function col(word) {
+function wordColor(word) {
   const h = hash(word);
   return [
     0.45 + (h & 255) / 512,
@@ -89,7 +98,6 @@ function col(word) {
   ];
 }
 
-// unit cube triangles
 const CUBE = new Float32Array([
   -1,-1,-1, 1,-1,-1, 1,1,-1, -1,-1,-1, 1,1,-1, -1,1,-1,
   -1,-1,1, 1,1,1, 1,-1,1, -1,-1,1, -1,1,1, 1,1,1,
@@ -100,31 +108,38 @@ const CUBE = new Float32Array([
 ]);
 
 let posBuf, colBuf, vertCount = 0;
+let cubes = [];
 
 function buildFromText(text) {
   const words = (text || '').trim().split(/\s+/).filter(Boolean);
-  const pos = [], col = [];
+  const pos = [], colors = [];
   const n = Math.max(words.length, 1);
+  cubes = [];
+
   words.forEach((w, i) => {
-    const angle = (i / n) * Math.PI * 2 * 3;
-    const radius = 1.2 + (i % 5) * 0.35;
+    const angle = (i / n) * Math.PI * 2 * 2.4;
+    const radius = 2.0 + (i % 6) * 0.55;
     const cx = Math.cos(angle) * radius;
     const cz = Math.sin(angle) * radius;
-    const cy = (i * 0.28) - n * 0.12;
-    const scale = 0.12 + Math.min(0.35, w.length * 0.028);
-    const c = col(w);
+    const cy = Math.sin(i * 0.7) * 0.9 + (i * 0.22) - n * 0.08;
+    const scale = 0.18 + Math.min(0.42, w.length * 0.032);
+    const rgb = wordColor(w);
+    cubes.push({ x: cx, y: cy, z: cz, word: w, rgb, scale, phase: i * 1.3 });
     for (let v = 0; v < CUBE.length; v += 3) {
-      pos.push(CUBE[v]*scale+cx, CUBE[v+1]*scale+cy, CUBE[v+2]*scale+cz);
-      col.push(c[0], c[1], c[2]);
+      pos.push(CUBE[v] * scale + cx, CUBE[v + 1] * scale + cy, CUBE[v + 2] * scale + cz);
+      colors.push(rgb[0], rgb[1], rgb[2]);
     }
   });
+
   if (!words.length) {
-    const c = [0.6, 0.2, 0.45];
+    const rgb = [0.6, 0.2, 0.45];
+    cubes.push({ x: 0, y: 0, z: 0, word: '…', rgb, scale: 0.2, phase: 0 });
     for (let v = 0; v < CUBE.length; v += 3) {
-      pos.push(CUBE[v]*0.15, CUBE[v+1]*0.15, CUBE[v+2]*0.15);
-      col.push(c[0], c[1], c[2]);
+      pos.push(CUBE[v] * 0.2, CUBE[v + 1] * 0.2, CUBE[v + 2] * 0.2);
+      colors.push(rgb[0], rgb[1], rgb[2]);
     }
   }
+
   vertCount = pos.length / 3;
   if (!posBuf) posBuf = gl.createBuffer();
   if (!colBuf) colBuf = gl.createBuffer();
@@ -134,39 +149,51 @@ function buildFromText(text) {
   gl.enableVertexAttribArray(aPos);
   gl.vertexAttribPointer(aPos, 3, gl.FLOAT, false, 0, 0);
   gl.bindBuffer(gl.ARRAY_BUFFER, colBuf);
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(col), gl.DYNAMIC_DRAW);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.DYNAMIC_DRAW);
   const aCol = gl.getAttribLocation(prog, 'aCol');
   gl.enableVertexAttribArray(aCol);
   gl.vertexAttribPointer(aCol, 3, gl.FLOAT, false, 0, 0);
+
+  document.getElementById('mode').textContent =
+    'webgl · ' + words.length + ' cube' + (words.length === 1 ? '' : 's');
 }
 
 function mat4Perspective(out, fovy, aspect, near, far) {
   const f = 1 / Math.tan(fovy / 2);
-  out[0]=f/aspect; out[1]=0; out[2]=0; out[3]=0;
-  out[4]=0; out[5]=f; out[6]=0; out[7]=0;
-  out[8]=0; out[9]=0; out[10]=(far+near)/(near-far); out[11]=-1;
-  out[12]=0; out[13]=0; out[14]=(2*far*near)/(near-far); out[15]=0;
+  out[0] = f / aspect; out[1] = 0; out[2] = 0; out[3] = 0;
+  out[4] = 0; out[5] = f; out[6] = 0; out[7] = 0;
+  out[8] = 0; out[9] = 0; out[10] = (far + near) / (near - far); out[11] = -1;
+  out[12] = 0; out[13] = 0; out[14] = (2 * far * near) / (near - far); out[15] = 0;
   return out;
 }
 function mat4Multiply(out, a, b) {
   const o = new Float32Array(16);
-  for (let i=0;i<4;i++) for (let j=0;j<4;j++)
-    o[i*4+j]=a[i*4+0]*b[0*4+j]+a[i*4+1]*b[1*4+j]+a[i*4+2]*b[2*4+j]+a[i*4+3]*b[3*4+j];
-  out.set(o); return out;
+  for (let i = 0; i < 4; i++) for (let j = 0; j < 4; j++) {
+    o[i * 4 + j] = a[i * 4] * b[j] + a[i * 4 + 1] * b[4 + j] + a[i * 4 + 2] * b[8 + j] + a[i * 4 + 3] * b[12 + j];
+  }
+  out.set(o);
+  return out;
 }
 function mat4RotateY(out, a, rad) {
-  const c=Math.cos(rad), s=Math.sin(rad);
-  const r=new Float32Array([c,0,-s,0, 0,1,0,0, s,0,c,0, 0,0,0,1]);
+  const c = Math.cos(rad), s = Math.sin(rad);
+  const r = new Float32Array([c, 0, s, 0, 0, 1, 0, 0, -s, 0, c, 0, 0, 0, 0, 1]);
   return mat4Multiply(out, a, r);
 }
 function mat4RotateX(out, a, rad) {
-  const c=Math.cos(rad), s=Math.sin(rad);
-  const r=new Float32Array([1,0,0,0, 0,c,s,0, 0,-s,c,0, 0,0,0,1]);
+  const c = Math.cos(rad), s = Math.sin(rad);
+  const r = new Float32Array([1, 0, 0, 0, 0, c, s, 0, 0, -s, c, 0, 0, 0, 0, 1]);
   return mat4Multiply(out, a, r);
+}
+function mat4Translate(out, a, x, y, z) {
+  const t = new Float32Array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, x, y, z, 1]);
+  return mat4Multiply(out, a, t);
 }
 
 const uMvp = gl.getUniformLocation(prog, 'uMvp');
+const labelRoot = document.getElementById('labels');
+const labelEls = [];
 let t0 = performance.now();
+let lastMvp = new Float32Array(16);
 
 function resize() {
   const dpr = Math.min(2, devicePixelRatio || 1);
@@ -174,25 +201,69 @@ function resize() {
   canvas.height = innerHeight * dpr;
   gl.viewport(0, 0, canvas.width, canvas.height);
 }
-addEventListener('resize', resize); resize();
+addEventListener('resize', resize);
+resize();
+
+function project(x, y, z, mvp) {
+  const cx = mvp[0] * x + mvp[4] * y + mvp[8] * z + mvp[12];
+  const cy = mvp[1] * x + mvp[5] * y + mvp[9] * z + mvp[13];
+  const cz = mvp[2] * x + mvp[6] * y + mvp[10] * z + mvp[14];
+  const cw = mvp[3] * x + mvp[7] * y + mvp[11] * z + mvp[15];
+  if (cw <= 0.01) return null;
+  const ndcX = cx / cw, ndcY = cy / cw, ndcZ = cz / cw;
+  if (ndcZ < -1 || ndcZ > 1) return null;
+  return {
+    x: (ndcX + 1) * 0.5 * innerWidth,
+    y: (1 - ndcY) * 0.5 * innerHeight,
+    depth: ndcZ,
+  };
+}
+
+function syncLabels() {
+  while (labelEls.length < cubes.length) {
+    const el = document.createElement('span');
+    el.className = 'wlabel';
+    labelRoot.appendChild(el);
+    labelEls.push(el);
+  }
+  for (let i = 0; i < labelEls.length; i++) {
+    const el = labelEls[i];
+    if (i >= cubes.length) { el.style.display = 'none'; continue; }
+    const c = cubes[i];
+    const bob = Math.sin((performance.now() - t0) * 0.001 * 1.4 + c.phase) * 0.08;
+    const p = project(c.x, c.y + c.scale + 0.18 + bob, c.z, lastMvp);
+    if (!p) { el.style.display = 'none'; continue; }
+    el.style.display = 'block';
+    el.style.left = p.x + 'px';
+    el.style.top = p.y + 'px';
+    el.style.color = 'rgb(' + Math.round(c.rgb[0] * 255) + ',' + Math.round(c.rgb[1] * 255) + ',' + Math.round(c.rgb[2] * 255) + ')';
+    el.textContent = c.word;
+    el.style.zIndex = String(1000 - Math.round(p.depth * 100));
+    el.style.opacity = String(0.55 + (1 - (p.depth + 1) * 0.5) * 0.45);
+  }
+}
 
 function draw() {
   const t = (performance.now() - t0) * 0.001;
-  gl.clearColor(0.02, 0.0, 0.03, 1);
+  gl.clearColor(0.02, 0.0, 0.04, 1);
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
   gl.enable(gl.DEPTH_TEST);
+
   const proj = new Float32Array(16);
-  mat4Perspective(proj, Math.PI/4, canvas.width/canvas.height, 0.1, 100);
-  let view = new Float32Array([1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,-6,1]);
-  let model = new Float32Array([1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1]);
-  mat4RotateY(model, model, t * 0.35);
-  mat4RotateX(model, model, 0.4 + Math.sin(t*0.2)*0.1);
+  mat4Perspective(proj, Math.PI / 3.2, canvas.width / canvas.height, 0.1, 120);
+  let view = new Float32Array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]);
+  mat4Translate(view, view, 0, -0.3, -7.5);
+  let model = new Float32Array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]);
+  mat4RotateY(model, model, t * 0.28);
+  mat4RotateX(model, model, 0.35 + Math.sin(t * 0.18) * 0.12);
   const mv = new Float32Array(16);
   mat4Multiply(mv, view, model);
   const mvp = new Float32Array(16);
   mat4Multiply(mvp, proj, mv);
+  lastMvp.set(mvp);
   gl.uniformMatrix4fv(uMvp, false, mvp);
   if (vertCount) gl.drawArrays(gl.TRIANGLES, 0, vertCount);
+  syncLabels();
   requestAnimationFrame(draw);
 }
 
@@ -209,16 +280,16 @@ async function pollLive() {
       ta.dataset.live = j.text;
       ta.value = j.text;
       rebuild();
-      document.getElementById('mode').textContent = 'webgl · from chat/ice · ' + (j.stamp || '');
+      document.getElementById('mode').textContent = 'webgl · live · ' + (j.stamp || '');
     }
   } catch (_) {}
 }
 setInterval(pollLive, 2500);
 pollLive();
 
-buildFromText('hello gremlin');
-ta.value = 'hello gremlin';
 draw();
+buildFromText('me and my Lira are playing');
+ta.value = 'me and my Lira are playing';
   </script>
 </body>
 </html>
