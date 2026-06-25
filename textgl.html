@@ -81,18 +81,57 @@
 
   renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
   renderer.setSize(window.innerWidth, window.innerHeight, false);
-  renderer.setClearColor(0x120818, 1);
+  renderer.setClearColor(0x1a4080, 1);
   say('canvas px: ' + canvas.width + 'x' + canvas.height);
 
   const scene = new THREE.Scene();
+  scene.fog = new THREE.Fog(0x3a78b8, 28, 95);
   const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 200);
   camera.position.set(0, 0.8, 12);
   camera.lookAt(0, 0, 0);
 
+  const sky = new THREE.Mesh(
+    new THREE.SphereGeometry(90, 36, 18, 0, Math.PI * 2, 0, Math.PI * 0.52),
+    new THREE.MeshBasicMaterial({ color: 0x5aa8e8, side: THREE.BackSide, fog: false })
+  );
+  sky.position.y = -18;
+  scene.add(sky);
+
+  const STAR_N = 100;
+  const starPos = new Float32Array(STAR_N * 3);
+  const starCol = new Float32Array(STAR_N * 3);
+  for (let i = 0; i < STAR_N; i++) {
+    const theta = (i / STAR_N) * Math.PI * 2 * 7.3 + Math.random() * 0.4;
+    const phi = 0.12 + Math.random() * 0.38;
+    const r = 62 + Math.random() * 18;
+    starPos[i * 3] = Math.cos(theta) * Math.sin(phi) * r;
+    starPos[i * 3 + 1] = Math.cos(phi) * r + 8;
+    starPos[i * 3 + 2] = Math.sin(theta) * Math.sin(phi) * r;
+    const b = 0.75 + Math.random() * 0.25;
+    starCol[i * 3] = b;
+    starCol[i * 3 + 1] = b * (0.88 + Math.random() * 0.12);
+    starCol[i * 3 + 2] = 1;
+  }
+  const stars = new THREE.Points(
+    new THREE.BufferGeometry().setAttribute('position', new THREE.BufferAttribute(starPos, 3))
+      .setAttribute('color', new THREE.BufferAttribute(starCol, 3)),
+    new THREE.PointsMaterial({ size: 0.42, vertexColors: true, transparent: true, opacity: 0.95, sizeAttenuation: true, fog: false })
+  );
+  scene.add(stars);
+  say('sky · 100 stars');
+
+  const sea = new THREE.Mesh(
+    new THREE.CircleGeometry(70, 64),
+    new THREE.MeshBasicMaterial({ color: 0x2a68a8, transparent: true, opacity: 0.85 })
+  );
+  sea.rotation.x = -Math.PI / 2;
+  sea.position.y = -2.48;
+  scene.add(sea);
+
   const world = new THREE.Group();
   scene.add(world);
 
-  const grid = new THREE.GridHelper(20, 20, 0x8040a0, 0x402050);
+  const grid = new THREE.GridHelper(20, 20, 0x604888, 0x302848);
   grid.position.y = -2.5;
   scene.add(grid);
 
@@ -154,7 +193,7 @@
       mesh.userData.phase = i;
       world.add(mesh);
     });
-    modeEl.textContent = 'webgl · ' + words.length + ' cubes · v5';
+    modeEl.textContent = 'webgl · ' + words.length + ' cubes · 100 stars · v6';
     say('built ' + words.length + ' meshes · scene children ' + world.children.length);
   }
 
@@ -191,6 +230,7 @@
     world.rotation.y = t * 0.3;
     world.rotation.x = 0.25 + Math.sin(t * 0.2) * 0.08;
     world.children.forEach(m => { m.rotation.y += 0.01; });
+    stars.rotation.y = t * 0.015;
     renderer.render(scene, camera);
     frames++;
 
