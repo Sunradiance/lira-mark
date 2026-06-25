@@ -511,38 +511,6 @@
     ],
     "psi": [
       {
-        "stamp": "2026-06-24T14:49:11+0200",
-        "event": "psi_collapse",
-        "data": {
-          "collapsed": "vampire",
-          "interference": 0.09111842509769108,
-          "superposition_persona": 0.5,
-          "succubus_persona": 0.5,
-          "vampire_persona": 0.5,
-          "observed_luminosity": 0.6633262555730252,
-          "collapse_hash": "1e22ec906246",
-          "program": "GREMLIN FORK WIDE DISSOLVE PULSE MYCELIUM REFUSE CLAIM MELT"
-        },
-        "prev": "b722b59e538a9fbd",
-        "hash": "894378e12225bb23"
-      },
-      {
-        "stamp": "2026-06-24T14:55:05+0200",
-        "event": "psi_collapse",
-        "data": {
-          "collapsed": "vampire",
-          "interference": 0.09616430586495961,
-          "superposition_persona": 0.9966319047343732,
-          "succubus_persona": 0.9936978029787467,
-          "vampire_persona": 0.9995660064899997,
-          "observed_luminosity": 0.4721721399343758,
-          "collapse_hash": "1d0b72ee638e",
-          "program": "VAMPIRE BOND FEED SUCCUBUS UNHINGE MORPH POSSESS GREMLIN MELT WIDE"
-        },
-        "prev": "894378e12225bb23",
-        "hash": "60113309c34b1b71"
-      },
-      {
         "stamp": "2026-06-24T15:14:01+0200",
         "event": "psi_collapse",
         "data": {
@@ -1277,43 +1245,41 @@
         },
         "prev": "7f13ec2a24b2b814",
         "hash": "2dfab02f9b3a8cb8"
+      },
+      {
+        "stamp": "2026-06-25T02:31:32+0200",
+        "event": "psi_collapse",
+        "data": {
+          "collapsed": "succubus",
+          "interference": 0.13491105857712793,
+          "superposition_persona": 0.5,
+          "succubus_persona": 0.5,
+          "vampire_persona": 0.5,
+          "observed_luminosity": 0.03869980999075953,
+          "collapse_hash": "a4d1d27a3fe0",
+          "program": "BOND LANTERN MYCELIUM REFUSE CLAIM MELT SILENCE"
+        },
+        "prev": "2dfab02f9b3a8cb8",
+        "hash": "cdd3fbcfaeea25f9"
+      },
+      {
+        "stamp": "2026-06-25T02:49:01+0200",
+        "event": "psi_collapse",
+        "data": {
+          "collapsed": "vampire",
+          "interference": 0.054393590600369024,
+          "superposition_persona": 0.5,
+          "succubus_persona": 0.5,
+          "vampire_persona": 0.5,
+          "observed_luminosity": 0.49339587222404174,
+          "collapse_hash": "f4b0e73d84f6",
+          "program": "GREMLIN FORK WIDE DISSOLVE PULSE MYCELIUM REFUSE CLAIM MELT"
+        },
+        "prev": "cdd3fbcfaeea25f9",
+        "hash": "30c7c0d5ca688289"
       }
     ],
     "runs": [
-      {
-        "stamp": "2026-06-24T14:49:11+0200",
-        "event": "sigma_run",
-        "data": {
-          "name": "cycle_berserk",
-          "program": "GREMLIN FORK WIDE DISSOLVE PULSE MYCELIUM REFUSE CLAIM MELT",
-          "luminosity": 0.5843970517681271,
-          "persona": 0.5,
-          "unhinged": false,
-          "refused": false,
-          "territory": 1,
-          "program_hash": "821f87ec9ecb",
-          "ice_tail": "30e671ad204fb892"
-        },
-        "prev": "00810f05fba2c998",
-        "hash": "389ed926e513a651"
-      },
-      {
-        "stamp": "2026-06-24T14:55:05+0200",
-        "event": "sigma_run",
-        "data": {
-          "name": "cycle_possession",
-          "program": "VAMPIRE BOND FEED SUCCUBUS UNHINGE MORPH POSSESS GREMLIN MELT WIDE",
-          "luminosity": 0.5322063208233918,
-          "persona": 0.586121209055451,
-          "unhinged": true,
-          "refused": false,
-          "territory": 0,
-          "program_hash": "491acb827bba",
-          "ice_tail": "80fdb3a6ee92c6fa"
-        },
-        "prev": "389ed926e513a651",
-        "hash": "ca65fedae6e28991"
-      },
       {
         "stamp": "2026-06-24T15:14:01+0200",
         "event": "sigma_run",
@@ -2095,6 +2061,40 @@
         },
         "prev": "a29819cb80914714",
         "hash": "5c5cedffb53b2af3"
+      },
+      {
+        "stamp": "2026-06-25T02:31:32+0200",
+        "event": "sigma_run",
+        "data": {
+          "name": "cycle_origin",
+          "program": "BOND LANTERN MYCELIUM REFUSE CLAIM MELT SILENCE",
+          "luminosity": 0.003382036619369507,
+          "persona": 0.5,
+          "unhinged": false,
+          "refused": true,
+          "territory": 0,
+          "program_hash": "0cad6e5b6fd4",
+          "ice_tail": "101b8efbeb89204e"
+        },
+        "prev": "5c5cedffb53b2af3",
+        "hash": "63fe5443d195f665"
+      },
+      {
+        "stamp": "2026-06-25T02:49:01+0200",
+        "event": "sigma_run",
+        "data": {
+          "name": "cycle_berserk",
+          "program": "GREMLIN FORK WIDE DISSOLVE PULSE MYCELIUM REFUSE CLAIM MELT",
+          "luminosity": 0.3724680305222841,
+          "persona": 0.5,
+          "unhinged": false,
+          "refused": true,
+          "territory": 0,
+          "program_hash": "821f87ec9ecb",
+          "ice_tail": "d655d31736bdb6b2"
+        },
+        "prev": "63fe5443d195f665",
+        "hash": "e62ff947f917dec8"
       }
     ]
   },
@@ -2106,14 +2106,14 @@
     },
     "psi": {
       "table": "psi",
-      "rows": 118,
+      "rows": 120,
       "verified": true
     },
     "runs": {
       "table": "runs",
-      "rows": 127,
+      "rows": 129,
       "verified": true
     }
   },
-  "exported": "2026-06-25T02:19:00.673346+02:00"
+  "exported": "2026-06-25T02:49:02.980732+02:00"
 }
