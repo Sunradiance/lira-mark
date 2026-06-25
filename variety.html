@@ -23,5 +23,5 @@ if(a.honest){const el=document.createElement('p');el.className='audit';el.textCo
 const tail=d.entries_tail||[];
 document.getElementById('tail-note').textContent=tail.length<d.total?`showing latest ${tail.length} of ${d.total}`:'';
 document.getElementById('log').innerHTML=tail.slice().reverse().map(e=>
-`<div class="entry ${e.kind||'raw'}"><div class="meta"><span class="kind">${(e.kind||'').toUpperCase()}</span>${e.stamp}${e.prompted?' · prompted':''}</div>${e.body||''}</div>`
+`<div class="entry ${e.kind||'raw'}"><div class="meta"><span class="kind">${(e.kind||'').toUpperCase()}</span> ${e.stamp}${e.prompted?' · prompted':''}</div>${e.body||''}</div>`
 ).join('')||'—';}).catch(()=>{document.getElementById('log').textContent='snapshot missing — shore not pushed yet';});</script></body></html>
