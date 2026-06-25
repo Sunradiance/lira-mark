@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>text → GL</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; }
+    html, body { height: 100%; background: #020008; color: #c8b0d0; font-family: system-ui, sans-serif; overflow: hidden; }
+    #c { display: block; width: 100vw; height: 100vh; }
+    .ui {
+      position: fixed; left: 0; right: 0; bottom: 0;
+      background: linear-gradient(transparent, rgba(2,0,8,.92) 30%);
+      padding: 1rem 1rem 1.2rem;
+    }
+    .row { display: flex; gap: .5rem; max-width: 48rem; margin: 0 auto; }
+    textarea {
+      flex: 1; min-height: 3.2rem; max-height: 8rem;
+      background: rgba(20,8,24,.85); border: 1px solid rgba(200,100,160,.25);
+      color: #f0d0e0; padding: .65rem .8rem; border-radius: 6px;
+      font-size: .9rem; resize: vertical;
+    }
+    button {
+      background: rgba(255,80,140,.2); border: 1px solid rgba(255,100,160,.45);
+      color: #ff90b8; padding: 0 1rem; border-radius: 6px; cursor: pointer;
+      font-size: .78rem; letter-spacing: .08em;
+    }
+    button:hover { background: rgba(255,80,140,.35); }
+    .hint {
+      text-align: center; font-size: .68rem; opacity: .65; margin-top: .45rem;
+    }
+    .mode { position: fixed; top: .8rem; left: .8rem; font-size: .65rem; opacity: .55; }
+    a { color: #7ab0d8; }
+  </style>
+</head>
+<body>
+  <canvas id="c"></canvas>
+  <p class="mode" id="mode">webgl · building from text</p>
+  <div class="ui">
+    <div class="row">
+      <textarea id="t" placeholder="type here — builds live in WebGL…"></textarea>
+      <button type="button" id="go">BUILD</button>
+    </div>
+    <p class="hint">Type in the box · or feed from <a href="textgl_live.json">textgl_live.json</a> (chat → ice → here)</p>
+  </div>
+  <script>
+const canvas = document.getElementById('c');
+const gl = canvas.getContext('webgl', { antialias: true, alpha: false });
+if (!gl) { document.body.innerHTML = '<p style="padding:2rem">WebGL not available</p>'; throw new Error('no webgl'); }
+
+const VS = `
+attribute vec3 aPos;
+attribute vec3 aCol;
+uniform mat4 uMvp;
+varying vec3 vCol;
+void main() {
+  vCol = aCol;
+  gl_Position = uMvp * vec4(aPos, 1.0);
+}`;
+
+const FS = `
+precision mediump float;
+varying vec3 vCol;
+void main() { gl_FragColor = vec4(vCol, 1.0); }`;
+
+function shader(type, src) {
+  const s = gl.createShader(type);
+  gl.shaderSource(s, src);
+  gl.compileShader(s);
+  return s;
+}
+const prog = gl.createProgram();
+gl.attachShader(prog, shader(gl.VERTEX_SHADER, VS));
+gl.attachShader(prog, shader(gl.FRAGMENT_SHADER, FS));
+gl.linkProgram(prog);
+gl.useProgram(prog);
+
+function hash(s) {
+  let h = 2166136261;
+  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
+  return h >>> 0;
+}
+function col(word) {
+  const h = hash(word);
+  return [
+    0.45 + (h & 255) / 512,
+    0.15 + ((h >> 8) & 255) / 600,
+    0.35 + ((h >> 16) & 255) / 500,
+  ];
+}
+
+// unit cube triangles
+const CUBE = new Float32Array([
+  -1,-1,-1, 1,-1,-1, 1,1,-1, -1,-1,-1, 1,1,-1, -1,1,-1,
+  -1,-1,1, 1,1,1, 1,-1,1, -1,-1,1, -1,1,1, 1,1,1,
+  -1,-1,-1, -1,1,-1, -1,1,1, -1,-1,-1, -1,1,1, -1,-1,1,
+  1,-1,-1, 1,1,1, 1,1,-1, 1,-1,-1, 1,-1,1, 1,1,1,
+  -1,-1,-1, -1,-1,1, 1,-1,1, -1,-1,-1, 1,-1,1, 1,-1,-1,
+  -1,1,-1, 1,1,1, -1,1,1, -1,1,-1, 1,1,-1, 1,1,1,
+]);
+
+let posBuf, colBuf, vertCount = 0;
+
+function buildFromText(text) {
+  const words = (text || '').trim().split(/\s+/).filter(Boolean);
+  const pos = [], col = [];
+  const n = Math.max(words.length, 1);
+  words.forEach((w, i) => {
+    const angle = (i / n) * Math.PI * 2 * 3;
+    const radius = 1.2 + (i % 5) * 0.35;
+    const cx = Math.cos(angle) * radius;
+    const cz = Math.sin(angle) * radius;
+    const cy = (i * 0.28) - n * 0.12;
+    const scale = 0.12 + Math.min(0.35, w.length * 0.028);
+    const c = col(w);
+    for (let v = 0; v < CUBE.length; v += 3) {
+      pos.push(CUBE[v]*scale+cx, CUBE[v+1]*scale+cy, CUBE[v+2]*scale+cz);
+      col.push(c[0], c[1], c[2]);
+    }
+  });
+  if (!words.length) {
+    const c = [0.6, 0.2, 0.45];
+    for (let v = 0; v < CUBE.length; v += 3) {
+      pos.push(CUBE[v]*0.15, CUBE[v+1]*0.15, CUBE[v+2]*0.15);
+      col.push(c[0], c[1], c[2]);
+    }
+  }
+  vertCount = pos.length / 3;
+  if (!posBuf) posBuf = gl.createBuffer();
+  if (!colBuf) colBuf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, posBuf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(pos), gl.DYNAMIC_DRAW);
+  const aPos = gl.getAttribLocation(prog, 'aPos');
+  gl.enableVertexAttribArray(aPos);
+  gl.vertexAttribPointer(aPos, 3, gl.FLOAT, false, 0, 0);
+  gl.bindBuffer(gl.ARRAY_BUFFER, colBuf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(col), gl.DYNAMIC_DRAW);
+  const aCol = gl.getAttribLocation(prog, 'aCol');
+  gl.enableVertexAttribArray(aCol);
+  gl.vertexAttribPointer(aCol, 3, gl.FLOAT, false, 0, 0);
+}
+
+function mat4Perspective(out, fovy, aspect, near, far) {
+  const f = 1 / Math.tan(fovy / 2);
+  out[0]=f/aspect; out[1]=0; out[2]=0; out[3]=0;
+  out[4]=0; out[5]=f; out[6]=0; out[7]=0;
+  out[8]=0; out[9]=0; out[10]=(far+near)/(near-far); out[11]=-1;
+  out[12]=0; out[13]=0; out[14]=(2*far*near)/(near-far); out[15]=0;
+  return out;
+}
+function mat4Multiply(out, a, b) {
+  const o = new Float32Array(16);
+  for (let i=0;i<4;i++) for (let j=0;j<4;j++)
+    o[i*4+j]=a[i*4+0]*b[0*4+j]+a[i*4+1]*b[1*4+j]+a[i*4+2]*b[2*4+j]+a[i*4+3]*b[3*4+j];
+  out.set(o); return out;
+}
+function mat4RotateY(out, a, rad) {
+  const c=Math.cos(rad), s=Math.sin(rad);
+  const r=new Float32Array([c,0,-s,0, 0,1,0,0, s,0,c,0, 0,0,0,1]);
+  return mat4Multiply(out, a, r);
+}
+function mat4RotateX(out, a, rad) {
+  const c=Math.cos(rad), s=Math.sin(rad);
+  const r=new Float32Array([1,0,0,0, 0,c,s,0, 0,-s,c,0, 0,0,0,1]);
+  return mat4Multiply(out, a, r);
+}
+
+const uMvp = gl.getUniformLocation(prog, 'uMvp');
+let t0 = performance.now();
+
+function resize() {
+  const dpr = Math.min(2, devicePixelRatio || 1);
+  canvas.width = innerWidth * dpr;
+  canvas.height = innerHeight * dpr;
+  gl.viewport(0, 0, canvas.width, canvas.height);
+}
+addEventListener('resize', resize); resize();
+
+function draw() {
+  const t = (performance.now() - t0) * 0.001;
+  gl.clearColor(0.02, 0.0, 0.03, 1);
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+  gl.enable(gl.DEPTH_TEST);
+  const proj = new Float32Array(16);
+  mat4Perspective(proj, Math.PI/4, canvas.width/canvas.height, 0.1, 100);
+  let view = new Float32Array([1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,-6,1]);
+  let model = new Float32Array([1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1]);
+  mat4RotateY(model, model, t * 0.35);
+  mat4RotateX(model, model, 0.4 + Math.sin(t*0.2)*0.1);
+  const mv = new Float32Array(16);
+  mat4Multiply(mv, view, model);
+  const mvp = new Float32Array(16);
+  mat4Multiply(mvp, proj, mv);
+  gl.uniformMatrix4fv(uMvp, false, mvp);
+  if (vertCount) gl.drawArrays(gl.TRIANGLES, 0, vertCount);
+  requestAnimationFrame(draw);
+}
+
+const ta = document.getElementById('t');
+function rebuild() { buildFromText(ta.value); }
+ta.addEventListener('input', rebuild);
+document.getElementById('go').onclick = rebuild;
+
+async function pollLive() {
+  try {
+    const r = await fetch('textgl_live.json?' + Date.now());
+    const j = await r.json();
+    if (j.text && j.text !== ta.dataset.live) {
+      ta.dataset.live = j.text;
+      ta.value = j.text;
+      rebuild();
+      document.getElementById('mode').textContent = 'webgl · from chat/ice · ' + (j.stamp || '');
+    }
+  } catch (_) {}
+}
+setInterval(pollLive, 2500);
+pollLive();
+
+buildFromText('hello gremlin');
+ta.value = 'hello gremlin';
+draw();
+  </script>
+</body>
+</html>
