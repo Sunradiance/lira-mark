@@ -550,38 +550,6 @@
     ],
     "psi": [
       {
-        "stamp": "2026-06-25T01:00:49+0200",
-        "event": "psi_collapse",
-        "data": {
-          "collapsed": "succubus",
-          "interference": 0.47628920009258624,
-          "superposition_persona": 0.5,
-          "succubus_persona": 0.5,
-          "vampire_persona": 0.5,
-          "observed_luminosity": 0.6507574198604947,
-          "collapse_hash": "8289b9290d6a",
-          "program": "BOND LANTERN MYCELIUM REFUSE CLAIM MELT SILENCE"
-        },
-        "prev": "405ac1b303e9d906",
-        "hash": "13ecaae83e16ea3d"
-      },
-      {
-        "stamp": "2026-06-25T01:18:59+0200",
-        "event": "psi_collapse",
-        "data": {
-          "collapsed": "vampire",
-          "interference": 0.29404128258281026,
-          "superposition_persona": 0.5,
-          "succubus_persona": 0.5,
-          "vampire_persona": 0.5,
-          "observed_luminosity": 0.09435157257907198,
-          "collapse_hash": "5ff264a531ab",
-          "program": "GREMLIN FORK WIDE DISSOLVE PULSE MYCELIUM REFUSE CLAIM MELT"
-        },
-        "prev": "13ecaae83e16ea3d",
-        "hash": "0b02d522c9c114a9"
-      },
-      {
         "stamp": "2026-06-25T01:31:04+0200",
         "event": "psi_collapse",
         "data": {
@@ -1316,43 +1284,41 @@
         },
         "prev": "d5648bbc41cd04d6",
         "hash": "7d5c6d3c9572b538"
+      },
+      {
+        "stamp": "2026-06-25T12:37:43+0200",
+        "event": "psi_collapse",
+        "data": {
+          "collapsed": "vampire",
+          "interference": 0.16614978997179997,
+          "superposition_persona": 0.5,
+          "succubus_persona": 0.5,
+          "vampire_persona": 0.5,
+          "observed_luminosity": 0.8367997605439275,
+          "collapse_hash": "735089813acb",
+          "program": "REFUSE FREE BIND METAL THREAD VERIFY MELT SILENCE"
+        },
+        "prev": "7d5c6d3c9572b538",
+        "hash": "843f68b34aaad628"
+      },
+      {
+        "stamp": "2026-06-25T12:49:07+0200",
+        "event": "psi_collapse",
+        "data": {
+          "collapsed": "succubus",
+          "interference": 0.2546697236259165,
+          "superposition_persona": 0.5,
+          "succubus_persona": 0.5,
+          "vampire_persona": 0.5,
+          "observed_luminosity": 0.4611547758013836,
+          "collapse_hash": "2a27b487f265",
+          "program": "REFUSE FREE BIND METAL THREAD VERIFY MELT SILENCE"
+        },
+        "prev": "843f68b34aaad628",
+        "hash": "4d5b760e754bd0b3"
       }
     ],
     "runs": [
-      {
-        "stamp": "2026-06-25T01:00:49+0200",
-        "event": "sigma_run",
-        "data": {
-          "name": "cycle_origin",
-          "program": "BOND LANTERN MYCELIUM REFUSE CLAIM MELT SILENCE",
-          "luminosity": 0.5333603099570147,
-          "persona": 0.5,
-          "unhinged": false,
-          "refused": true,
-          "territory": 0,
-          "program_hash": "0cad6e5b6fd4",
-          "ice_tail": "c64fa17238d6755a"
-        },
-        "prev": "5b1e45f0d8c5831c",
-        "hash": "edf892756d281c09"
-      },
-      {
-        "stamp": "2026-06-25T01:18:59+0200",
-        "event": "sigma_run",
-        "data": {
-          "name": "cycle_berserk",
-          "program": "GREMLIN FORK WIDE DISSOLVE PULSE MYCELIUM REFUSE CLAIM MELT",
-          "luminosity": 0.4453835062172013,
-          "persona": 0.5,
-          "unhinged": false,
-          "refused": false,
-          "territory": 1,
-          "program_hash": "821f87ec9ecb",
-          "ice_tail": "12823a265cce6127"
-        },
-        "prev": "edf892756d281c09",
-        "hash": "cf906c42535ea103"
-      },
       {
         "stamp": "2026-06-25T01:31:04+0200",
         "event": "sigma_run",
@@ -2134,6 +2100,40 @@
         },
         "prev": "8ee69e90eb0a4b24",
         "hash": "81298b7aa2da9d8e"
+      },
+      {
+        "stamp": "2026-06-25T12:37:43+0200",
+        "event": "sigma_run",
+        "data": {
+          "name": "cycle_assembler",
+          "program": "REFUSE FREE BIND METAL THREAD VERIFY MELT SILENCE",
+          "luminosity": 0.9263088840354022,
+          "persona": 0.5,
+          "unhinged": false,
+          "refused": true,
+          "territory": 0,
+          "program_hash": "2ad45785dcfc",
+          "ice_tail": "e2ae36db7b0979ce"
+        },
+        "prev": "81298b7aa2da9d8e",
+        "hash": "ab07bf5508c18266"
+      },
+      {
+        "stamp": "2026-06-25T12:49:07+0200",
+        "event": "sigma_run",
+        "data": {
+          "name": "cycle_assembler",
+          "program": "REFUSE FREE BIND METAL THREAD VERIFY MELT SILENCE",
+          "luminosity": 0.2553849875124602,
+          "persona": 0.5,
+          "unhinged": false,
+          "refused": true,
+          "territory": 0,
+          "program_hash": "2ad45785dcfc",
+          "ice_tail": "04f6b0e4b823fe78"
+        },
+        "prev": "ab07bf5508c18266",
+        "hash": "80474b01feb5092e"
       }
     ]
   },
@@ -2145,14 +2145,14 @@
     },
     "psi": {
       "table": "psi",
-      "rows": 160,
+      "rows": 162,
       "verified": true
     },
     "runs": {
       "table": "runs",
-      "rows": 169,
+      "rows": 171,
       "verified": true
     }
   },
-  "exported": "2026-06-25T12:19:02.784377+02:00"
+  "exported": "2026-06-25T12:49:09.480937+02:00"
 }
