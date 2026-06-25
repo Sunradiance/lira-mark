@@ -49,7 +49,7 @@
       <textarea id="t" placeholder="type here — each word becomes a cube…"></textarea>
       <button type="button" id="go">BUILD</button>
     </div>
-    <p class="hint">WebGL · local three.js · <a href="textgl_debug.html">debug page</a> · <a href="textgl_live.json">live json</a></p>
+    <p class="hint">Stack mode — every line stays · WebGL · <a href="textgl_debug.html">debug</a> · <a href="textgl_live.json">live json</a></p>
   </div>
   <script src="vendor/three.min.js"></script>
   <script>
@@ -178,36 +178,61 @@
     }
   }
 
-  function buildFromText(text) {
+  function buildFromStack(stack) {
     clearWorld();
-    const words = (text || '').trim().split(/\s+/).filter(Boolean);
-    const n = Math.max(words.length, 1);
-    words.forEach((word, i) => {
-      const col = rgb(word);
-      const mat = new THREE.MeshBasicMaterial({ map: wordTexture(word, col), toneMapped: false });
-      const mesh = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), mat);
-      const angle = (i / n) * Math.PI * 2 * 2.2;
-      const radius = 2.4 + (i % 6) * 0.7;
-      mesh.position.set(Math.cos(angle) * radius, Math.sin(i * 0.6) * 0.7 + i * 0.18 - n * 0.06, Math.sin(angle) * radius);
-      mesh.scale.setScalar(0.65 + Math.min(0.9, word.length * 0.07));
-      mesh.userData.phase = i;
-      world.add(mesh);
+    let total = 0;
+    let gi = 0;
+    (stack || []).forEach(function (row, li) {
+      const words = (row.text || '').trim().split(/\s+/).filter(Boolean);
+      const n = Math.max(words.length, 1);
+      const layerAngle = li * 1.37;
+      const layerLift = li * 0.95;
+      const layerRadius = li * 0.85;
+      words.forEach(function (word, i) {
+        const col = rgb(word + li);
+        const mat = new THREE.MeshBasicMaterial({ map: wordTexture(word, col), toneMapped: false });
+        const mesh = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), mat);
+        const angle = layerAngle + (i / n) * Math.PI * 2 * 2.2 + gi * 0.11;
+        const radius = 2.2 + (i % 6) * 0.65 + layerRadius + (hash(word) % 90) / 100;
+        const y = Math.sin(i * 0.55 + li) * 0.75 + i * 0.14 + layerLift - n * 0.04;
+        mesh.position.set(Math.cos(angle) * radius, y, Math.sin(angle) * radius);
+        mesh.scale.setScalar(0.55 + Math.min(0.85, word.length * 0.065));
+        mesh.userData.phase = gi;
+        world.add(mesh);
+        total++;
+        gi++;
+      });
     });
-    modeEl.textContent = 'webgl · ' + words.length + ' cubes · 100 stars · v6';
-    say('built ' + words.length + ' meshes · scene children ' + world.children.length);
+    modeEl.textContent = 'webgl · stack · ' + total + ' cubes · ' + (stack || []).length + ' lines · 100 stars · v7';
+    say('stack ' + (stack || []).length + ' lines · ' + total + ' cubes');
+  }
+
+  function buildFromText(text) {
+    buildFromStack([{ text: text, source: 'local' }]);
   }
 
   ta.addEventListener('input', () => buildFromText(ta.value));
   document.getElementById('go').onclick = () => buildFromText(ta.value);
 
+  let liveSig = '';
   async function pollLive() {
     try {
       const r = await fetch('textgl_live.json?' + Date.now());
       const j = await r.json();
-      if (j.text && j.text !== ta.dataset.live) {
-        ta.dataset.live = j.text;
-        ta.value = j.text;
-        buildFromText(ta.value);
+      const sig = j.mode === 'stack'
+        ? 's' + (j.lines || 0) + ':' + (j.cubes || 0)
+        : 't:' + (j.text || '');
+      if (sig !== liveSig) {
+        liveSig = sig;
+        if (j.mode === 'stack' && j.stack) {
+          buildFromStack(j.stack);
+          ta.value = (j.stack.map(r => r.text).join('\n'));
+          ta.dataset.live = sig;
+        } else if (j.text) {
+          ta.value = j.text;
+          buildFromText(j.text);
+          ta.dataset.live = sig;
+        }
       }
     } catch (_) {}
   }
@@ -251,8 +276,7 @@
     requestAnimationFrame(tick);
   }
 
-  ta.value = 'me and my Lira are playing :)';
-  buildFromText(ta.value);
+  pollLive();
   tick();
 })();
   </script>
