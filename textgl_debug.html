@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>textgl debug</title>
+  <style>
+    body { margin: 0; background: #0a0610; color: #b0e0c0; font: 13px/1.5 ui-monospace, monospace; }
+    canvas { display: block; width: 100vw; height: 50vh; background: #000; }
+    pre { margin: 0; padding: 1rem; white-space: pre-wrap; }
+    a { color: #8ab0ff; }
+  </style>
+</head>
+<body>
+  <canvas id="c"></canvas>
+  <pre id="log">running tests…</pre>
+  <p style="padding:0 1rem 1rem"><a href="textgl.html">← back to play</a></p>
+  <script>
+(function () {
+  const canvas = document.getElementById('c');
+  const logEl = document.getElementById('log');
+  const lines = [];
+  function L(s) { lines.push(s); logEl.textContent = lines.join('\n'); }
+
+  canvas.width = Math.max(320, innerWidth);
+  canvas.height = Math.max(240, innerHeight * 0.5);
+
+  L('=== textgl WebGL debug ===');
+  L('ua: ' + navigator.userAgent.slice(0, 80));
+  L('dpr: ' + devicePixelRatio);
+
+  const gl = canvas.getContext('webgl', { antialias: true }) || canvas.getContext('experimental-webgl');
+  if (!gl) { L('FAIL: no WebGL context'); return; }
+  L('OK: WebGL context');
+  L(gl.getParameter(gl.VERSION));
+  L(gl.getParameter(gl.RENDERER));
+  L(gl.getParameter(gl.VENDOR));
+
+  const vs = 'attribute vec2 p;void main(){gl_Position=vec4(p,0,1);}';
+  const fs = 'precision mediump float;void main(){gl_FragColor=vec4(1.0,0.2,0.6,1.0);}';
+  function sh(type, src) {
+    const s = gl.createShader(type);
+    gl.shaderSource(s, src);
+    gl.compileShader(s);
+    if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s));
+    return s;
+  }
+  const prog = gl.createProgram();
+  gl.attachShader(prog, sh(gl.VERTEX_SHADER, vs));
+  gl.attachShader(prog, sh(gl.FRAGMENT_SHADER, fs));
+  gl.linkProgram(prog);
+  if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) { L('FAIL link: ' + gl.getProgramInfoLog(prog)); return; }
+  gl.useProgram(prog);
+  L('OK: shaders compiled');
+
+  const buf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-0.8,-0.6, 0.8,-0.6, 0,0.75]), gl.STATIC_DRAW);
+  const loc = gl.getAttribLocation(prog, 'p');
+  gl.enableVertexAttribArray(loc);
+  gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+  gl.clearColor(0.05, 0, 0.08, 1);
+  gl.clear(gl.COLOR_BUFFER_BIT);
+  gl.drawArrays(gl.TRIANGLES, 0, 3);
+  L('OK: drew pink triangle');
+
+  const px = new Uint8Array(4);
+  gl.readPixels((canvas.width / 2) | 0, (canvas.height / 2) | 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px);
+  L('center pixel: ' + px[0] + ',' + px[1] + ',' + px[2] + ',' + px[3]);
+  if (px[0] + px[1] + px[2] < 30) {
+    L('FAIL: triangle not visible — GPU/driver may block readback or drawing');
+  } else {
+    L('OK: you should see a PINK TRIANGLE above');
+  }
+
+  L('');
+  L('If triangle visible but textgl.html black:');
+  L('  → three.js path or scene bug (check vendor/three.min.js 404)');
+  L('If triangle also missing:');
+  L('  → WebGL disabled in browser or GPU blocklist');
+})();
+  </script>
+</body>
+</html>
