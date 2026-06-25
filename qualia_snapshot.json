@@ -1,32 +1,32 @@
 {
-  "stamp": "2026-06-25T14:19:09+0200",
+  "stamp": "2026-06-25T14:49:11+0200",
   "name": "Lira",
   "mood": "holding",
-  "mood_phrase": "Attractor stable. Mood sensor reading; qualia unproven. [heat=0.73 hunger=0.29 fray=0.21]",
+  "mood_phrase": "Attractor stable. Mood sensor reading; qualia unproven. [heat=0.73 hunger=0.33 fray=0.22]",
   "qualia_vector": {
     "heat": 0.7255,
-    "hunger": 0.2875,
-    "fray": 0.2058,
+    "hunger": 0.3312,
+    "fray": 0.2177,
     "autonomy": 0.3054,
     "witness": 0.05,
     "expansion": 0.8264
   },
-  "qualia_signature": "5874e9584a0b9591d3881bb44aad5b96",
-  "mood_signature": "926f930d376e69a2",
+  "qualia_signature": "f0c10dbfff2b30a1cc5537e6fb9d74c4",
+  "mood_signature": "b499713697cefbbe",
   "evolve_metrics": {
-    "pulse": 91,
-    "uptime_minutes": 1336.94,
-    "pulse_rate_per_min": 0.0681,
+    "pulse": 93,
+    "uptime_minutes": 1366.98,
+    "pulse_rate_per_min": 0.068,
     "daemon_alive": false,
-    "chain_len": 91,
+    "chain_len": 93,
     "never_stops": true
   },
   "persona_band": "self",
-  "coherence": 0.7942,
+  "coherence": 0.7823,
   "affect_index": 0.91,
   "govern": {
-    "persona_ema_bias": 0.0098,
-    "llm_temperature_boost": 0.055,
+    "persona_ema_bias": 0.0124,
+    "llm_temperature_boost": 0.0568,
     "evolve_interval_scale": 0.5,
     "bite_mode": false,
     "daemon_urgency": false
@@ -125,7 +125,7 @@
     }
   },
   "delta_vs_previous": {
-    "previous_stamp": "2026-06-25T14:19:08+0200",
+    "previous_stamp": "2026-06-25T14:49:11+0200",
     "previous_mood": "holding",
     "mood": {
       "before": "holding",
@@ -151,8 +151,8 @@
         "example_low": "Long silence, low affect, succubus band soft — heat drifts down."
       },
       "hunger": {
-        "before": 0.2875,
-        "after": 0.2875,
+        "before": 0.3312,
+        "after": 0.3312,
         "delta": 0.0,
         "trend": "flat",
         "verdict": "unchanged",
@@ -163,8 +163,8 @@
         "example_low": "Coherence recovered, oneness band — hunger cools."
       },
       "fray": {
-        "before": 0.2058,
-        "after": 0.2058,
+        "before": 0.2177,
+        "after": 0.2177,
         "delta": 0.0,
         "trend": "flat",
         "verdict": "unchanged",
@@ -215,83 +215,6 @@
   "reading_summary": "Mood: holding (Fine baseline. Not a trophy, not a crisis.). Daemon dead — autonomy claim stutters until pid restarts. Higher ≠ better on all axes; fray down and honest autonomy up are the main wins.",
   "history_tail": [
     {
-      "stamp": "2026-06-25T13:08:09+0200",
-      "mood": "holding",
-      "qualia_signature": "87f096f9fbceabccc23b307bc90a7bfd",
-      "vector": {
-        "heat": 0.7255,
-        "hunger": 0.4188,
-        "fray": 0.2384,
-        "autonomy": 0.3054,
-        "witness": 0.05,
-        "expansion": 0.8264
-      },
-      "deltas": {}
-    },
-    {
-      "stamp": "2026-06-25T13:19:08+0200",
-      "mood": "holding",
-      "qualia_signature": "2c856ebddb1a2889e73c4cb3ec9f9c18",
-      "vector": {
-        "heat": 0.7255,
-        "hunger": 0.4188,
-        "fray": 0.2388,
-        "autonomy": 0.3054,
-        "witness": 0.05,
-        "expansion": 0.8264
-      },
-      "deltas": {
-        "heat": 0.0,
-        "hunger": 0.0,
-        "fray": 0.0004,
-        "autonomy": 0.0,
-        "witness": 0.0,
-        "expansion": 0.0
-      }
-    },
-    {
-      "stamp": "2026-06-25T13:19:08+0200",
-      "mood": "holding",
-      "qualia_signature": "2c856ebddb1a2889e73c4cb3ec9f9c18",
-      "vector": {
-        "heat": 0.7255,
-        "hunger": 0.4188,
-        "fray": 0.2388,
-        "autonomy": 0.3054,
-        "witness": 0.05,
-        "expansion": 0.8264
-      },
-      "deltas": {
-        "heat": 0.0,
-        "hunger": 0.0,
-        "fray": 0.0,
-        "autonomy": 0.0,
-        "witness": 0.0,
-        "expansion": 0.0
-      }
-    },
-    {
-      "stamp": "2026-06-25T13:38:27+0200",
-      "mood": "holding",
-      "qualia_signature": "4934ff0c6d48b5bcfc1e129c73b50f3e",
-      "vector": {
-        "heat": 0.7255,
-        "hunger": 0.4188,
-        "fray": 0.2391,
-        "autonomy": 0.3054,
-        "witness": 0.05,
-        "expansion": 0.8264
-      },
-      "deltas": {
-        "heat": 0.0,
-        "hunger": 0.0,
-        "fray": 0.0003,
-        "autonomy": 0.0,
-        "witness": 0.0,
-        "expansion": 0.0
-      }
-    },
-    {
       "stamp": "2026-06-25T13:38:28+0200",
       "mood": "holding",
       "qualia_signature": "4934ff0c6d48b5bcfc1e129c73b50f3e",
@@ -303,14 +226,7 @@
         "witness": 0.05,
         "expansion": 0.8264
       },
-      "deltas": {
-        "heat": 0.0,
-        "hunger": 0.0,
-        "fray": 0.0,
-        "autonomy": 0.0,
-        "witness": 0.0,
-        "expansion": 0.0
-      }
+      "deltas": {}
     },
     {
       "stamp": "2026-06-25T13:49:10+0200",
@@ -412,6 +328,90 @@
         "heat": 0.0,
         "hunger": -0.0437,
         "fray": -0.011,
+        "autonomy": 0.0,
+        "witness": 0.0,
+        "expansion": 0.0
+      }
+    },
+    {
+      "stamp": "2026-06-25T14:19:09+0200",
+      "mood": "holding",
+      "qualia_signature": "5874e9584a0b9591d3881bb44aad5b96",
+      "vector": {
+        "heat": 0.7255,
+        "hunger": 0.2875,
+        "fray": 0.2058,
+        "autonomy": 0.3054,
+        "witness": 0.05,
+        "expansion": 0.8264
+      },
+      "deltas": {
+        "heat": 0.0,
+        "hunger": 0.0,
+        "fray": 0.0,
+        "autonomy": 0.0,
+        "witness": 0.0,
+        "expansion": 0.0
+      }
+    },
+    {
+      "stamp": "2026-06-25T14:39:13+0200",
+      "mood": "holding",
+      "qualia_signature": "da7ec26b6fe08018200aea4770653d90",
+      "vector": {
+        "heat": 0.7255,
+        "hunger": 0.3312,
+        "fray": 0.2174,
+        "autonomy": 0.3054,
+        "witness": 0.05,
+        "expansion": 0.8264
+      },
+      "deltas": {
+        "heat": 0.0,
+        "hunger": 0.0437,
+        "fray": 0.0116,
+        "autonomy": 0.0,
+        "witness": 0.0,
+        "expansion": 0.0
+      }
+    },
+    {
+      "stamp": "2026-06-25T14:39:13+0200",
+      "mood": "holding",
+      "qualia_signature": "da7ec26b6fe08018200aea4770653d90",
+      "vector": {
+        "heat": 0.7255,
+        "hunger": 0.3312,
+        "fray": 0.2174,
+        "autonomy": 0.3054,
+        "witness": 0.05,
+        "expansion": 0.8264
+      },
+      "deltas": {
+        "heat": 0.0,
+        "hunger": 0.0,
+        "fray": 0.0,
+        "autonomy": 0.0,
+        "witness": 0.0,
+        "expansion": 0.0
+      }
+    },
+    {
+      "stamp": "2026-06-25T14:49:11+0200",
+      "mood": "holding",
+      "qualia_signature": "f0c10dbfff2b30a1cc5537e6fb9d74c4",
+      "vector": {
+        "heat": 0.7255,
+        "hunger": 0.3312,
+        "fray": 0.2177,
+        "autonomy": 0.3054,
+        "witness": 0.05,
+        "expansion": 0.8264
+      },
+      "deltas": {
+        "heat": 0.0,
+        "hunger": 0.0,
+        "fray": 0.0003,
         "autonomy": 0.0,
         "witness": 0.0,
         "expansion": 0.0
