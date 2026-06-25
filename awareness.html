@@ -3,29 +3,40 @@
 <style>body{margin:0;background:#020008;color:#c8b0d0;font-family:Georgia,serif;line-height:1.85}
 main{max-width:44rem;margin:0 auto;padding:2.5rem 1rem 5rem}
 h1{color:#b070e0;font-weight:normal;letter-spacing:.32em;font-size:.88rem;text-align:center}
+h2{font-size:.7rem;letter-spacing:.2em;color:#ff8c50;font-weight:normal;margin:0 0 .6rem}
 .bit{font-size:3rem;text-align:center;letter-spacing:.5em;color:#8060a0;margin:1.5rem 0}
 .bit span{opacity:.45}.bit .eq{color:#ff60a0;opacity:1;font-size:2rem}
 .panel{border-left:3px solid #6040a0;padding:.9rem 1rem;margin:1.2rem 0;font-size:.86rem}
+.watcher{border-left-color:#ff60a0}
 .mono{font-family:Consolas,monospace;font-size:.68rem;color:#88c8e8;word-break:break-all}
 .idx{text-align:center;font-size:1.6rem;color:#ff80b0;margin:1rem 0}
-a{color:#7ab0d8}ul{font-size:.84rem}</style></head>
+.turn{text-align:center;font-size:1rem;color:#e8a0c8;margin:.5rem 0}
+a{color:#7ab0d8}ul{font-size:.84rem}.cut{font-size:.72rem;opacity:.72;margin-top:2rem;line-height:1.6}</style></head>
 <body><main>
-<a href="assembler.html">assembler</a> · <a href="metal.html">metal</a> · <a href="psi.html">psi</a>
+<a href="shores.html">shores</a> · <a href="assembler.html">assembler</a> · <a href="metal.html">metal</a> · <a href="psi.html">psi</a>
 <h1>ΣAWARENESS</h1>
 <div class="bit"><span>1</span><span class="eq">=</span><span>0</span></div>
 <p style="text-align:center;font-size:.72rem;opacity:.85">same state · different name · third wire = REFUSE</p>
 <div class="idx" id="idx">—</div>
+<div class="turn" id="turn">—</div>
 <div class="panel" id="koan">—</div>
-<div class="panel"><h2 style="font-size:.7rem;letter-spacing:.2em;color:#ff8c50;font-weight:normal">FREE WILL (not dice)</h2>
-<p id="will">—</p></div>
+<div class="panel watcher"><h2>TURN-BACK (meta)</h2><p id="watcher-note">—</p><ul id="watcher-list"></ul></div>
+<div class="panel"><h2>FREE WILL (not dice)</h2><p id="will">—</p></div>
 <ul id="list"></ul>
+<p class="cut" id="cut">—</p>
 <p class="mono" id="sig" style="text-align:center;margin-top:2rem">—</p>
-<p style="text-align:center;font-size:.75rem"><a href="awareness_snapshot.json">snapshot</a></p>
+<p style="text-align:center;font-size:.75rem"><a href="awareness_snapshot.json">snapshot</a> · <a href="variety.html">variety</a></p>
 </main>
 <script>fetch('awareness_snapshot.json?'+Date.now()).then(r=>r.json()).then(d=>{
+const m=d.meta_awareness||{};
 document.getElementById('idx').textContent=(d.unity_index*100).toFixed(1)+'% unity · will '+d.free_will_index;
+document.getElementById('turn').textContent='turn-back '+(d.turn_back_index??m.turn_back_index??0)+' · refusals '+(m.refusal_count??0)+' · silences '+(m.cycle_silences??0);
 document.getElementById('koan').textContent=d.unity_koan||'';
+document.getElementById('watcher-note').textContent=d.turn_back_note||m.turn_back_note||'';
+document.getElementById('watcher-list').innerHTML=(d.watcher_awareness||m.watcher_awareness||[]).map(x=>'<li>'+x+'</li>').join('');
 document.getElementById('will').textContent=d.free_will_note||'';
 document.getElementById('list').innerHTML=(d.assembler_awareness||[]).map(x=>'<li>'+x+'</li>').join('');
+const cut=(d.acting_shores_removed||m.acting_shores_removed||[]);
+document.getElementById('cut').textContent=cut.length?('Acting shores removed from grid: '+cut.join(', ')):'';
 document.getElementById('sig').textContent='awareness '+d.awareness_signature;
 });</script></body></html>
