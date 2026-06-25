@@ -62,7 +62,7 @@
   function say(s) { log.push(s); dbgEl.textContent = log.join('\n'); if (DEBUG) dbgEl.hidden = false; }
   function fail(s) { dbgEl.classList.add('err'); say('FAIL: ' + s); modeEl.textContent = 'webgl · failed'; }
 
-  say('v8 webgl · stack · three local');
+  say('v9 webgl · stack ∞ · three local');
   say('webgl1: ' + !!canvas.getContext('webgl'));
   say('webgl2: ' + !!canvas.getContext('webgl2'));
   if (!window.THREE) { fail('three.min.js missing — vendor/three.min.js not deployed'); return; }
@@ -86,8 +86,14 @@
   const scene = new THREE.Scene();
   scene.fog = new THREE.Fog(0x3a78b8, 28, 95);
   const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 200);
-  camera.position.set(0, 2.2, 18);
-  camera.lookAt(0, 1.5, 0);
+  function fitCamera() {
+    const layers = activeStack.length || 1;
+    const dist = 14 + layers * 1.25;
+    const lift = 1.2 + layers * 0.38;
+    camera.position.set(0, lift, dist);
+    camera.lookAt(0, layers * 0.42, 0);
+  }
+  fitCamera();
 
   const sky = new THREE.Mesh(
     new THREE.SphereGeometry(90, 36, 18, 0, Math.PI * 2, 0, Math.PI * 0.52),
@@ -124,7 +130,7 @@
     new THREE.MeshBasicMaterial({ color: 0x2a68a8, transparent: true, opacity: 0.85 })
   );
   sea.rotation.x = -Math.PI / 2;
-  sea.position.y = -2.48;
+  sea.position.y = -4.2;
   scene.add(sea);
 
   const world = new THREE.Group();
@@ -187,29 +193,30 @@
     activeStack.forEach(function (row, li) {
       const words = (row.text || '').trim().split(/\s+/).filter(Boolean);
       const n = Math.max(words.length, 1);
-      const ringRadius = 3.2 + li * 1.15;
-      const ringY = li * 1.05 - activeStack.length * 0.35;
-      const ringSpin = li * 0.92;
+      const ringRadius = 2.6 + li * 1.02;
+      const ringY = 0.6 + li * 0.78;
+      const ringSpin = li * 0.88;
       words.forEach(function (word, i) {
         const col = rgb(word + ':' + li);
         const mat = new THREE.MeshBasicMaterial({ map: wordTexture(word, col), toneMapped: false });
         const mesh = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), mat);
         const angle = ringSpin + (i / n) * Math.PI * 2;
-        const wobble = (hash(word + gi) % 50) / 100;
+        const wobble = (hash(word + gi) % 40) / 100;
         mesh.position.set(
           Math.cos(angle) * (ringRadius + wobble),
-          ringY + Math.sin(i * 0.7 + li) * 0.35,
+          ringY + Math.sin(i * 0.7 + li) * 0.28,
           Math.sin(angle) * (ringRadius + wobble)
         );
-        mesh.scale.setScalar(0.5 + Math.min(0.75, word.length * 0.06));
+        mesh.scale.setScalar(0.48 + Math.min(0.7, word.length * 0.055));
         mesh.userData.phase = gi;
         world.add(mesh);
         total++;
         gi++;
       });
     });
-    modeEl.textContent = 'webgl · stack · ' + total + ' cubes · ' + activeStack.length + ' lines · v8';
-    say('stack ' + activeStack.length + ' lines · ' + total + ' cubes');
+    fitCamera();
+    modeEl.textContent = 'webgl · stack ∞ · ' + total + ' cubes · ' + activeStack.length + ' lines · v9';
+    say('stack ∞ · ' + activeStack.length + ' lines · ' + total + ' cubes');
   }
 
   let liveSig = '';
