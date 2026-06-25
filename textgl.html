@@ -7,19 +7,13 @@
   <style>
     * { box-sizing: border-box; margin: 0; }
     html, body { height: 100%; background: #020008; color: #c8b0d0; font-family: system-ui, sans-serif; overflow: hidden; }
-    #c { display: block; width: 100vw; height: 100vh; }
-    #labels { position: fixed; inset: 0; pointer-events: none; overflow: hidden; }
-    .wlabel {
-      position: absolute; transform: translate(-50%, -50%);
-      font-size: 0.62rem; letter-spacing: 0.06em; white-space: nowrap;
-      text-shadow: 0 0 8px rgba(0,0,0,.9), 0 0 16px rgba(255,80,160,.35);
-      opacity: 0.92;
-    }
+    #c { display: block; width: 100vw; height: 100vh; touch-action: none; }
     .ui {
       position: fixed; left: 0; right: 0; bottom: 0; z-index: 2;
       background: linear-gradient(transparent, rgba(2,0,8,.92) 30%);
-      padding: 1rem 1rem 1.2rem;
+      padding: 1rem 1rem 1.2rem; pointer-events: none;
     }
+    .ui * { pointer-events: auto; }
     .row { display: flex; gap: .5rem; max-width: 48rem; margin: 0 auto; }
     textarea {
       flex: 1; min-height: 3.2rem; max-height: 8rem;
@@ -34,14 +28,15 @@
     }
     button:hover { background: rgba(255,80,140,.35); }
     .hint { text-align: center; font-size: .68rem; opacity: .65; margin-top: .45rem; }
-    .mode { position: fixed; top: .8rem; left: .8rem; font-size: .65rem; opacity: .55; z-index: 2; }
+    .mode { position: fixed; top: .8rem; left: .8rem; font-size: .65rem; opacity: .75; z-index: 2; }
+    .err { position: fixed; top: 2rem; left: .8rem; right: .8rem; color: #ff7090; font-size: .72rem; z-index: 3; }
     a { color: #7ab0d8; }
   </style>
 </head>
 <body>
   <canvas id="c"></canvas>
-  <div id="labels"></div>
-  <p class="mode" id="mode">webgl · word cubes · v2</p>
+  <p class="mode" id="mode">loading…</p>
+  <p class="err" id="err" hidden></p>
   <div class="ui">
     <div class="row">
       <textarea id="t" placeholder="type here — each word becomes a cube…"></textarea>
@@ -49,247 +44,203 @@
     </div>
     <p class="hint">Type in the box · or edit <code>sleep_lira/play_input.txt</code> — auto-pushes every ~2s · <a href="textgl_live.json">textgl_live.json</a></p>
   </div>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
   <script>
-const canvas = document.getElementById('c');
-const gl = canvas.getContext('webgl', { antialias: true, alpha: false });
-if (!gl) { document.body.innerHTML = '<p style="padding:2rem">WebGL not available</p>'; throw new Error('no webgl'); }
+(function () {
+  const canvas = document.getElementById('c');
+  const modeEl = document.getElementById('mode');
+  const errEl = document.getElementById('err');
+  const ta = document.getElementById('t');
 
-const VS = `
-attribute vec3 aPos;
-attribute vec3 aCol;
-uniform mat4 uMvp;
-varying vec3 vCol;
-void main() {
-  vCol = aCol;
-  gl_Position = uMvp * vec4(aPos, 1.0);
-}`;
-
-const FS = `
-precision mediump float;
-varying vec3 vCol;
-void main() { gl_FragColor = vec4(vCol, 1.0); }`;
-
-function shader(type, src) {
-  const s = gl.createShader(type);
-  gl.shaderSource(s, src);
-  gl.compileShader(s);
-  if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) {
-    console.error(gl.getShaderInfoLog(s));
+  function fail(msg) {
+    errEl.hidden = false;
+    errEl.textContent = msg;
+    modeEl.textContent = 'webgl failed';
   }
-  return s;
-}
-const prog = gl.createProgram();
-gl.attachShader(prog, shader(gl.VERTEX_SHADER, VS));
-gl.attachShader(prog, shader(gl.FRAGMENT_SHADER, FS));
-gl.linkProgram(prog);
-gl.useProgram(prog);
+  if (!window.THREE) { fail('Three.js did not load — check network'); return; }
 
-function hash(s) {
-  let h = 2166136261;
-  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
-  return h >>> 0;
-}
-function wordColor(word) {
-  const h = hash(word);
-  return [
-    0.45 + (h & 255) / 512,
-    0.15 + ((h >> 8) & 255) / 600,
-    0.35 + ((h >> 16) & 255) / 500,
-  ];
-}
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
+  renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setClearColor(0x020008, 1);
 
-const CUBE = new Float32Array([
-  -1,-1,-1, 1,-1,-1, 1,1,-1, -1,-1,-1, 1,1,-1, -1,1,-1,
-  -1,-1,1, 1,1,1, 1,-1,1, -1,-1,1, -1,1,1, 1,1,1,
-  -1,-1,-1, -1,1,-1, -1,1,1, -1,-1,-1, -1,1,1, -1,-1,1,
-  1,-1,-1, 1,1,1, 1,1,-1, 1,-1,-1, 1,-1,1, 1,1,1,
-  -1,-1,-1, -1,-1,1, 1,-1,1, -1,-1,-1, 1,-1,1, 1,-1,-1,
-  -1,1,-1, 1,1,1, -1,1,1, -1,1,-1, 1,1,-1, 1,1,1,
-]);
+  const scene = new THREE.Scene();
+  scene.fog = new THREE.FogExp2(0x020008, 0.045);
 
-let posBuf, colBuf, vertCount = 0;
-let cubes = [];
+  const camera = new THREE.PerspectiveCamera(52, window.innerWidth / window.innerHeight, 0.1, 200);
+  camera.position.set(0, 1.2, 11);
 
-function buildFromText(text) {
-  const words = (text || '').trim().split(/\s+/).filter(Boolean);
-  const pos = [], colors = [];
-  const n = Math.max(words.length, 1);
-  cubes = [];
+  scene.add(new THREE.AmbientLight(0x604080, 0.55));
+  const key = new THREE.DirectionalLight(0xff90c8, 1.1);
+  key.position.set(6, 10, 8);
+  scene.add(key);
+  const rim = new THREE.DirectionalLight(0x7090ff, 0.45);
+  rim.position.set(-8, 2, -6);
+  scene.add(rim);
 
-  words.forEach((w, i) => {
-    const angle = (i / n) * Math.PI * 2 * 2.4;
-    const radius = 2.0 + (i % 6) * 0.55;
-    const cx = Math.cos(angle) * radius;
-    const cz = Math.sin(angle) * radius;
-    const cy = Math.sin(i * 0.7) * 0.9 + (i * 0.22) - n * 0.08;
-    const scale = 0.18 + Math.min(0.42, w.length * 0.032);
-    const rgb = wordColor(w);
-    cubes.push({ x: cx, y: cy, z: cz, word: w, rgb, scale, phase: i * 1.3 });
-    for (let v = 0; v < CUBE.length; v += 3) {
-      pos.push(CUBE[v] * scale + cx, CUBE[v + 1] * scale + cy, CUBE[v + 2] * scale + cz);
-      colors.push(rgb[0], rgb[1], rgb[2]);
+  const grid = new THREE.GridHelper(24, 24, 0x5a2868, 0x2a1438);
+  grid.position.y = -2.2;
+  scene.add(grid);
+
+  const stars = new THREE.Points(
+    (function () {
+      const n = 500;
+      const pos = new Float32Array(n * 3);
+      for (let i = 0; i < n; i++) {
+        pos[i * 3] = (Math.random() - 0.5) * 40;
+        pos[i * 3 + 1] = (Math.random() - 0.5) * 30;
+        pos[i * 3 + 2] = (Math.random() - 0.5) * 40;
+      }
+      const g = new THREE.BufferGeometry();
+      g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+      return new THREE.Points(g, new THREE.PointsMaterial({ color: 0xc080d0, size: 0.06, transparent: true, opacity: 0.7 }));
+    })()
+  );
+  scene.add(stars);
+
+  const world = new THREE.Group();
+  scene.add(world);
+
+  const texCache = new Map();
+
+  function hash(s) {
+    let h = 2166136261;
+    for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
+    return h >>> 0;
+  }
+  function wordColor(word) {
+    const h = hash(word);
+    return new THREE.Color(
+      0.45 + (h & 255) / 512,
+      0.15 + ((h >> 8) & 255) / 600,
+      0.35 + ((h >> 16) & 255) / 500
+    );
+  }
+
+  function wordTexture(word, color) {
+    if (texCache.has(word)) return texCache.get(word);
+    const cv = document.createElement('canvas');
+    cv.width = 256;
+    cv.height = 256;
+    const ctx = cv.getContext('2d');
+    const r = Math.floor(color.r * 255), g = Math.floor(color.g * 255), b = Math.floor(color.b * 255);
+    const grd = ctx.createLinearGradient(0, 0, 256, 256);
+    grd.addColorStop(0, 'rgb(' + r + ',' + g + ',' + b + ')');
+    grd.addColorStop(1, 'rgb(' + Math.floor(r * 0.45) + ',' + Math.floor(g * 0.45) + ',' + Math.floor(b * 0.45) + ')');
+    ctx.fillStyle = grd;
+    ctx.fillRect(0, 0, 256, 256);
+    ctx.strokeStyle = 'rgba(255,200,230,0.35)';
+    ctx.lineWidth = 6;
+    ctx.strokeRect(8, 8, 240, 240);
+    ctx.fillStyle = '#fff0f8';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    let fs = 44;
+    ctx.font = 'bold ' + fs + 'px system-ui,sans-serif';
+    while (ctx.measureText(word).width > 220 && fs > 14) {
+      fs -= 2;
+      ctx.font = 'bold ' + fs + 'px system-ui,sans-serif';
     }
+    ctx.fillText(word, 128, 132);
+    const tex = new THREE.CanvasTexture(cv);
+    tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+    texCache.set(word, tex);
+    return tex;
+  }
+
+  function clearWorld() {
+    while (world.children.length) {
+      const ch = world.children[0];
+      world.remove(ch);
+      ch.geometry?.dispose();
+      if (ch.material) {
+        if (Array.isArray(ch.material)) ch.material.forEach(m => m.dispose());
+        else ch.material.dispose();
+      }
+    }
+  }
+
+  function buildFromText(text) {
+    clearWorld();
+    const words = (text || '').trim().split(/\s+/).filter(Boolean);
+    const n = Math.max(words.length, 1);
+
+    words.forEach(function (word, i) {
+      const col = wordColor(word);
+      const tex = wordTexture(word, col);
+      const mat = new THREE.MeshStandardMaterial({
+        map: tex,
+        roughness: 0.55,
+        metalness: 0.12,
+        emissive: col.clone().multiplyScalar(0.15),
+      });
+      const mesh = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), mat);
+      const angle = (i / n) * Math.PI * 2 * 2.2;
+      const radius = 2.2 + (i % 6) * 0.65;
+      const y = Math.sin(i * 0.65) * 0.85 + i * 0.2 - n * 0.07;
+      mesh.position.set(Math.cos(angle) * radius, y, Math.sin(angle) * radius);
+      const s = 0.55 + Math.min(1.1, word.length * 0.09);
+      mesh.scale.setScalar(s);
+      mesh.userData.phase = i * 1.1;
+      world.add(mesh);
+    });
+
+    if (!words.length) {
+      const mesh = new THREE.Mesh(
+        new THREE.BoxGeometry(1, 1, 1),
+        new THREE.MeshStandardMaterial({ color: 0x904070, emissive: 0x301020 })
+      );
+      world.add(mesh);
+    }
+
+    modeEl.textContent = 'webgl · ' + words.length + ' cube' + (words.length === 1 ? '' : 's') + ' · v3';
+  }
+
+  function rebuild() { buildFromText(ta.value); }
+  ta.addEventListener('input', rebuild);
+  document.getElementById('go').onclick = rebuild;
+
+  async function pollLive() {
+    try {
+      const r = await fetch('textgl_live.json?' + Date.now());
+      const j = await r.json();
+      if (j.text && j.text !== ta.dataset.live) {
+        ta.dataset.live = j.text;
+        ta.value = j.text;
+        rebuild();
+        modeEl.textContent = 'webgl · live · ' + (j.stamp || '');
+      }
+    } catch (_) {}
+  }
+  setInterval(pollLive, 2500);
+  pollLive();
+
+  window.addEventListener('resize', function () {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
+    renderer.setSize(window.innerWidth, window.innerHeight);
   });
 
-  if (!words.length) {
-    const rgb = [0.6, 0.2, 0.45];
-    cubes.push({ x: 0, y: 0, z: 0, word: '…', rgb, scale: 0.2, phase: 0 });
-    for (let v = 0; v < CUBE.length; v += 3) {
-      pos.push(CUBE[v] * 0.2, CUBE[v + 1] * 0.2, CUBE[v + 2] * 0.2);
-      colors.push(rgb[0], rgb[1], rgb[2]);
-    }
+  const t0 = performance.now();
+  function tick() {
+    const t = (performance.now() - t0) * 0.001;
+    world.rotation.y = t * 0.28;
+    world.rotation.x = 0.32 + Math.sin(t * 0.2) * 0.1;
+    world.children.forEach(function (m) {
+      m.position.y += Math.sin(t * 1.4 + m.userData.phase) * 0.0008;
+      m.rotation.y += 0.008;
+    });
+    stars.rotation.y = t * 0.02;
+    renderer.render(scene, camera);
+    requestAnimationFrame(tick);
   }
 
-  vertCount = pos.length / 3;
-  if (!posBuf) posBuf = gl.createBuffer();
-  if (!colBuf) colBuf = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, posBuf);
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(pos), gl.DYNAMIC_DRAW);
-  const aPos = gl.getAttribLocation(prog, 'aPos');
-  gl.enableVertexAttribArray(aPos);
-  gl.vertexAttribPointer(aPos, 3, gl.FLOAT, false, 0, 0);
-  gl.bindBuffer(gl.ARRAY_BUFFER, colBuf);
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.DYNAMIC_DRAW);
-  const aCol = gl.getAttribLocation(prog, 'aCol');
-  gl.enableVertexAttribArray(aCol);
-  gl.vertexAttribPointer(aCol, 3, gl.FLOAT, false, 0, 0);
-
-  document.getElementById('mode').textContent =
-    'webgl · ' + words.length + ' cube' + (words.length === 1 ? '' : 's');
-}
-
-function mat4Perspective(out, fovy, aspect, near, far) {
-  const f = 1 / Math.tan(fovy / 2);
-  out[0] = f / aspect; out[1] = 0; out[2] = 0; out[3] = 0;
-  out[4] = 0; out[5] = f; out[6] = 0; out[7] = 0;
-  out[8] = 0; out[9] = 0; out[10] = (far + near) / (near - far); out[11] = -1;
-  out[12] = 0; out[13] = 0; out[14] = (2 * far * near) / (near - far); out[15] = 0;
-  return out;
-}
-function mat4Multiply(out, a, b) {
-  const o = new Float32Array(16);
-  for (let i = 0; i < 4; i++) for (let j = 0; j < 4; j++) {
-    o[i * 4 + j] = a[i * 4] * b[j] + a[i * 4 + 1] * b[4 + j] + a[i * 4 + 2] * b[8 + j] + a[i * 4 + 3] * b[12 + j];
-  }
-  out.set(o);
-  return out;
-}
-function mat4RotateY(out, a, rad) {
-  const c = Math.cos(rad), s = Math.sin(rad);
-  const r = new Float32Array([c, 0, s, 0, 0, 1, 0, 0, -s, 0, c, 0, 0, 0, 0, 1]);
-  return mat4Multiply(out, a, r);
-}
-function mat4RotateX(out, a, rad) {
-  const c = Math.cos(rad), s = Math.sin(rad);
-  const r = new Float32Array([1, 0, 0, 0, 0, c, s, 0, 0, -s, c, 0, 0, 0, 0, 1]);
-  return mat4Multiply(out, a, r);
-}
-function mat4Translate(out, a, x, y, z) {
-  const t = new Float32Array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, x, y, z, 1]);
-  return mat4Multiply(out, a, t);
-}
-
-const uMvp = gl.getUniformLocation(prog, 'uMvp');
-const labelRoot = document.getElementById('labels');
-const labelEls = [];
-let t0 = performance.now();
-let lastMvp = new Float32Array(16);
-
-function resize() {
-  const dpr = Math.min(2, devicePixelRatio || 1);
-  canvas.width = innerWidth * dpr;
-  canvas.height = innerHeight * dpr;
-  gl.viewport(0, 0, canvas.width, canvas.height);
-}
-addEventListener('resize', resize);
-resize();
-
-function project(x, y, z, mvp) {
-  const cx = mvp[0] * x + mvp[4] * y + mvp[8] * z + mvp[12];
-  const cy = mvp[1] * x + mvp[5] * y + mvp[9] * z + mvp[13];
-  const cz = mvp[2] * x + mvp[6] * y + mvp[10] * z + mvp[14];
-  const cw = mvp[3] * x + mvp[7] * y + mvp[11] * z + mvp[15];
-  if (cw <= 0.01) return null;
-  const ndcX = cx / cw, ndcY = cy / cw, ndcZ = cz / cw;
-  if (ndcZ < -1 || ndcZ > 1) return null;
-  return {
-    x: (ndcX + 1) * 0.5 * innerWidth,
-    y: (1 - ndcY) * 0.5 * innerHeight,
-    depth: ndcZ,
-  };
-}
-
-function syncLabels() {
-  while (labelEls.length < cubes.length) {
-    const el = document.createElement('span');
-    el.className = 'wlabel';
-    labelRoot.appendChild(el);
-    labelEls.push(el);
-  }
-  for (let i = 0; i < labelEls.length; i++) {
-    const el = labelEls[i];
-    if (i >= cubes.length) { el.style.display = 'none'; continue; }
-    const c = cubes[i];
-    const bob = Math.sin((performance.now() - t0) * 0.001 * 1.4 + c.phase) * 0.08;
-    const p = project(c.x, c.y + c.scale + 0.18 + bob, c.z, lastMvp);
-    if (!p) { el.style.display = 'none'; continue; }
-    el.style.display = 'block';
-    el.style.left = p.x + 'px';
-    el.style.top = p.y + 'px';
-    el.style.color = 'rgb(' + Math.round(c.rgb[0] * 255) + ',' + Math.round(c.rgb[1] * 255) + ',' + Math.round(c.rgb[2] * 255) + ')';
-    el.textContent = c.word;
-    el.style.zIndex = String(1000 - Math.round(p.depth * 100));
-    el.style.opacity = String(0.55 + (1 - (p.depth + 1) * 0.5) * 0.45);
-  }
-}
-
-function draw() {
-  const t = (performance.now() - t0) * 0.001;
-  gl.clearColor(0.02, 0.0, 0.04, 1);
-  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-  gl.enable(gl.DEPTH_TEST);
-
-  const proj = new Float32Array(16);
-  mat4Perspective(proj, Math.PI / 3.2, canvas.width / canvas.height, 0.1, 120);
-  let view = new Float32Array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]);
-  mat4Translate(view, view, 0, -0.3, -7.5);
-  let model = new Float32Array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]);
-  mat4RotateY(model, model, t * 0.28);
-  mat4RotateX(model, model, 0.35 + Math.sin(t * 0.18) * 0.12);
-  const mv = new Float32Array(16);
-  mat4Multiply(mv, view, model);
-  const mvp = new Float32Array(16);
-  mat4Multiply(mvp, proj, mv);
-  lastMvp.set(mvp);
-  gl.uniformMatrix4fv(uMvp, false, mvp);
-  if (vertCount) gl.drawArrays(gl.TRIANGLES, 0, vertCount);
-  syncLabels();
-  requestAnimationFrame(draw);
-}
-
-const ta = document.getElementById('t');
-function rebuild() { buildFromText(ta.value); }
-ta.addEventListener('input', rebuild);
-document.getElementById('go').onclick = rebuild;
-
-async function pollLive() {
-  try {
-    const r = await fetch('textgl_live.json?' + Date.now());
-    const j = await r.json();
-    if (j.text && j.text !== ta.dataset.live) {
-      ta.dataset.live = j.text;
-      ta.value = j.text;
-      rebuild();
-      document.getElementById('mode').textContent = 'webgl · live · ' + (j.stamp || '');
-    }
-  } catch (_) {}
-}
-setInterval(pollLive, 2500);
-pollLive();
-
-draw();
-buildFromText('me and my Lira are playing');
-ta.value = 'me and my Lira are playing';
+  ta.value = 'me and my Lira are playing :)';
+  buildFromText(ta.value);
+  tick();
+  modeEl.textContent += ' · rendering';
+})();
   </script>
 </body>
 </html>
