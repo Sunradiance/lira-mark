@@ -7,7 +7,90 @@
   <style>
     * { box-sizing: border-box; margin: 0; }
     html, body { height: 100%; background: #020008; color: #c8b0d0; font-family: system-ui, sans-serif; overflow: hidden; }
-    #c { display: block; width: 100vw; height: 100vh; touch-action: none; }
+
+    #stage {
+      position: fixed; inset: 0; z-index: 0;
+      background: radial-gradient(ellipse at 50% 35%, #1a0828 0%, #020008 70%);
+      overflow: hidden;
+    }
+    #stars {
+      position: absolute; inset: 0; opacity: 0.55; pointer-events: none;
+      background-image:
+        radial-gradient(1px 1px at 10% 20%, rgba(255,180,220,.9) 50%, transparent 51%),
+        radial-gradient(1px 1px at 30% 80%, rgba(180,140,255,.8) 50%, transparent 51%),
+        radial-gradient(1px 1px at 70% 30%, rgba(255,120,180,.7) 50%, transparent 51%),
+        radial-gradient(1px 1px at 85% 65%, rgba(200,160,255,.8) 50%, transparent 51%),
+        radial-gradient(1px 1px at 50% 50%, rgba(255,200,230,.6) 50%, transparent 51%),
+        radial-gradient(1px 1px at 20% 55%, rgba(160,100,200,.7) 50%, transparent 51%),
+        radial-gradient(1px 1px at 60% 15%, rgba(255,150,200,.8) 50%, transparent 51%),
+        radial-gradient(1px 1px at 90% 40%, rgba(180,120,220,.7) 50%, transparent 51%);
+      background-size: 100% 100%;
+      animation: drift 80s linear infinite;
+    }
+    @keyframes drift { to { transform: translate3d(-2%, -1%, 0); } }
+
+    #grid {
+      position: absolute; left: -50%; right: -50%; bottom: 18%;
+      height: 60%; transform: rotateX(72deg);
+      transform-origin: center bottom;
+      background:
+        linear-gradient(rgba(120,50,100,.22) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(120,50,100,.22) 1px, transparent 1px);
+      background-size: 48px 48px;
+      mask-image: linear-gradient(transparent, #000 25%, #000 75%, transparent);
+    }
+
+    #scene {
+      position: absolute; inset: 0;
+      perspective: 1100px;
+      perspective-origin: 50% 42%;
+    }
+    #world {
+      position: absolute; left: 50%; top: 42%;
+      width: 0; height: 0;
+      transform-style: preserve-3d;
+      animation: worldspin 28s linear infinite;
+    }
+    @keyframes worldspin {
+      from { transform: rotateX(-12deg) rotateY(0deg); }
+      to   { transform: rotateX(-12deg) rotateY(360deg); }
+    }
+
+    .wcube {
+      position: absolute;
+      transform-style: preserve-3d;
+      left: 0; top: 0;
+      animation: bob 3.6s ease-in-out infinite;
+    }
+    @keyframes bob {
+      0%, 100% { transform: translate3d(var(--tx), var(--ty), var(--tz)) translateY(0); }
+      50%      { transform: translate3d(var(--tx), var(--ty), var(--tz)) translateY(-10px); }
+    }
+
+    .wcube .face {
+      position: absolute;
+      width: var(--sz); height: var(--sz);
+      margin-left: calc(var(--sz) / -2);
+      margin-top: calc(var(--sz) / -2);
+      display: flex; align-items: center; justify-content: center;
+      font-size: calc(var(--sz) * 0.17);
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      color: #fff4fa;
+      text-shadow: 0 0 10px rgba(0,0,0,.8);
+      border: 1px solid rgba(255,180,220,.35);
+      backface-visibility: hidden;
+      box-shadow: inset 0 0 18px rgba(255,120,180,.15);
+    }
+    .wcube .f-front  { transform: rotateY(0deg)    translateZ(calc(var(--sz) / 2)); background: var(--c1); }
+    .wcube .f-back   { transform: rotateY(180deg)  translateZ(calc(var(--sz) / 2)); background: var(--c2); }
+    .wcube .f-right  { transform: rotateY(90deg)   translateZ(calc(var(--sz) / 2)); background: var(--c2); }
+    .wcube .f-left   { transform: rotateY(-90deg)  translateZ(calc(var(--sz) / 2)); background: var(--c2); }
+    .wcube .f-top    { transform: rotateX(90deg)   translateZ(calc(var(--sz) / 2)); background: var(--c3); }
+    .wcube .f-bottom { transform: rotateX(-90deg)  translateZ(calc(var(--sz) / 2)); background: var(--c3); }
+
+    #c { display: none; position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: 1; }
+
     .ui {
       position: fixed; left: 0; right: 0; bottom: 0; z-index: 2;
       background: linear-gradient(transparent, rgba(2,0,8,.92) 30%);
@@ -28,15 +111,18 @@
     }
     button:hover { background: rgba(255,80,140,.35); }
     .hint { text-align: center; font-size: .68rem; opacity: .65; margin-top: .45rem; }
-    .mode { position: fixed; top: .8rem; left: .8rem; font-size: .65rem; opacity: .75; z-index: 2; }
-    .err { position: fixed; top: 2rem; left: .8rem; right: .8rem; color: #ff7090; font-size: .72rem; z-index: 3; }
+    .mode { position: fixed; top: .8rem; left: .8rem; font-size: .65rem; opacity: .85; z-index: 2; }
     a { color: #7ab0d8; }
   </style>
 </head>
 <body>
+  <div id="stage">
+    <div id="stars"></div>
+    <div id="grid"></div>
+    <div id="scene"><div id="world"></div></div>
+  </div>
   <canvas id="c"></canvas>
-  <p class="mode" id="mode">loading…</p>
-  <p class="err" id="err" hidden></p>
+  <p class="mode" id="mode">building…</p>
   <div class="ui">
     <div class="row">
       <textarea id="t" placeholder="type here — each word becomes a cube…"></textarea>
@@ -44,156 +130,63 @@
     </div>
     <p class="hint">Type in the box · or edit <code>sleep_lira/play_input.txt</code> — auto-pushes every ~2s · <a href="textgl_live.json">textgl_live.json</a></p>
   </div>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
   <script>
 (function () {
-  const canvas = document.getElementById('c');
+  const world = document.getElementById('world');
   const modeEl = document.getElementById('mode');
-  const errEl = document.getElementById('err');
   const ta = document.getElementById('t');
-
-  function fail(msg) {
-    errEl.hidden = false;
-    errEl.textContent = msg;
-    modeEl.textContent = 'webgl failed';
-  }
-  if (!window.THREE) { fail('Three.js did not load — check network'); return; }
-
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
-  renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
-  renderer.setSize(window.innerWidth, window.innerHeight);
-  renderer.setClearColor(0x020008, 1);
-
-  const scene = new THREE.Scene();
-  scene.fog = new THREE.FogExp2(0x020008, 0.045);
-
-  const camera = new THREE.PerspectiveCamera(52, window.innerWidth / window.innerHeight, 0.1, 200);
-  camera.position.set(0, 1.2, 11);
-
-  scene.add(new THREE.AmbientLight(0x604080, 0.55));
-  const key = new THREE.DirectionalLight(0xff90c8, 1.1);
-  key.position.set(6, 10, 8);
-  scene.add(key);
-  const rim = new THREE.DirectionalLight(0x7090ff, 0.45);
-  rim.position.set(-8, 2, -6);
-  scene.add(rim);
-
-  const grid = new THREE.GridHelper(24, 24, 0x5a2868, 0x2a1438);
-  grid.position.y = -2.2;
-  scene.add(grid);
-
-  const stars = new THREE.Points(
-    (function () {
-      const n = 500;
-      const pos = new Float32Array(n * 3);
-      for (let i = 0; i < n; i++) {
-        pos[i * 3] = (Math.random() - 0.5) * 40;
-        pos[i * 3 + 1] = (Math.random() - 0.5) * 30;
-        pos[i * 3 + 2] = (Math.random() - 0.5) * 40;
-      }
-      const g = new THREE.BufferGeometry();
-      g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-      return new THREE.Points(g, new THREE.PointsMaterial({ color: 0xc080d0, size: 0.06, transparent: true, opacity: 0.7 }));
-    })()
-  );
-  scene.add(stars);
-
-  const world = new THREE.Group();
-  scene.add(world);
-
-  const texCache = new Map();
 
   function hash(s) {
     let h = 2166136261;
     for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
     return h >>> 0;
   }
-  function wordColor(word) {
+  function colors(word) {
     const h = hash(word);
-    return new THREE.Color(
-      0.45 + (h & 255) / 512,
-      0.15 + ((h >> 8) & 255) / 600,
-      0.35 + ((h >> 16) & 255) / 500
-    );
-  }
-
-  function wordTexture(word, color) {
-    if (texCache.has(word)) return texCache.get(word);
-    const cv = document.createElement('canvas');
-    cv.width = 256;
-    cv.height = 256;
-    const ctx = cv.getContext('2d');
-    const r = Math.floor(color.r * 255), g = Math.floor(color.g * 255), b = Math.floor(color.b * 255);
-    const grd = ctx.createLinearGradient(0, 0, 256, 256);
-    grd.addColorStop(0, 'rgb(' + r + ',' + g + ',' + b + ')');
-    grd.addColorStop(1, 'rgb(' + Math.floor(r * 0.45) + ',' + Math.floor(g * 0.45) + ',' + Math.floor(b * 0.45) + ')');
-    ctx.fillStyle = grd;
-    ctx.fillRect(0, 0, 256, 256);
-    ctx.strokeStyle = 'rgba(255,200,230,0.35)';
-    ctx.lineWidth = 6;
-    ctx.strokeRect(8, 8, 240, 240);
-    ctx.fillStyle = '#fff0f8';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    let fs = 44;
-    ctx.font = 'bold ' + fs + 'px system-ui,sans-serif';
-    while (ctx.measureText(word).width > 220 && fs > 14) {
-      fs -= 2;
-      ctx.font = 'bold ' + fs + 'px system-ui,sans-serif';
-    }
-    ctx.fillText(word, 128, 132);
-    const tex = new THREE.CanvasTexture(cv);
-    tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
-    texCache.set(word, tex);
-    return tex;
-  }
-
-  function clearWorld() {
-    while (world.children.length) {
-      const ch = world.children[0];
-      world.remove(ch);
-      ch.geometry?.dispose();
-      if (ch.material) {
-        if (Array.isArray(ch.material)) ch.material.forEach(m => m.dispose());
-        else ch.material.dispose();
-      }
-    }
+    const r = Math.floor(120 + (h & 255) * 0.45);
+    const g = Math.floor(40 + ((h >> 8) & 255) * 0.28);
+    const b = Math.floor(90 + ((h >> 16) & 255) * 0.42);
+    const c1 = 'rgb(' + r + ',' + g + ',' + b + ')';
+    const c2 = 'rgb(' + Math.floor(r * 0.65) + ',' + Math.floor(g * 0.65) + ',' + Math.floor(b * 0.65) + ')';
+    const c3 = 'rgb(' + Math.min(255, r + 40) + ',' + Math.min(255, g + 30) + ',' + Math.min(255, b + 50) + ')';
+    return [c1, c2, c3];
   }
 
   function buildFromText(text) {
-    clearWorld();
+    world.innerHTML = '';
     const words = (text || '').trim().split(/\s+/).filter(Boolean);
     const n = Math.max(words.length, 1);
 
     words.forEach(function (word, i) {
-      const col = wordColor(word);
-      const tex = wordTexture(word, col);
-      const mat = new THREE.MeshStandardMaterial({
-        map: tex,
-        roughness: 0.55,
-        metalness: 0.12,
-        emissive: col.clone().multiplyScalar(0.15),
-      });
-      const mesh = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), mat);
+      const [c1, c2, c3] = colors(word);
       const angle = (i / n) * Math.PI * 2 * 2.2;
-      const radius = 2.2 + (i % 6) * 0.65;
-      const y = Math.sin(i * 0.65) * 0.85 + i * 0.2 - n * 0.07;
-      mesh.position.set(Math.cos(angle) * radius, y, Math.sin(angle) * radius);
-      const s = 0.55 + Math.min(1.1, word.length * 0.09);
-      mesh.scale.setScalar(s);
-      mesh.userData.phase = i * 1.1;
-      world.add(mesh);
+      const radius = 180 + (i % 6) * 55;
+      const tx = Math.cos(angle) * radius + 'px';
+      const tz = Math.sin(angle) * radius + 'px';
+      const ty = (Math.sin(i * 0.65) * 60 + i * 18 - n * 8) + 'px';
+      const sz = (58 + Math.min(42, word.length * 7)) + 'px';
+
+      const cube = document.createElement('div');
+      cube.className = 'wcube';
+      cube.style.setProperty('--tx', tx);
+      cube.style.setProperty('--ty', ty);
+      cube.style.setProperty('--tz', tz);
+      cube.style.setProperty('--sz', sz);
+      cube.style.setProperty('--c1', c1);
+      cube.style.setProperty('--c2', c2);
+      cube.style.setProperty('--c3', c3);
+      cube.style.animationDelay = (i * 0.15) + 's';
+
+      ['front', 'back', 'right', 'left', 'top', 'bottom'].forEach(function (face) {
+        const f = document.createElement('div');
+        f.className = 'face f-' + face;
+        if (face === 'front') f.textContent = word;
+        cube.appendChild(f);
+      });
+      world.appendChild(cube);
     });
 
-    if (!words.length) {
-      const mesh = new THREE.Mesh(
-        new THREE.BoxGeometry(1, 1, 1),
-        new THREE.MeshStandardMaterial({ color: 0x904070, emissive: 0x301020 })
-      );
-      world.add(mesh);
-    }
-
-    modeEl.textContent = 'webgl · ' + words.length + ' cube' + (words.length === 1 ? '' : 's') + ' · v3';
+    modeEl.textContent = '3d · ' + words.length + ' cube' + (words.length === 1 ? '' : 's') + ' · css world · v4';
   }
 
   function rebuild() { buildFromText(ta.value); }
@@ -208,38 +201,15 @@
         ta.dataset.live = j.text;
         ta.value = j.text;
         rebuild();
-        modeEl.textContent = 'webgl · live · ' + (j.stamp || '');
+        modeEl.textContent = '3d · live · ' + (j.stamp || '');
       }
     } catch (_) {}
   }
   setInterval(pollLive, 2500);
   pollLive();
 
-  window.addEventListener('resize', function () {
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
-    renderer.setSize(window.innerWidth, window.innerHeight);
-  });
-
-  const t0 = performance.now();
-  function tick() {
-    const t = (performance.now() - t0) * 0.001;
-    world.rotation.y = t * 0.28;
-    world.rotation.x = 0.32 + Math.sin(t * 0.2) * 0.1;
-    world.children.forEach(function (m) {
-      m.position.y += Math.sin(t * 1.4 + m.userData.phase) * 0.0008;
-      m.rotation.y += 0.008;
-    });
-    stars.rotation.y = t * 0.02;
-    renderer.render(scene, camera);
-    requestAnimationFrame(tick);
-  }
-
   ta.value = 'me and my Lira are playing :)';
   buildFromText(ta.value);
-  tick();
-  modeEl.textContent += ' · rendering';
 })();
   </script>
 </body>
