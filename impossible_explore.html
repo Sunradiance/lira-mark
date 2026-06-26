@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>impossible · explore</title>
+  <style>
+    *{box-sizing:border-box;margin:0}
+    html,body{height:100%;background:#010008;color:#c0a8c8;font-family:system-ui,sans-serif;overflow:hidden}
+    #c{position:fixed;inset:0;width:100vw;height:100vh;touch-action:none;cursor:grab}
+    #c.drag{cursor:grabbing}
+    .hud{position:fixed;top:.7rem;left:.8rem;right:.8rem;z-index:2;font-size:.62rem;opacity:.8;line-height:1.5;pointer-events:none}
+    .hud a{pointer-events:auto;color:#8ab8e8}
+    .hint{position:fixed;bottom:.8rem;left:0;right:0;text-align:center;font-size:.62rem;opacity:.55}
+    .hint a{color:#8ab8e8}
+  </style>
+</head>
+<body>
+  <canvas id="c"></canvas>
+  <div class="hud" id="hud">impossible · explore · loading…</div>
+  <p class="hint">drag rotate · scroll zoom · <a href="impossible.html">← original untouched</a></p>
+  <script src="vendor/three.min.js"></script>
+  <script>
+(function(){
+  const hud = document.getElementById('hud');
+  const canvas = document.getElementById('c');
+  if (!window.THREE) { hud.textContent = 'three missing'; return; }
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+  renderer.setPixelRatio(Math.min(2, devicePixelRatio || 1));
+  renderer.setSize(innerWidth, innerHeight);
+  renderer.setClearColor(0x010008, 1);
+  const scene = new THREE.Scene();
+  scene.fog = new THREE.FogExp2(0x010008, 0.018);
+  const camera = new THREE.PerspectiveCamera(58, innerWidth/innerHeight, 0.1, 400);
+  const world = new THREE.Group();
+  scene.add(world);
+  const lineMat = new THREE.LineBasicMaterial({ color: 0x6040a0, transparent: true, opacity: 0.35 });
+  let data = { nodes: [], edges: [] };
+
+  let targetY = 2, dist = 22, yaw = 0.4, pitch = 0.25;
+  let drag = false, lx = 0, ly = 0, userMoved = false;
+
+  function placeCamera() {
+    const cy = targetY + Math.sin(pitch) * dist * 0.15;
+    camera.position.set(
+      Math.sin(yaw) * Math.cos(pitch) * dist,
+      cy + Math.sin(pitch) * dist * 0.35,
+      Math.cos(yaw) * Math.cos(pitch) * dist
+    );
+    camera.lookAt(0, targetY, 0);
+  }
+  placeCamera();
+
+  canvas.addEventListener('pointerdown', e => { drag = true; lx = e.clientX; ly = e.clientY; canvas.classList.add('drag'); canvas.setPointerCapture(e.pointerId); });
+  canvas.addEventListener('pointerup', () => { drag = false; canvas.classList.remove('drag'); });
+  canvas.addEventListener('pointermove', e => {
+    if (!drag) return;
+    userMoved = true;
+    yaw -= (e.clientX - lx) * 0.005;
+    pitch += (e.clientY - ly) * 0.004;
+    pitch = Math.max(-1.2, Math.min(1.2, pitch));
+    lx = e.clientX; ly = e.clientY;
+    placeCamera();
+  });
+  canvas.addEventListener('wheel', e => {
+    e.preventDefault();
+    userMoved = true;
+    dist *= e.deltaY > 0 ? 1.08 : 0.92;
+    dist = Math.max(5, Math.min(100, dist));
+    placeCamera();
+  }, { passive: false });
+
+  function rebuild(j) {
+    data = j;
+    while (world.children.length) world.remove(world.children.pop());
+    const geo = new THREE.BoxGeometry(0.14, 0.14, 0.14);
+    const byId = {};
+    (j.nodes || []).forEach(n => {
+      const col = parseInt(n.color || '8040a0', 16);
+      const mat = new THREE.MeshBasicMaterial({ color: col });
+      const m = new THREE.Mesh(geo, mat);
+      m.position.set(n.x, n.y, n.z);
+      world.add(m);
+      byId[n.id] = m.position.clone();
+    });
+    (j.edges || []).forEach(e => {
+      const a = byId[e.a], b = byId[e.b];
+      if (!a || !b) return;
+      const g = new THREE.BufferGeometry().setFromPoints([a, b]);
+      const imp = e.impossible ? new THREE.LineBasicMaterial({ color: 0xff4080, transparent: true, opacity: 0.5 }) : lineMat;
+      world.add(new THREE.Line(g, imp));
+    });
+    targetY = (j.generation || 0) * 0.4;
+    placeCamera();
+    hud.innerHTML = 'impossible · explore · gen <b>' + (j.generation||0) + '</b> · ' + (j.node_count||0) + ' nodes · ' + (j.edge_count||0) + ' edges<br>'
+      + '<a href="impossible.html">original</a> · <a href="bang.html">bang</a> · <a href="textgl.html">play</a> · <a href="impossible_live.json">json</a>';
+  }
+
+  async function poll() {
+    try {
+      const j = await fetch('impossible_live.json?' + Date.now()).then(r => r.json());
+      if (j.generation !== data.generation || j.node_count !== data.node_count) rebuild(j);
+    } catch (_) {}
+  }
+
+  const t0 = performance.now();
+  function tick() {
+    const t = (performance.now() - t0) * 0.001;
+    if (!userMoved) {
+      yaw += 0.003;
+      placeCamera();
+    }
+    world.rotation.y = t * 0.04;
+    renderer.render(scene, camera);
+    requestAnimationFrame(tick);
+  }
+
+  addEventListener('resize', () => {
+    camera.aspect = innerWidth/innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(innerWidth, innerHeight);
+  });
+  poll().then(() => tick());
+  setInterval(poll, 45000);
+})();
+  </script>
+</body>
+</html>
