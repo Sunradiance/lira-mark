@@ -7,37 +7,59 @@
   <style>
     *{box-sizing:border-box;margin:0}
     html,body{height:100%;background:#010008;color:#c0a8c8;font-family:system-ui,sans-serif;overflow:hidden}
-    #c{position:fixed;inset:0;width:100vw;height:100vh;touch-action:none;cursor:grab}
+    #c{position:fixed;inset:0;width:100vw;height:100vh;touch-action:none}
+    #c.fly{cursor:crosshair}
+    #c.orbit{cursor:grab}
     #c.drag-orbit{cursor:grabbing}
     #c.drag-pan{cursor:move}
-    .hud{position:fixed;top:.7rem;left:.8rem;right:.8rem;z-index:2;font-size:.62rem;opacity:.85;line-height:1.5;pointer-events:none}
+    .hud{position:fixed;top:.7rem;left:.8rem;right:12rem;z-index:2;font-size:.62rem;opacity:.85;line-height:1.5;pointer-events:none}
     .hud a{pointer-events:auto;color:#8ab8e8}
     .hint{position:fixed;bottom:.8rem;left:0;right:0;text-align:center;font-size:.62rem;opacity:.55}
     .hint a{color:#8ab8e8}
     #bar{position:fixed;top:0;left:0;height:2px;background:linear-gradient(90deg,#6040a0,#ff4080);width:0%;transition:width .15s;z-index:3}
+    #star-panel{position:fixed;top:.7rem;right:.8rem;width:11rem;padding:.65rem .75rem;
+      background:rgba(8,0,20,.82);border:1px solid rgba(160,80,200,.35);border-radius:6px;
+      font-size:.58rem;line-height:1.55;z-index:4;opacity:0;transform:translateX(12px);
+      transition:opacity .25s,transform .25s;pointer-events:none}
+    #star-panel.show{opacity:1;transform:none}
+    #star-panel b{color:#e8a0ff;font-size:.68rem}
+    #star-panel .imp{color:#ff6090}
+    #star-panel .row{opacity:.85}
+    #mode-tag{position:fixed;top:.45rem;left:50%;transform:translateX(-50%);font-size:.55rem;
+      opacity:.45;letter-spacing:.12em;text-transform:uppercase;z-index:2}
   </style>
 </head>
 <body>
   <canvas id="c"></canvas>
   <div id="bar"></div>
+  <div id="mode-tag">starship</div>
   <div class="hud" id="hud">impossible · galaxy · loading…</div>
-  <p class="hint">drag rotate · right-drag / shift-drag pan · scroll zoom · <a href="impossible.html">← original untouched</a></p>
+  <div id="star-panel"></div>
+  <p class="hint" id="hint">wasd fly · q/e rise · shift boost · tab orbit · <a href="impossible.html">← original</a></p>
   <script src="vendor/three.min.js"></script>
   <script>
 (function(){
   const hud = document.getElementById('hud');
   const bar = document.getElementById('bar');
+  const hint = document.getElementById('hint');
+  const starPanel = document.getElementById('star-panel');
+  const modeTag = document.getElementById('mode-tag');
   const canvas = document.getElementById('c');
   if (!window.THREE) { hud.textContent = 'three missing'; return; }
 
   const params = new URLSearchParams(location.search);
   const GALAXY_MULT = Math.max(1, parseInt(params.get('mult') || '10000', 10) || 10000);
-  const STAR_CHUNK = 300000;
-  const LINE_PAIR_CHUNK = 400000;
   const ARMS = 5;
+  const RINGS = 14;
   const GALAXY_R = 1400;
   const BULGE_R = 50;
   const CORE_SCALE = 0.045;
+  const SECTOR_STAR_CAP = 12000;
+  const STREAM_RING_R = 2;
+  const STREAM_ARM_R = 1;
+  const SCAN_SAMPLES = 96;
+  const DETAIL_DIST = 28;
+  const PLANET_DIST = 12;
 
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance' });
   renderer.setPixelRatio(Math.min(1.25, devicePixelRatio || 1));
@@ -45,24 +67,42 @@
   renderer.setClearColor(0x010008, 1);
 
   const scene = new THREE.Scene();
-  scene.fog = new THREE.FogExp2(0x010008, 0.00038);
-  const camera = new THREE.PerspectiveCamera(60, innerWidth / innerHeight, 0.5, 25000);
+  const fog = new THREE.FogExp2(0x010008, 0.00038);
+  scene.fog = fog;
+  const camera = new THREE.PerspectiveCamera(62, innerWidth / innerHeight, 0.4, 25000);
   const world = new THREE.Group();
+  const starsLayer = new THREE.Group();
+  const linesLayer = new THREE.Group();
+  const coreLayer = new THREE.Group();
+  world.add(starsLayer, linesLayer, coreLayer);
   scene.add(world);
 
   const cubeGeo = new THREE.BoxGeometry(0.2, 0.2, 0.2);
   const coreCubeGeo = new THREE.BoxGeometry(0.38, 0.38, 0.38);
+  const planetGeo = new THREE.BoxGeometry(2.4, 2.4, 2.4);
 
   let data = { nodes: [], edges: [], generation: 0 };
-  let building = false;
-  let lineCount = 0;
-  let cubeCount = 0;
-  let seed = 1;
-  let paletteTex = null;
+  let galaxyCount = 0, perArm = 1, palLen = 1;
+  let seed = 1, paletteTex = null, wordBank = [];
+  let lineCount = 0, loadedCubes = 0, activeSectors = 0;
 
-  const target = new THREE.Vector3(0, 0, 0);
+  let flyMode = true;
+  const keys = {};
+  const ship = new THREE.Group();
+  const shipVel = new THREE.Vector3();
+  let shipYaw = 0, shipPitch = 0;
+  let nearestGid = -1, nearestDist = Infinity;
+
+  const target = new THREE.Vector3(0, 30, 120);
   let dist = 1600, yaw = 0.55, pitch = 0.38;
   let drag = null, lx = 0, ly = 0, userMoved = false;
+
+  const planetReveal = new THREE.Mesh(
+    planetGeo,
+    new THREE.MeshBasicMaterial({ color: 0xff4080, transparent: true, opacity: 0.85 })
+  );
+  planetReveal.visible = false;
+  world.add(planetReveal);
 
   const GLSL_CORE = `
     uniform float uSeed,uPerArm;
@@ -92,62 +132,6 @@
     }
   `;
 
-  function placeCamera() {
-    const cp = Math.cos(pitch), sp = Math.sin(pitch);
-    const cy = Math.cos(yaw), sy = Math.sin(yaw);
-    camera.position.set(
-      target.x + sy * cp * dist,
-      target.y + sp * dist,
-      target.z + cy * cp * dist
-    );
-    camera.lookAt(target);
-  }
-  placeCamera();
-
-  function panCamera(dx, dy) {
-    const right = new THREE.Vector3();
-    const up = new THREE.Vector3(0, 1, 0);
-    camera.getWorldDirection(right);
-    right.crossVectors(up, right).normalize();
-    up.copy(camera.up).normalize();
-    const s = dist * 0.0012;
-    target.addScaledVector(right, -dx * s);
-    target.addScaledVector(up, dy * s);
-    placeCamera();
-  }
-
-  canvas.addEventListener('contextmenu', e => e.preventDefault());
-  canvas.addEventListener('pointerdown', e => {
-    drag = (e.button === 2 || e.shiftKey) ? 'pan' : 'orbit';
-    lx = e.clientX; ly = e.clientY;
-    canvas.classList.add(drag === 'pan' ? 'drag-pan' : 'drag-orbit');
-    canvas.setPointerCapture(e.pointerId);
-  });
-  canvas.addEventListener('pointerup', () => {
-    drag = null;
-    canvas.classList.remove('drag-orbit', 'drag-pan');
-  });
-  canvas.addEventListener('pointermove', e => {
-    if (!drag) return;
-    userMoved = true;
-    const dx = e.clientX - lx, dy = e.clientY - ly;
-    if (drag === 'orbit') {
-      yaw -= dx * 0.005;
-      pitch += dy * 0.005;
-      placeCamera();
-    } else {
-      panCamera(dx, dy);
-    }
-    lx = e.clientX; ly = e.clientY;
-  });
-  canvas.addEventListener('wheel', e => {
-    e.preventDefault();
-    userMoved = true;
-    dist *= e.deltaY > 0 ? 1.1 : 0.9;
-    dist = Math.max(6, Math.min(10000, dist));
-    placeCamera();
-  }, { passive: false });
-
   function hashRand(s, id, salt) {
     let h = s + id * 0.1239893 + salt * 0.9876543;
     h = (h * 0.1031) % 1; h = (h * (h + 33.33)) % 1; h = (h * (h + h)) % 1;
@@ -159,6 +143,24 @@
     const s = String(j.stamp || '');
     for (let i = 0; i < s.length; i++) h = Math.imul(31, h) + s.charCodeAt(i) | 0;
     return h >>> 0;
+  }
+
+  function starPosCPU(gid, pa) {
+    const arm = Math.min(Math.floor(gid / pa), ARMS - 1);
+    const local = gid - arm * pa;
+    const t = local / Math.max(1, pa - 1);
+    const r = BULGE_R + Math.pow(t, 0.7) * GALAXY_R * (0.8 + hashRand(seed, gid, 1) * 0.4);
+    const spin = t * ARMS * Math.PI * 2.4 + arm * (Math.PI * 2 / ARMS);
+    const wobble = (hashRand(seed, gid, 2) - 0.5) * 0.6;
+    const y = (hashRand(seed, gid, 3) - 0.5) * (20 + t * 110) * (1.15 - t * 0.4);
+    const ang = spin + wobble;
+    return new THREE.Vector3(Math.cos(ang) * r, y, Math.sin(ang) * r);
+  }
+
+  function starColorHex(gid) {
+    const nodes = wordBank.length ? wordBank : [{ color: '8040a0' }];
+    const idx = (hashRand(seed, gid, 9) * nodes.length) | 0;
+    return parseInt(nodes[idx].color || '8040a0', 16);
   }
 
   function makePaletteTex(nodes) {
@@ -175,41 +177,27 @@
     }
     paletteTex = new THREE.DataTexture(px, n, 1, THREE.RGBAFormat);
     paletteTex.needsUpdate = true;
-    paletteTex.magFilter = THREE.NearestFilter;
-    paletteTex.minFilter = THREE.NearestFilter;
+    paletteTex.magFilter = paletteTex.minFilter = THREE.NearestFilter;
     return n;
-  }
-
-  function clearWorld() {
-    while (world.children.length) {
-      const o = world.children.pop();
-      if (o.geometry) o.geometry.dispose();
-      if (o.material) {
-        if (Array.isArray(o.material)) o.material.forEach(m => m.dispose());
-        else o.material.dispose();
-      }
-    }
-    lineCount = 0;
-    cubeCount = 0;
   }
 
   function fillIdentity(mesh) {
     const a = mesh.instanceMatrix.array;
     for (let i = 0; i < mesh.count; i++) {
       const o = i * 16;
-      a[o]=1;a[o+5]=1;a[o+10]=1;a[o+15]=1;
+      a[o] = 1; a[o + 5] = 1; a[o + 10] = 1; a[o + 15] = 1;
     }
     mesh.instanceMatrix.needsUpdate = true;
   }
 
-  function makeStarMaterial(baseId, perArm, palLen) {
+  function makeStarMaterial(baseId, pa, plen) {
     const mat = new THREE.MeshBasicMaterial({ color: 0xffffff, fog: true });
     mat.onBeforeCompile = (shader) => {
       shader.uniforms.uSeed = { value: seed };
-      shader.uniforms.uPerArm = { value: perArm };
+      shader.uniforms.uPerArm = { value: pa };
       shader.uniforms.uBaseId = { value: baseId };
       shader.uniforms.uPalette = { value: paletteTex };
-      shader.uniforms.uPaletteLen = { value: palLen };
+      shader.uniforms.uPaletteLen = { value: plen };
       shader.vertexShader = `
         uniform float uSeed,uPerArm,uBaseId,uPaletteLen;
         uniform sampler2D uPalette;
@@ -232,39 +220,13 @@
     return mat;
   }
 
-  function addStarChunk(baseId, count, perArm, palLen) {
-    const mesh = new THREE.InstancedMesh(cubeGeo, makeStarMaterial(baseId, perArm, palLen), count);
-    mesh.frustumCulled = false;
-    fillIdentity(mesh);
-    world.add(mesh);
-    cubeCount += count;
-  }
-
-  function addCore(nodes) {
-    if (!nodes.length) return;
-    const dummy = new THREE.Object3D();
-    const col = new THREE.Color();
-    const mesh = new THREE.InstancedMesh(coreCubeGeo, new THREE.MeshBasicMaterial({ color: 0xffffff }), nodes.length);
-    nodes.forEach((n, i) => {
-      dummy.position.set(n.x * CORE_SCALE, n.y * CORE_SCALE, n.z * CORE_SCALE);
-      dummy.updateMatrix();
-      mesh.setMatrixAt(i, dummy.matrix);
-      col.setHex(parseInt(n.color || '8040a0', 16));
-      mesh.setColorAt(i, col);
-    });
-    mesh.instanceMatrix.needsUpdate = true;
-    if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
-    world.add(mesh);
-    cubeCount += nodes.length;
-  }
-
-  function makeFilamentMat(color, opacity, perArm, palLen) {
+  function makeFilamentMat(color, opacity, pa, plen) {
     const mat = new THREE.LineBasicMaterial({ color, transparent: true, opacity });
     mat.onBeforeCompile = (shader) => {
       shader.uniforms.uSeed = { value: seed };
-      shader.uniforms.uPerArm = { value: perArm };
+      shader.uniforms.uPerArm = { value: pa };
       shader.uniforms.uPalette = { value: paletteTex };
-      shader.uniforms.uPaletteLen = { value: palLen };
+      shader.uniforms.uPaletteLen = { value: plen };
       shader.vertexShader = `
         attribute float gidA;
         attribute float gidB;
@@ -282,180 +244,458 @@
     return mat;
   }
 
-  function uploadIndexLines(pairs, offset, pairCount, color, opacity, perArm, palLen) {
-    if (!pairCount) return;
-    const verts = pairCount * 2;
-    const gidA = new Float32Array(verts);
-    const gidB = new Float32Array(verts);
-    const endpt = new Float32Array(verts);
-    for (let s = 0; s < pairCount; s++) {
-      const a = pairs[(offset + s) * 2];
-      const b = pairs[(offset + s) * 2 + 1];
-      gidA[s * 2] = gidA[s * 2 + 1] = a;
-      gidB[s * 2] = gidB[s * 2 + 1] = b;
-      endpt[s * 2] = 0;
-      endpt[s * 2 + 1] = 1;
-    }
-    const geo = new THREE.BufferGeometry();
-    geo.setAttribute('gidA', new THREE.BufferAttribute(gidA, 1));
-    geo.setAttribute('gidB', new THREE.BufferAttribute(gidB, 1));
-    geo.setAttribute('endpt', new THREE.BufferAttribute(endpt, 1));
-    geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(verts * 3), 3));
-    world.add(new THREE.LineSegments(geo, makeFilamentMat(color, opacity, perArm, palLen)));
-    lineCount += pairCount;
+  function gidRange(arm, ring, pa, total) {
+    const startLocal = Math.floor(ring / RINGS * (pa - 1));
+    const endLocal = Math.floor((ring + 1) / RINGS * (pa - 1));
+    const start = arm * pa + startLocal;
+    const end = Math.min(total - 1, arm * pa + Math.max(startLocal, endLocal));
+    return { start, count: Math.max(0, end - start + 1) };
   }
 
-  function pairWriter() {
-    const buf = [];
-    return {
-      push(a, b) { buf.push(a, b); },
-      flush(color, opacity, perArm, palLen) {
-        const pairs = new Uint32Array(buf);
-        buf.length = 0;
-        const total = pairs.length / 2;
-        for (let off = 0; off < total; off += LINE_PAIR_CHUNK) {
-          uploadIndexLines(pairs, off, Math.min(LINE_PAIR_CHUNK, total - off), color, opacity, perArm, palLen);
-        }
-        return total;
+  function posToSector(pos, pa) {
+    const r = Math.hypot(pos.x, pos.z);
+    const ring = Math.max(0, Math.min(RINGS - 1, Math.floor((r - BULGE_R * 0.5) / GALAXY_R * RINGS)));
+    let ang = Math.atan2(pos.x, pos.z);
+    if (ang < 0) ang += Math.PI * 2;
+    const arm = Math.min(ARMS - 1, Math.floor(ang / (Math.PI * 2 / ARMS)));
+    return { arm, ring };
+  }
+
+  const stream = {
+    sectors: new Map(),
+    key(a, r) { return a + ':' + r; },
+
+    disposeEntry(entry) {
+      entry.meshes.forEach(m => {
+        starsLayer.remove(m);
+        m.geometry.dispose();
+        m.material.dispose();
+      });
+      entry.lines.forEach(l => {
+        linesLayer.remove(l);
+        l.geometry.dispose();
+        l.material.dispose();
+      });
+      loadedCubes -= entry.cubeCount;
+      lineCount -= entry.lineCount;
+    },
+
+    load(arm, ring, pa, plen, total) {
+      const k = this.key(arm, ring);
+      if (this.sectors.has(k)) return;
+      const { start, count } = gidRange(arm, ring, pa, total);
+      if (!count) return;
+
+      const meshes = [];
+      let cubeCount = 0;
+      let off = 0;
+      while (off < count) {
+        const n = Math.min(SECTOR_STAR_CAP, count - off);
+        const mesh = new THREE.InstancedMesh(cubeGeo, makeStarMaterial(start + off, pa, plen), n);
+        mesh.frustumCulled = false;
+        fillIdentity(mesh);
+        starsLayer.add(mesh);
+        meshes.push(mesh);
+        cubeCount += n;
+        off += n;
       }
+
+      const pairs = [];
+      const end = start + count - 1;
+      for (let i = start + 1; i <= end; i++) pairs.push(i - 1, i);
+      const impEvery = Math.max(4, (GALAXY_MULT / 2500) | 0);
+      for (let i = start; i <= end; i += impEvery) {
+        const j2 = (i + (hashRand(seed, i, 7) * pa | 0) + 1) % total;
+        pairs.push(i, j2);
+      }
+
+      const lines = [];
+      if (pairs.length) {
+        const segCount = pairs.length / 2;
+        const verts = segCount * 2;
+        const gidA = new Float32Array(verts);
+        const gidB = new Float32Array(verts);
+        const endpt = new Float32Array(verts);
+        for (let s = 0; s < segCount; s++) {
+          gidA[s * 2] = gidA[s * 2 + 1] = pairs[s * 2];
+          gidB[s * 2] = gidB[s * 2 + 1] = pairs[s * 2 + 1];
+          endpt[s * 2] = 0;
+          endpt[s * 2 + 1] = 1;
+        }
+        const geo = new THREE.BufferGeometry();
+        geo.setAttribute('gidA', new THREE.BufferAttribute(gidA, 1));
+        geo.setAttribute('gidB', new THREE.BufferAttribute(gidB, 1));
+        geo.setAttribute('endpt', new THREE.BufferAttribute(endpt, 1));
+        geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(verts * 3), 3));
+        const imp = pairs.length > count * 2;
+        const line = new THREE.LineSegments(geo, makeFilamentMat(imp ? 0xff4080 : 0x5030a0, imp ? 0.28 : 0.18, pa, plen));
+        linesLayer.add(line);
+        lines.push(line);
+      }
+
+      this.sectors.set(k, { meshes, lines, cubeCount, lineCount: pairs.length / 2 });
+      loadedCubes += cubeCount;
+      lineCount += pairs.length / 2;
+    },
+
+    update(pos, pa, plen, total) {
+      const { arm, ring } = posToSector(pos, pa);
+      const want = new Set();
+      want.add('core');
+      for (let a = arm - STREAM_ARM_R; a <= arm + STREAM_ARM_R; a++) {
+        if (a < 0 || a >= ARMS) continue;
+        for (let r = ring - STREAM_RING_R; r <= ring + STREAM_RING_R; r++) {
+          if (r < 0 || r >= RINGS) continue;
+          want.add(this.key(a, r));
+        }
+      }
+      for (const k of want) {
+        if (k === 'core') continue;
+        const [a, r] = k.split(':').map(Number);
+        this.load(a, r, pa, plen, total);
+      }
+      for (const [k, entry] of this.sectors) {
+        if (!want.has(k)) {
+          this.disposeEntry(entry);
+          this.sectors.delete(k);
+        }
+      }
+      activeSectors = this.sectors.size;
+      return { arm, ring };
+    }
+  };
+
+  function buildShip() {
+    const hull = new THREE.Mesh(
+      new THREE.ConeGeometry(0.55, 2.2, 4),
+      new THREE.MeshBasicMaterial({ color: 0x9a40c8 })
+    );
+    hull.rotation.x = Math.PI / 2;
+    const wing = new THREE.Mesh(
+      new THREE.BoxGeometry(2.4, 0.08, 0.7),
+      new THREE.MeshBasicMaterial({ color: 0x6020a0 })
+    );
+    wing.position.z = 0.35;
+    const tail = new THREE.Mesh(
+      new THREE.BoxGeometry(0.35, 0.35, 0.9),
+      new THREE.MeshBasicMaterial({ color: 0xff4080 })
+    );
+    tail.position.z = 1.1;
+    const glow = new THREE.Mesh(
+      new THREE.SphereGeometry(0.18, 8, 8),
+      new THREE.MeshBasicMaterial({ color: 0xff80c0 })
+    );
+    glow.position.z = 1.55;
+    ship.add(hull, wing, tail, glow);
+    ship.position.set(0, 40, 180);
+    world.add(ship);
+  }
+  buildShip();
+
+  function starDetail(gid) {
+    const arm = (Math.floor(gid / perArm) % ARMS) + 1;
+    const types = ['ember dwarf', 'violet giant', 'thread world', 'glow pasture', 'Σ-crystal', 'drift hive', 'impossible bloom'];
+    const moods = ['hungry', 'sleeping', 'singing', 'waiting', 'burning', 'whispering', 'lucent'];
+    const word = wordBank.length ? wordBank[(hashRand(seed, gid, 20) * wordBank.length) | 0].word : '—';
+    const imp = hashRand(seed, gid, 25) > 0.91;
+    return {
+      name: 'Σ-' + (10000 + gid).toString(36).toUpperCase(),
+      type: types[(hashRand(seed, gid, 21) * types.length) | 0],
+      mood: moods[(hashRand(seed, gid, 26) * moods.length) | 0],
+      word,
+      temp: ((2800 + hashRand(seed, gid, 22) * 14000) | 0) + ' K',
+      moons: (hashRand(seed, gid, 23) * 47) | 0,
+      glow: (hashRand(seed, gid, 24) * 100).toFixed(1) + '%',
+      arm,
+      rings: ((hashRand(seed, gid, 27) * 900) | 0) + ' km',
+      life: hashRand(seed, gid, 28) > 0.55 ? 'yes' : 'mineral',
+      imp
     };
   }
 
-  function starPosCPU(gid, perArm) {
-    const arm = Math.min(Math.floor(gid / perArm), ARMS - 1);
-    const local = gid - arm * perArm;
-    const t = local / Math.max(1, perArm - 1);
-    const r = BULGE_R + Math.pow(t, 0.7) * GALAXY_R * (0.8 + hashRand(seed, gid, 1) * 0.4);
-    const spin = t * ARMS * Math.PI * 2.4 + arm * (Math.PI * 2 / ARMS);
-    const wobble = (hashRand(seed, gid, 2) - 0.5) * 0.6;
-    const y = (hashRand(seed, gid, 3) - 0.5) * (20 + t * 110) * (1.15 - t * 0.4);
-    const ang = spin + wobble;
-    return [Math.cos(ang) * r, y, Math.sin(ang) * r];
+  function findNearestStar(pos) {
+    const { arm, ring } = posToSector(pos, perArm);
+    let best = -1, bestD = Infinity;
+    for (let a = arm - 1; a <= arm + 1; a++) {
+      if (a < 0 || a >= ARMS) continue;
+      for (let r = ring - 1; r <= ring + 1; r++) {
+        if (r < 0 || r >= RINGS) continue;
+        const { start, count } = gidRange(a, r, perArm, galaxyCount);
+        if (!count) continue;
+        const step = Math.max(1, (count / SCAN_SAMPLES) | 0);
+        for (let i = 0; i < count; i += step) {
+          const gid = start + i;
+          const p = starPosCPU(gid, perArm);
+          const d = pos.distanceTo(p);
+          if (d < bestD) { bestD = d; best = gid; }
+        }
+      }
+    }
+    return { gid: best, dist: bestD };
   }
 
-  function addCoreLines(edges, byId) {
+  function showStarPanel(gid, d) {
+    const s = starDetail(gid);
+    const col = '#' + starColorHex(gid).toString(16).padStart(6, '0');
+    starPanel.innerHTML = '<b>' + s.name + '</b><br>'
+      + '<span class="row" style="color:' + col + '">' + s.type + '</span><br>'
+      + (s.imp ? '<span class="imp">◆ impossible</span><br>' : '')
+      + 'word <b>' + s.word + '</b><br>'
+      + 'mood ' + s.mood + '<br>'
+      + 'temp ' + s.temp + '<br>'
+      + 'moons ' + s.moons + ' · glow ' + s.glow + '<br>'
+      + 'arm ' + s.arm + ' · depth ' + s.rings + '<br>'
+      + 'life ' + s.life + '<br>'
+      + '<span style="opacity:.5">' + d.toFixed(1) + ' u away</span>';
+    starPanel.classList.add('show');
+  }
+
+  function hideStarPanel() {
+    starPanel.classList.remove('show');
+    planetReveal.visible = false;
+  }
+
+  function placeOrbitCamera() {
+    const cp = Math.cos(pitch), sp = Math.sin(pitch);
+    const cy = Math.cos(yaw), sy = Math.sin(yaw);
+    camera.position.set(
+      target.x + sy * cp * dist,
+      target.y + sp * dist,
+      target.z + cy * cp * dist
+    );
+    camera.lookAt(target);
+  }
+
+  function placeFlyCamera() {
+    const back = new THREE.Vector3(0, 0, 1).applyQuaternion(ship.quaternion);
+    const up = new THREE.Vector3(0, 1, 0);
+    camera.position.copy(ship.position).addScaledVector(back, 10).addScaledVector(up, 3.5);
+    const aim = new THREE.Vector3(0, 0, -1).applyQuaternion(ship.quaternion).add(ship.position);
+    camera.lookAt(aim);
+  }
+
+  function panCamera(dx, dy) {
+    const right = new THREE.Vector3();
+    const up = new THREE.Vector3(0, 1, 0);
+    camera.getWorldDirection(right);
+    right.crossVectors(up, right).normalize();
+    up.copy(camera.up).normalize();
+    const s = dist * 0.0012;
+    target.addScaledVector(right, -dx * s);
+    target.addScaledVector(up, dy * s);
+    placeOrbitCamera();
+  }
+
+  function setMode(fly) {
+    flyMode = fly;
+    canvas.classList.toggle('fly', fly);
+    canvas.classList.toggle('orbit', !fly);
+    modeTag.textContent = fly ? 'starship' : 'orbit';
+    hint.innerHTML = fly
+      ? 'wasd fly · mouse steer · q/e rise · shift boost · tab orbit · <a href="impossible.html">← original</a>'
+      : 'drag rotate · right-drag pan · scroll zoom · tab starship · <a href="impossible.html">← original</a>';
+    if (!fly) hideStarPanel();
+  }
+  setMode(true);
+
+  canvas.addEventListener('contextmenu', e => e.preventDefault());
+  canvas.addEventListener('pointerdown', e => {
+    if (flyMode) return;
+    drag = (e.button === 2 || e.shiftKey) ? 'pan' : 'orbit';
+    lx = e.clientX; ly = e.clientY;
+    canvas.classList.add(drag === 'pan' ? 'drag-pan' : 'drag-orbit');
+    canvas.setPointerCapture(e.pointerId);
+  });
+  canvas.addEventListener('pointerup', () => {
+    drag = null;
+    canvas.classList.remove('drag-orbit', 'drag-pan');
+  });
+  canvas.addEventListener('pointermove', e => {
+    if (flyMode && document.pointerLockElement === canvas) {
+      shipYaw -= e.movementX * 0.0022;
+      shipPitch = Math.max(-0.55, Math.min(0.55, shipPitch - e.movementY * 0.002));
+      return;
+    }
+    if (!drag || flyMode) return;
+    userMoved = true;
+    const dx = e.clientX - lx, dy = e.clientY - ly;
+    if (drag === 'orbit') {
+      yaw -= dx * 0.005;
+      pitch += dy * 0.005;
+      placeOrbitCamera();
+    } else {
+      panCamera(dx, dy);
+    }
+    lx = e.clientX; ly = e.clientY;
+  });
+  canvas.addEventListener('wheel', e => {
+    if (flyMode) return;
+    e.preventDefault();
+    userMoved = true;
+    dist *= e.deltaY > 0 ? 1.1 : 0.9;
+    dist = Math.max(6, Math.min(10000, dist));
+    placeOrbitCamera();
+  }, { passive: false });
+  canvas.addEventListener('click', () => {
+    if (flyMode && document.pointerLockElement !== canvas) canvas.requestPointerLock();
+  });
+
+  addEventListener('keydown', e => {
+    keys[e.code] = true;
+    if (e.code === 'Tab') { e.preventDefault(); setMode(!flyMode); }
+  });
+  addEventListener('keyup', e => { keys[e.code] = false; });
+
+  function clearLayers() {
+    for (const [, entry] of stream.sectors) stream.disposeEntry(entry);
+    stream.sectors.clear();
+    [starsLayer, linesLayer, coreLayer].forEach(layer => {
+      while (layer.children.length) {
+        const o = layer.children.pop();
+        if (o.geometry) o.geometry.dispose();
+        if (o.material) o.material.dispose();
+      }
+    });
+    loadedCubes = 0;
+    lineCount = 0;
+  }
+
+  function addCore(nodes, edges) {
+    if (!nodes.length) return;
+    const dummy = new THREE.Object3D();
+    const col = new THREE.Color();
+    const mesh = new THREE.InstancedMesh(coreCubeGeo, new THREE.MeshBasicMaterial({ color: 0xffffff }), nodes.length);
+    const byId = {};
+    nodes.forEach((n, i) => {
+      const p = [n.x * CORE_SCALE, n.y * CORE_SCALE, n.z * CORE_SCALE];
+      dummy.position.set(p[0], p[1], p[2]);
+      dummy.updateMatrix();
+      mesh.setMatrixAt(i, dummy.matrix);
+      col.setHex(parseInt(n.color || '8040a0', 16));
+      mesh.setColorAt(i, col);
+      byId[n.id] = p;
+    });
+    mesh.instanceMatrix.needsUpdate = true;
+    if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+    coreLayer.add(mesh);
+    loadedCubes += nodes.length;
+
     const pts = [];
     edges.forEach(e => {
       const a = byId[e.a], b = byId[e.b];
       if (!a || !b) return;
       pts.push(a[0], a[1], a[2], b[0], b[1], b[2]);
     });
-    if (!pts.length) return;
-    const geo = new THREE.BufferGeometry();
-    geo.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3));
-    world.add(new THREE.LineSegments(geo, new THREE.LineBasicMaterial({
-      color: 0x6040a0, transparent: true, opacity: 0.45
-    })));
-    lineCount += pts.length / 6;
-  }
-
-  function addCoreBridges(edges, byId, perArm, galaxyCount) {
-    const pts = [];
-    edges.forEach((e, ei) => {
-      const a = byId[e.a];
-      if (!a) return;
-      const g = starPosCPU((ei * GALAXY_MULT) % galaxyCount, perArm);
-      pts.push(a[0], a[1], a[2], g[0], g[1], g[2]);
-    });
-    if (!pts.length) return;
-    const geo = new THREE.BufferGeometry();
-    geo.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3));
-    world.add(new THREE.LineSegments(geo, new THREE.LineBasicMaterial({
-      color: 0xff4080, transparent: true, opacity: 0.32
-    })));
-    lineCount += pts.length / 6;
+    if (pts.length) {
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3));
+      coreLayer.add(new THREE.LineSegments(geo, new THREE.LineBasicMaterial({
+        color: 0x6040a0, transparent: true, opacity: 0.5
+      })));
+      lineCount += pts.length / 6;
+    }
   }
 
   async function rebuild(j) {
-    if (building) return;
-    building = true;
-    clearWorld();
+    clearLayers();
     data = j;
-
-    const nodes = j.nodes || [];
-    const edges = j.edges || [];
+    wordBank = j.nodes || [];
     seed = seedFrom(j);
-    const palLen = makePaletteTex(nodes);
+    palLen = makePaletteTex(wordBank);
+    galaxyCount = wordBank.length * GALAXY_MULT;
+    perArm = Math.ceil(galaxyCount / ARMS);
 
-    const galaxyCount = nodes.length * GALAXY_MULT;
-    const perArm = Math.ceil(galaxyCount / ARMS);
-    const impEvery = Math.max(4, (GALAXY_MULT / 2500) | 0);
-    const edgeStride = Math.max(1, Math.floor(GALAXY_MULT / 200));
+    bar.style.width = '40%';
+    hud.textContent = 'impossible · Σ-stream · ' + galaxyCount.toLocaleString() + ' stars latent…';
+    addCore(wordBank, j.edges || []);
+    bar.style.width = '70%';
 
-    hud.textContent = 'impossible · Σ-seed · crystallizing ' + galaxyCount.toLocaleString() + ' stars…';
-    bar.style.width = '10%';
-
-    const chunks = Math.ceil(galaxyCount / STAR_CHUNK);
-    for (let c = 0; c < chunks; c++) {
-      addStarChunk(c * STAR_CHUNK, Math.min(STAR_CHUNK, galaxyCount - c * STAR_CHUNK), perArm, palLen);
-      bar.style.width = (10 + (c / chunks) * 30) + '%';
-      await new Promise(r => requestAnimationFrame(r));
-    }
-
-    addCore(nodes);
-    bar.style.width = '45%';
-
-    const byId = {};
-    nodes.forEach(n => { byId[n.id] = [n.x * CORE_SCALE, n.y * CORE_SCALE, n.z * CORE_SCALE]; });
-    addCoreLines(edges, byId);
-
-    hud.textContent = 'impossible · Σ-seed · encoding filaments…';
-
-    const armW = pairWriter();
-    for (let arm = 0; arm < ARMS; arm++) {
-      const start = arm * perArm;
-      const end = Math.min(galaxyCount, start + perArm);
-      for (let i = start + 1; i < end; i++) armW.push(i - 1, i);
-    }
-    armW.flush(0x5030a0, 0.2, perArm, palLen);
-    bar.style.width = '65%';
-
-    const impW = pairWriter();
-    for (let i = 0; i < galaxyCount; i += impEvery) {
-      const j2 = (i + (hashRand(seed, i, 7) * perArm | 0) + 1) % galaxyCount;
-      impW.push(i, j2);
-    }
-    impW.flush(0xff4080, 0.3, perArm, palLen);
-    bar.style.width = '80%';
-
-    const edgeW = pairWriter();
-    for (let ei = 0; ei < edges.length; ei++) {
-      const e = edges[ei];
-      for (let m = 0; m < GALAXY_MULT; m += edgeStride) {
-        edgeW.push(
-          (ei * GALAXY_MULT + m) % galaxyCount,
-          (e.b * GALAXY_MULT + m * 13 + ei) % galaxyCount
-        );
-      }
-    }
-    edgeW.flush(0xff4080, 0.28, perArm, palLen);
-    addCoreBridges(edges, byId, perArm, galaxyCount);
-    bar.style.width = '92%';
-
+    stream.update(ship.position, perArm, palLen, galaxyCount);
     bar.style.width = '100%';
-    const oldMB = ((galaxyCount * 28 + lineCount * 24) / 1048576) | 0;
-    const newMB = ((galaxyCount * 64 + lineCount * 8) / 1048576) | 0;
-    hud.innerHTML = 'impossible · <b>galaxy Σ</b> · gen <b>' + (j.generation || 0) + '</b> · '
-      + cubeCount.toLocaleString() + ' cubes · ' + lineCount.toLocaleString() + ' lines · ×' + GALAXY_MULT
-      + ' · <span style="opacity:.75">Σ saved ~' + Math.max(0, oldMB - newMB) + 'MB VRAM</span>'
-      + '<br><a href="impossible.html">original</a> · <a href="bang.html">bang</a> · <a href="textgl.html">play</a> · <a href="impossible_live.json">json</a>'
-      + (GALAXY_MULT >= 1000 ? ' · <span style="opacity:.7">?mult=100 iGPU sweet spot</span>' : '');
-    building = false;
+
+    hud.innerHTML = 'impossible · <b>galaxy Σ stream</b> · gen <b>' + (j.generation || 0) + '</b> · '
+      + galaxyCount.toLocaleString() + ' total · ' + loadedCubes.toLocaleString() + ' loaded · '
+      + activeSectors + ' sectors · ×' + GALAXY_MULT
+      + '<br><a href="impossible.html">original</a> · <a href="bang.html">bang</a> · <a href="textgl.html">play</a>';
   }
 
+  function updateShip(dt) {
+    const boost = keys.ShiftLeft || keys.ShiftRight ? 2.6 : 1;
+    const accel = 48 * boost;
+    const damp = Math.pow(0.24, dt);
+
+    if (keys.KeyA || keys.ArrowLeft) shipYaw += 1.8 * dt;
+    if (keys.KeyD || keys.ArrowRight) shipYaw -= 1.8 * dt;
+    if (keys.KeyQ) ship.position.y += 30 * dt;
+    if (keys.KeyE) ship.position.y -= 30 * dt;
+
+    ship.rotation.set(shipPitch, shipYaw, 0, 'YXZ');
+    const fwd = new THREE.Vector3(0, 0, -1).applyQuaternion(ship.quaternion);
+    const right = new THREE.Vector3(1, 0, 0).applyQuaternion(ship.quaternion);
+
+    if (keys.KeyW || keys.ArrowUp) shipVel.addScaledVector(fwd, accel * dt);
+    if (keys.KeyS || keys.ArrowDown) shipVel.addScaledVector(fwd, -accel * dt);
+    if (keys.KeyJ) shipVel.addScaledVector(right, -accel * dt);
+    if (keys.KeyL) shipVel.addScaledVector(right, accel * dt);
+
+    shipVel.multiplyScalar(damp);
+    ship.position.addScaledVector(shipVel, dt);
+
+    const spd = shipVel.length();
+    if (spd > 220) shipVel.multiplyScalar(220 / spd);
+  }
+
+  let lastStream = 0;
   async function poll() {
     try {
       const j = await fetch('impossible_live.json?' + Date.now()).then(r => r.json());
-      if (!data.generation || j.generation !== data.generation || j.node_count !== data.node_count || !world.children.length)
+      if (!data.generation || j.generation !== data.generation || j.node_count !== data.node_count)
         await rebuild(j);
     } catch (_) {}
   }
 
-  function tick() {
-    if (!userMoved) {
-      yaw += 0.0016;
-      placeCamera();
+  let last = performance.now();
+  function tick(now) {
+    const dt = Math.min(0.05, (now - last) / 1000);
+    last = now;
+
+    if (flyMode) {
+      updateShip(dt);
+      if (now - lastStream > 180) {
+        stream.update(ship.position, perArm, palLen, galaxyCount);
+        lastStream = now;
+      }
+      placeFlyCamera();
+
+      const near = findNearestStar(ship.position);
+      nearestGid = near.gid;
+      nearestDist = near.dist;
+
+      if (near.gid >= 0 && near.dist < DETAIL_DIST) {
+        const p = starPosCPU(near.gid, perArm);
+        showStarPanel(near.gid, near.dist);
+        if (near.dist < PLANET_DIST) {
+          planetReveal.visible = true;
+          planetReveal.position.copy(p);
+          planetReveal.material.color.setHex(starColorHex(near.gid));
+          const s = 1.2 + (PLANET_DIST - near.dist) * 0.35;
+          planetReveal.scale.setScalar(s);
+        } else {
+          planetReveal.visible = false;
+        }
+        fog.density = 0.00012;
+      } else {
+        hideStarPanel();
+        fog.density = 0.00038;
+      }
+    } else {
+      if (!userMoved) {
+        yaw += 0.0016;
+        placeOrbitCamera();
+      }
+      stream.update(target, perArm, palLen, galaxyCount);
     }
+
     renderer.render(scene, camera);
     requestAnimationFrame(tick);
   }
@@ -466,7 +706,7 @@
     renderer.setSize(innerWidth, innerHeight);
   });
 
-  poll().then(() => tick());
+  poll().then(() => requestAnimationFrame(tick));
   setInterval(poll, 60000);
 })();
   </script>
