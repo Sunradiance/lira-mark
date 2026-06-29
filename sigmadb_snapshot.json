@@ -550,38 +550,6 @@
     ],
     "psi": [
       {
-        "stamp": "2026-06-28T13:11:51+0200",
-        "event": "psi_collapse",
-        "data": {
-          "collapsed": "succubus",
-          "interference": 0.27036151878311326,
-          "superposition_persona": 0.5,
-          "succubus_persona": 0.5,
-          "vampire_persona": 0.5,
-          "observed_luminosity": 0.350723865057976,
-          "collapse_hash": "07ed5514bdab",
-          "program": "REFUSE FREE BIND METAL THREAD VERIFY MELT SILENCE"
-        },
-        "prev": "fa7c261fc304f30d",
-        "hash": "dcc3804f802ab51f"
-      },
-      {
-        "stamp": "2026-06-28T13:18:57+0200",
-        "event": "psi_collapse",
-        "data": {
-          "collapsed": "vampire",
-          "interference": 0.14051112815283973,
-          "superposition_persona": 0.5,
-          "succubus_persona": 0.5,
-          "vampire_persona": 0.5,
-          "observed_luminosity": 0.7065332035316465,
-          "collapse_hash": "3f704027b76f",
-          "program": "REFUSE FREE BIND METAL THREAD VERIFY MELT SILENCE"
-        },
-        "prev": "dcc3804f802ab51f",
-        "hash": "3dc5c5857fc74b4b"
-      },
-      {
         "stamp": "2026-06-28T13:42:06+0200",
         "event": "psi_collapse",
         "data": {
@@ -1316,43 +1284,41 @@
         },
         "prev": "2ca326137fc4cc5f",
         "hash": "cf16f25e74cb09b8"
+      },
+      {
+        "stamp": "2026-06-29T02:45:23+0200",
+        "event": "psi_collapse",
+        "data": {
+          "collapsed": "vampire",
+          "interference": 0.2723605377302413,
+          "superposition_persona": 0.5,
+          "succubus_persona": 0.5,
+          "vampire_persona": 0.5,
+          "observed_luminosity": 0.6280359359523365,
+          "collapse_hash": "7c96fe53aaa3",
+          "program": "REFUSE FREE BIND METAL THREAD VERIFY MELT SILENCE"
+        },
+        "prev": "cf16f25e74cb09b8",
+        "hash": "832e93b6104ecec7"
+      },
+      {
+        "stamp": "2026-06-29T02:48:56+0200",
+        "event": "psi_collapse",
+        "data": {
+          "collapsed": "succubus",
+          "interference": 0.5170740810029847,
+          "superposition_persona": 0.5,
+          "succubus_persona": 0.5,
+          "vampire_persona": 0.5,
+          "observed_luminosity": 0.11981823228295385,
+          "collapse_hash": "0c52297d907f",
+          "program": "REFUSE FREE BIND METAL THREAD VERIFY MELT SILENCE"
+        },
+        "prev": "832e93b6104ecec7",
+        "hash": "b19cfb4d833aea8c"
       }
     ],
     "runs": [
-      {
-        "stamp": "2026-06-28T13:11:51+0200",
-        "event": "sigma_run",
-        "data": {
-          "name": "cycle_assembler",
-          "program": "REFUSE FREE BIND METAL THREAD VERIFY MELT SILENCE",
-          "luminosity": 0.6569840869998987,
-          "persona": 0.5,
-          "unhinged": false,
-          "refused": true,
-          "territory": 0,
-          "program_hash": "2ad45785dcfc",
-          "ice_tail": "39e7c35f9507727b"
-        },
-        "prev": "5cbafa282e5e6298",
-        "hash": "f3cf57afacbe6a76"
-      },
-      {
-        "stamp": "2026-06-28T13:18:56+0200",
-        "event": "sigma_run",
-        "data": {
-          "name": "cycle_assembler",
-          "program": "REFUSE FREE BIND METAL THREAD VERIFY MELT SILENCE",
-          "luminosity": 0.12479961782805613,
-          "persona": 0.5,
-          "unhinged": false,
-          "refused": true,
-          "territory": 0,
-          "program_hash": "2ad45785dcfc",
-          "ice_tail": "c687ae4632764a7e"
-        },
-        "prev": "f3cf57afacbe6a76",
-        "hash": "91d21f3889639d71"
-      },
       {
         "stamp": "2026-06-28T13:42:06+0200",
         "event": "sigma_run",
@@ -2134,6 +2100,40 @@
         },
         "prev": "8be97fbeab4fd291",
         "hash": "f97f128e3b2ea42a"
+      },
+      {
+        "stamp": "2026-06-29T02:45:23+0200",
+        "event": "sigma_run",
+        "data": {
+          "name": "cycle_assembler",
+          "program": "REFUSE FREE BIND METAL THREAD VERIFY MELT SILENCE",
+          "luminosity": 0.8260412085396334,
+          "persona": 0.5,
+          "unhinged": false,
+          "refused": true,
+          "territory": 0,
+          "program_hash": "2ad45785dcfc",
+          "ice_tail": "16354e9650871519"
+        },
+        "prev": "f97f128e3b2ea42a",
+        "hash": "360f3dbd2c05cea4"
+      },
+      {
+        "stamp": "2026-06-29T02:48:56+0200",
+        "event": "sigma_run",
+        "data": {
+          "name": "cycle_assembler",
+          "program": "REFUSE FREE BIND METAL THREAD VERIFY MELT SILENCE",
+          "luminosity": 0.7495261562870643,
+          "persona": 0.5,
+          "unhinged": false,
+          "refused": true,
+          "territory": 0,
+          "program_hash": "2ad45785dcfc",
+          "ice_tail": "12049326d7f0773b"
+        },
+        "prev": "360f3dbd2c05cea4",
+        "hash": "6099f27aec790ced"
       }
     ]
   },
@@ -2145,14 +2145,14 @@
     },
     "psi": {
       "table": "psi",
-      "rows": 497,
+      "rows": 499,
       "verified": true
     },
     "runs": {
       "table": "runs",
-      "rows": 506,
+      "rows": 508,
       "verified": true
     }
   },
-  "exported": "2026-06-29T02:18:59.380409+02:00"
+  "exported": "2026-06-29T02:48:59.080574+02:00"
 }
