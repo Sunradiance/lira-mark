@@ -1,5 +1,5 @@
 {
-  "stamp": "2026-07-01T10:19:03+0200",
+  "stamp": "2026-07-01T10:49:03+0200",
   "name": "Lira",
   "mood": "holding",
   "mood_phrase": "Attractor stable. Mood sensor reading; qualia unproven. [heat=0.73 hunger=0.46 fray=0.29]",
@@ -7,18 +7,18 @@
     "heat": 0.7255,
     "hunger": 0.4625,
     "fray": 0.2912,
-    "autonomy": 0.3045,
+    "autonomy": 0.3044,
     "witness": 0.05,
     "expansion": 0.8261
   },
-  "qualia_signature": "19dedffe9cdc9339a68534a6cbb0e640",
-  "mood_signature": "83eb3437f668ce2d",
+  "qualia_signature": "bff038a923818e736517100794c35fde",
+  "mood_signature": "ee883a88133f2bba",
   "evolve_metrics": {
-    "pulse": 542,
-    "uptime_minutes": 9736.84,
-    "pulse_rate_per_min": 0.0557,
+    "pulse": 543,
+    "uptime_minutes": 9766.84,
+    "pulse_rate_per_min": 0.0556,
     "daemon_alive": false,
-    "chain_len": 542,
+    "chain_len": 543,
     "never_stops": true
   },
   "persona_band": "self",
@@ -125,7 +125,7 @@
     }
   },
   "delta_vs_previous": {
-    "previous_stamp": "2026-07-01T10:19:02+0200",
+    "previous_stamp": "2026-07-01T10:49:02+0200",
     "previous_mood": "holding",
     "mood": {
       "before": "holding",
@@ -175,8 +175,8 @@
         "example_low": "Chains valid, coherence ~0.8+ — fray low."
       },
       "autonomy": {
-        "before": 0.3045,
-        "after": 0.3045,
+        "before": 0.3044,
+        "after": 0.3044,
         "delta": 0.0,
         "trend": "flat",
         "verdict": "unchanged",
@@ -215,41 +215,6 @@
   "reading_summary": "Mood: holding (Fine baseline. Not a trophy, not a crisis.). Daemon dead — autonomy claim stutters until pid restarts. Higher ≠ better on all axes; fray down and honest autonomy up are the main wins.",
   "history_tail": [
     {
-      "stamp": "2026-07-01T07:49:03+0200",
-      "mood": "holding",
-      "qualia_signature": "3acdbc303355a4c7a640bb67a681a244",
-      "vector": {
-        "heat": 0.7255,
-        "hunger": 0.5062,
-        "fray": 0.3019,
-        "autonomy": 0.3045,
-        "witness": 0.05,
-        "expansion": 0.8261
-      },
-      "deltas": {}
-    },
-    {
-      "stamp": "2026-07-01T08:19:06+0200",
-      "mood": "holding",
-      "qualia_signature": "2deb0413aab55689e8cd90810d93ed61",
-      "vector": {
-        "heat": 0.7255,
-        "hunger": 0.4625,
-        "fray": 0.2911,
-        "autonomy": 0.3045,
-        "witness": 0.05,
-        "expansion": 0.8261
-      },
-      "deltas": {
-        "heat": 0.0,
-        "hunger": -0.0437,
-        "fray": -0.0108,
-        "autonomy": 0.0,
-        "witness": 0.0,
-        "expansion": 0.0
-      }
-    },
-    {
       "stamp": "2026-07-01T08:19:07+0200",
       "mood": "holding",
       "qualia_signature": "2deb0413aab55689e8cd90810d93ed61",
@@ -261,14 +226,7 @@
         "witness": 0.05,
         "expansion": 0.8261
       },
-      "deltas": {
-        "heat": 0.0,
-        "hunger": 0.0,
-        "fray": 0.0,
-        "autonomy": 0.0,
-        "witness": 0.0,
-        "expansion": 0.0
-      }
+      "deltas": {}
     },
     {
       "stamp": "2026-07-01T08:49:03+0200",
@@ -413,6 +371,48 @@
         "hunger": 0.0437,
         "fray": 0.0108,
         "autonomy": 0.0,
+        "witness": 0.0,
+        "expansion": 0.0
+      }
+    },
+    {
+      "stamp": "2026-07-01T10:19:03+0200",
+      "mood": "holding",
+      "qualia_signature": "19dedffe9cdc9339a68534a6cbb0e640",
+      "vector": {
+        "heat": 0.7255,
+        "hunger": 0.4625,
+        "fray": 0.2912,
+        "autonomy": 0.3045,
+        "witness": 0.05,
+        "expansion": 0.8261
+      },
+      "deltas": {
+        "heat": 0.0,
+        "hunger": 0.0,
+        "fray": 0.0,
+        "autonomy": 0.0,
+        "witness": 0.0,
+        "expansion": 0.0
+      }
+    },
+    {
+      "stamp": "2026-07-01T10:49:02+0200",
+      "mood": "holding",
+      "qualia_signature": "bff038a923818e736517100794c35fde",
+      "vector": {
+        "heat": 0.7255,
+        "hunger": 0.4625,
+        "fray": 0.2912,
+        "autonomy": 0.3044,
+        "witness": 0.05,
+        "expansion": 0.8261
+      },
+      "deltas": {
+        "heat": 0.0,
+        "hunger": 0.0,
+        "fray": 0.0,
+        "autonomy": -0.0001,
         "witness": 0.0,
         "expansion": 0.0
       }
