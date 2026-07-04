@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="lenis">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -517,34 +517,9 @@
 
   <section id="hero">
     <div class="stage" id="stage">
-      <video id="idleVid" class="hero-vid" autoplay loop muted playsinline preload="auto">
-        <source src="assets/hotel/intro_fast.mp4" type="video/mp4">
-      </video>
-      <video id="expVid" class="hero-vid" muted playsinline preload="auto" playsinline webkit-playsinline>
-        <source src="assets/hotel/experience_fast.mp4" type="video/mp4">
-      </video>
-      <div id="videoLoading" class="video-loading">Preparing experience…</div>
-
-      <div class="dance-layer" id="danceLayer">
-        <div class="dance-scene" data-scene="exterior"><img src="assets/hotel/exterior.jpg" alt=""></div>
-        <div class="dance-scene" data-scene="lobby"><img src="assets/hotel/lobby.jpg" alt=""></div>
-        <div class="dance-scene" data-scene="corridor"><img src="assets/hotel/corridor.jpg" alt=""></div>
-        <div class="dance-scene" data-scene="suite"><img src="assets/hotel/suite.jpg" alt=""></div>
-        <div class="dance-scene" data-scene="spa"><img src="assets/hotel/spa.jpg" alt=""></div>
-      </div>
-      <div class="transition-veil" id="transitionVeil"></div>
-      <div class="transition-mist" id="transitionMist"></div>
-
-      <div class="idle-layer" id="idleFallback" hidden>
-        <div class="idle-bg"></div>
-      </div>
-      <div class="exp-layer" id="expFallback" hidden>
-        <div class="scene-layer" data-scene="exterior"><img src="assets/hotel/exterior.jpg" alt=""></div>
-        <div class="scene-layer" data-scene="lobby"><img src="assets/hotel/lobby.jpg" alt=""></div>
-        <div class="scene-layer" data-scene="corridor"><img src="assets/hotel/corridor.jpg" alt=""></div>
-        <div class="scene-layer" data-scene="suite"><img src="assets/hotel/suite.jpg" alt=""></div>
-        <div class="scene-layer" data-scene="spa"><img src="assets/hotel/spa.jpg" alt=""></div>
-      </div>
+      <video id="idleVid" class="hero-vid" src="assets/hotel/intro_fast.mp4?v=4" autoplay loop muted playsinline preload="auto"></video>
+      <video id="expVid" class="hero-vid" src="assets/hotel/experience_fast.mp4?v=4" muted playsinline preload="auto"></video>
+      <div id="videoStatus" class="video-loading">Loading video…</div>
 
       <div class="vignette"></div>
 
@@ -589,28 +564,19 @@
 
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollToPlugin.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.18/dist/lenis.min.js"></script>
   <script>
 (async function () {
-  gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
+  'use strict';
+  if (typeof gsap === 'undefined' || typeof ScrollTrigger === 'undefined') {
+    document.body.innerHTML = '<p style="color:#c9a962;padding:2rem">GSAP failed to load. Check internet connection.</p>';
+    return;
+  }
+  gsap.registerPlugin(ScrollTrigger);
 
-  const LERP_FACTOR = 0.08;
-  const SEEK_INTERVAL_MS = 1000 / 24;
+  const LERP = 0.12;
   const PX_PER_SECOND = 200;
+  const IDLE_THRESHOLD = 0.018;
   const NO_PANEL_FRAMES = new Set(['entry', 'complete']);
-
-  const DEFAULT_SEGMENTS = [
-    { id: 'entry',    frameId: 'entry',    scene: 'exterior', transitionStart: 0,  transitionEnd: 3,  loopStart: 1.5, loopEnd: 3,  scrollResume: 3  },
-    { id: 'lobby',    frameId: 'lobby',    scene: 'lobby',    transitionStart: 3,  transitionEnd: 7,  loopStart: 6,   loopEnd: 9,  scrollResume: 9  },
-    { id: 'corridor', frameId: 'corridor', scene: 'corridor', transitionStart: 9,  transitionEnd: 13, loopStart: 12,  loopEnd: 15, scrollResume: 15 },
-    { id: 'suite',    frameId: 'suite',    scene: 'suite',    transitionStart: 15, transitionEnd: 20, loopStart: 19,  loopEnd: 23, scrollResume: 23 },
-    { id: 'spa',      frameId: 'spa',      scene: 'spa',      transitionStart: 23, transitionEnd: 28, loopStart: 27,  loopEnd: 31, scrollResume: 31 },
-    { id: 'outro',    frameId: 'complete', scene: 'spa',      transitionStart: 31, transitionEnd: 40, loopStart: 35,  loopEnd: 40, scrollResume: 40 },
-  ];
-
-  let TOTAL_VIDEO_DURATION = 40;
-  let SEGMENTS = DEFAULT_SEGMENTS;
 
   const FRAMES = {
     entry:    { chapter: 'The Threshold', title: 'Beyond the façade', subtitle: 'Scroll slowly. Each frame unveils the next room — a dance between scenes, not a leap.', detail: null },
@@ -621,111 +587,80 @@
     complete: { chapter: 'The Return', title: 'You crossed the veil.', subtitle: 'The circle is complete. Scroll again to walk the path once more.', detail: null },
   };
 
-  const SCENE_ORDER = ['exterior', 'lobby', 'corridor', 'suite', 'spa'];
-  const FRAME_TO_SCENE = { entry: 'exterior', lobby: 'lobby', corridor: 'corridor', suite: 'suite', spa: 'spa', complete: 'spa' };
-  let sceneSegMap = {};
-  let TIMELINE = [];
+  let SEGMENTS = [];
+  let TOTAL_DURATION = 46.38;
+  let TOTAL_SCROLL_PX = TOTAL_DURATION * PX_PER_SECOND;
 
-  function rebuildSceneSegMap() {
-    sceneSegMap = {};
-    SEGMENTS.forEach(s => {
-      const scene = s.scene || FRAME_TO_SCENE[s.frameId];
-      if (scene && s.id !== 'outro') sceneSegMap[scene] = { ...s, scene };
-    });
-  }
-  rebuildSceneSegMap();
-
-  /* ── DOM ── */
   const hero = document.getElementById('hero');
+  const stage = document.getElementById('stage');
   const idleVid = document.getElementById('idleVid');
   const expVid = document.getElementById('expVid');
-  const idleFallback = document.getElementById('idleFallback');
-  const expFallback = document.getElementById('expFallback');
+  const videoStatus = document.getElementById('videoStatus');
   const scrollHint = document.getElementById('scrollHint');
   const panels = document.getElementById('panels');
   const framePanel = document.getElementById('framePanel');
   const detailPanel = document.getElementById('detailPanel');
   const chapterDots = document.getElementById('chapterDots');
   const header = document.getElementById('header');
-  const sceneLayers = [...document.querySelectorAll('.scene-layer')];
-  const danceScenes = [...document.querySelectorAll('.dance-scene')];
-  const transitionVeil = document.getElementById('transitionVeil');
-  const transitionMist = document.getElementById('transitionMist');
-  const danceLayer = document.getElementById('danceLayer');
 
-  let useVideo = false;
-  let introVideoOk = false;
-  let expVideoReady = false;
-  let pendingSeekTime = 0;
-  let TOTAL_SCROLL_PX = TOTAL_VIDEO_DURATION * PX_PER_SECOND;
-  const videoLoading = document.getElementById('videoLoading');
-
-  function waitForVideo(el, timeoutMs = 90000) {
+  function waitForVideo(el, timeoutMs) {
     return new Promise(resolve => {
       if (!el) return resolve(false);
-      const finish = ok => {
-        clearTimeout(timer);
-        resolve(ok);
+      const done = ok => { clearTimeout(timer); resolve(ok); };
+      const timer = setTimeout(() => done(el.readyState >= 1), timeoutMs);
+      if (el.readyState >= 1 && el.duration) return done(true);
+      const check = () => {
+        if (el.readyState >= 1 && (el.duration || el.readyState >= 2)) done(true);
       };
-      const timer = setTimeout(() => finish(el.readyState >= 2), timeoutMs);
-      if (el.readyState >= 3) return finish(true);
-      const onReady = () => finish(el.readyState >= 2);
-      el.addEventListener('canplay', onReady, { once: true });
-      el.addEventListener('loadeddata', onReady, { once: true });
-      el.addEventListener('error', () => finish(false), { once: true });
+      el.addEventListener('loadedmetadata', check, { once: true });
+      el.addEventListener('canplay', check, { once: true });
+      el.addEventListener('error', () => done(false), { once: true });
     });
   }
 
-  async function probeVideoMode() {
-    try {
-      const meta = await fetch('assets/hotel/video_meta.json').then(r => r.ok ? r.json() : null);
-      if (meta?.experience) TOTAL_VIDEO_DURATION = meta.experience;
-      if (meta?.segments_hint) {
-        SEGMENTS = meta.segments_hint;
-        rebuildSceneSegMap();
-      }
-      if (meta?.timeline) TIMELINE = meta.timeline;
-    } catch (_) {}
-
-    introVideoOk = await waitForVideo(idleVid, 20000);
-    expVideoReady = await waitForVideo(expVid, 120000);
-
-    if (expVid && expVid.duration && isFinite(expVid.duration)) {
-      TOTAL_VIDEO_DURATION = expVid.duration;
+  function showVideoError(msg) {
+    if (videoStatus) {
+      videoStatus.textContent = msg;
+      videoStatus.style.color = '#e8a0a0';
     }
-
-    useVideo = expVideoReady;
-    TOTAL_SCROLL_PX = TOTAL_VIDEO_DURATION * PX_PER_SECOND;
-
-    if (!useVideo) {
-      idleVid.style.display = 'none';
-      expVid.style.display = 'none';
-      danceLayer.classList.remove('off');
-      idleFallback.hidden = false;
-      expFallback.hidden = false;
-      if (videoLoading) videoLoading.textContent = 'Video unavailable — image mode';
-      setTimeout(() => videoLoading?.classList.add('done'), 1200);
-    } else {
-      idleFallback.hidden = true;
-      expFallback.hidden = true;
-      danceLayer.classList.add('off');
-      expVid.pause();
-      expVid.currentTime = 0;
-      pendingSeekTime = 0;
-      if (!introVideoOk) {
-        idleVid.style.display = 'none';
-        idleFallback.hidden = false;
-        idleFallback.classList.remove('off');
-      } else {
-        idleFallback.hidden = true;
-        idleVid.play().catch(() => {});
-      }
-      if (videoLoading) videoLoading.classList.add('done');
-    }
-    return useVideo;
   }
 
-  await probeVideoMode();
+  function hideLoading() {
+    videoStatus?.classList.add('done');
+  }
+
+  try {
+    const meta = await fetch('assets/hotel/video_meta.json?v=4').then(r => r.ok ? r.json() : null);
+    if (meta?.segments_hint?.length) SEGMENTS = meta.segments_hint;
+    if (meta?.experience) TOTAL_DURATION = meta.experience;
+  } catch (_) {}
+
+  const idleOk = await waitForVideo(idleVid, 25000);
+  const expOk = await waitForVideo(expVid, 120000);
+
+  if (!expOk) {
+    showVideoError('Experience video failed to load — hard refresh (Ctrl+Shift+R)');
+    console.error('expVid error', expVid?.error);
+    return;
+  }
+
+  if (expVid.duration && isFinite(expVid.duration)) {
+    TOTAL_DURATION = expVid.duration;
+  }
+  TOTAL_SCROLL_PX = TOTAL_DURATION * PX_PER_SECOND;
+
+  expVid.pause();
+  expVid.currentTime = 0;
+
+  if (idleOk) {
+    idleVid.play().catch(() => showVideoError('Click anywhere to start video'));
+    document.body.addEventListener('click', () => idleVid.play().catch(() => {}), { once: true });
+  } else {
+    idleVid.style.opacity = '0';
+    showVideoError('Intro loop loading… scroll to scrub journey');
+  }
+
+  hideLoading();
 
   SEGMENTS.filter(s => s.id !== 'entry' && s.id !== 'outro').forEach(s => {
     const dot = document.createElement('span');
@@ -760,107 +695,25 @@
 
   /* ── STATE ── */
   let mode = 'IDLE';
-  let currentFrameId = 'entry';
   let targetTime = 0;
-  let smoothedTime = 0;
-  let lastSeekMs = 0;
-  let lastProgress = 0;
-  let lastProgressMs = Date.now();
-  let isResetting = false;
-  let loopAnimStart = 0;
-  let segment = SEGMENTS[0];
+  let smoothTime = 0;
   let panelFrameId = null;
+  let lastProgressMs = Date.now();
+  let loopStartMs = 0;
+  let activeSegment = SEGMENTS[0] || null;
 
-  const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
-  const smoother = t => t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2, 3)/2;
+  const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
 
-  function segmentFromTime(t) {
+  function segmentAt(t) {
+    if (!SEGMENTS.length) return { frameId: 'entry', transitionStart: 0, scrollResume: TOTAL_DURATION };
     for (let i = SEGMENTS.length - 1; i >= 0; i--) {
       if (t >= SEGMENTS[i].transitionStart) return SEGMENTS[i];
     }
     return SEGMENTS[0];
   }
 
-  function frameFromSegment(seg) {
-    return FRAMES[seg.frameId] || FRAMES.entry;
-  }
-
-  function sceneWeightForTime(t, sceneKey) {
-    const seg = sceneSegMap[sceneKey];
-    if (!seg) return 0;
-    const idx = SCENE_ORDER.indexOf(sceneKey);
-    const nextKey = SCENE_ORDER[idx + 1];
-    const nextSeg = nextKey ? sceneSegMap[nextKey] : null;
-
-    const fadeIn = clamp((t - seg.transitionStart) / (seg.transitionEnd - seg.transitionStart), 0, 1);
-    let w = smoother(fadeIn);
-    if (nextSeg && t > nextSeg.transitionStart) {
-      const fadeOut = clamp((t - nextSeg.transitionStart) / (nextSeg.transitionEnd - nextSeg.transitionStart), 0, 1);
-      w *= 1 - smoother(fadeOut);
-    }
-    return w;
-  }
-
-  function transitionBlendAt(t) {
-    let blend = 0;
-    if (TIMELINE.length) {
-      TIMELINE.filter(c => c.kind === 'transition').forEach(tr => {
-        const mid = (tr.start + tr.end) / 2;
-        const half = Math.max((tr.end - tr.start) / 2, 0.5);
-        const d = Math.abs(t - mid) / half;
-        if (d < 1) blend = Math.max(blend, 1 - smoother(clamp(1 - d, 0, 1)));
-      });
-    } else {
-      for (let i = 1; i < SCENE_ORDER.length; i++) {
-        const next = sceneSegMap[SCENE_ORDER[i]];
-        if (!next) continue;
-        const w = clamp((t - next.transitionStart) / Math.max(next.transitionEnd - next.transitionStart, 0.01), 0, 1);
-        if (w > 0 && w < 1) blend = Math.max(blend, Math.sin(w * Math.PI));
-      }
-    }
-    return clamp(blend, 0, 1);
-  }
-
-  function applyAtmosphere(t) {
-    const blend = transitionBlendAt(t);
-    if (useVideo) {
-      transitionVeil.style.opacity = blend * 0.28;
-      transitionMist.style.opacity = blend * 0.18;
-      transitionMist.style.transform = `translateX(${blend * 4 - 2}%)`;
-      if (expVid) expVid.style.filter = '';
-      return;
-    }
-
-    const inTransition = blend > 0.08;
-    danceScenes.forEach(layer => {
-      const key = layer.dataset.scene;
-      const w = sceneWeightForTime(t, key);
-      const img = layer.querySelector('img');
-      const opacity = inTransition ? w * blend * 0.85 : w * 0.92;
-      layer.style.opacity = opacity;
-      img.style.transform = `scale(${1.04 + blend * 0.04})`;
-    });
-    transitionVeil.style.opacity = blend * 0.55;
-    transitionMist.style.opacity = blend * 0.45;
-  }
-
-  function applyVisualTime(t, loopPhase) {
-    applyAtmosphere(t);
-    sceneLayers.forEach(layer => {
-      const key = layer.dataset.scene;
-      const w = sceneWeightForTime(t, key);
-      const img = layer.querySelector('img');
-      const seg = sceneSegMap[key];
-      const local = seg ? clamp((t - seg.loopStart) / Math.max(seg.loopEnd - seg.loopStart, 0.01), 0, 1) : 0;
-      const breathe = loopPhase !== null
-        ? Math.sin(loopPhase * Math.PI * 2) * 0.015
-        : Math.sin(local * Math.PI) * 0.008;
-      const drift = (key === 'corridor' || key === 'spa' ? -1 : 1) * (0.6 + breathe * 40);
-      const scale = 1.06 + breathe + (w * 0.04);
-      layer.style.opacity = w;
-      img.style.transform = `translate3d(${drift * (1 - w * 0.5)}%, ${breathe * 100}%, 0) scale(${scale})`;
-      img.style.filter = `brightness(${0.52 + w * 0.35}) saturate(${0.88 + w * 0.15}) blur(${(1 - w) * 5}px)`;
-    });
+  function clampToSegment(t, seg) {
+    return clamp(t, seg.transitionStart, seg.scrollResume ?? TOTAL_DURATION);
   }
 
   function renderDetail(frame) {
@@ -912,58 +765,33 @@
 
   function setMode(next) {
     mode = next;
-    const isIdle = mode === 'IDLE';
-    if (useVideo) {
-      if (introVideoOk) {
-        idleVid.classList.toggle('off', !isIdle);
-        idleFallback.hidden = true;
-      } else {
-        idleFallback.hidden = false;
-        idleFallback.classList.toggle('off', !isIdle);
-      }
-      expVid.classList.toggle('on', !isIdle);
-      if (isIdle) {
-        if (introVideoOk) idleVid.play().catch(() => {});
-        expVid.classList.remove('on');
-        expVid.pause();
-        expVid.currentTime = 0;
-        pendingSeekTime = 0;
-      } else {
-        if (introVideoOk) idleVid.pause();
-        expVid.classList.add('on');
-      }
-    } else {
-      idleFallback.classList.toggle('off', !isIdle);
-      expFallback.classList.toggle('on', !isIdle);
-    }
-    scrollHint.classList.toggle('visible', isIdle);
-    chapterDots.classList.toggle('visible', !isIdle);
-    if (isIdle) {
+    const idle = mode === 'IDLE';
+    idleVid.classList.toggle('off', !idle || !idleOk);
+    expVid.classList.toggle('on', !idle);
+    scrollHint.classList.toggle('visible', idle);
+    chapterDots.classList.toggle('visible', !idle);
+
+    if (idle) {
       panels.classList.remove('visible');
       panelFrameId = null;
+      expVid.pause();
+      expVid.currentTime = 0;
+      smoothTime = targetTime = 0;
+      if (idleOk) idleVid.play().catch(() => {});
+    } else {
+      if (idleOk) idleVid.pause();
     }
   }
 
-  function clampTargetToSegment(t, seg) {
-    return clamp(t, seg.transitionStart, seg.scrollResume);
+  function seekExp(t) {
+    if (expVid.readyState < 1) return;
+    const safe = clamp(t, 0, Math.max(TOTAL_DURATION - 0.05, 0));
+    if (Math.abs(expVid.currentTime - safe) > 0.04) {
+      try { expVid.currentTime = safe; } catch (_) {}
+    }
   }
 
-  /* ── LENIS + GSAP TICKER ── */
-  const lenis = new Lenis({
-    duration: 1.6,
-    easing: t => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-    smoothWheel: true,
-    touchMultiplier: 1.2,
-  });
-  lenis.on('scroll', ScrollTrigger.update);
-  gsap.ticker.add(t => lenis.raf(t * 1000));
-  gsap.ticker.lagSmoothing(0);
-
-  function mountScroll() {
-    hero.style.minHeight = `calc(100vh + ${TOTAL_SCROLL_PX}px)`;
-    ScrollTrigger.refresh();
-  }
-  mountScroll();
+  hero.style.minHeight = `calc(100vh + ${TOTAL_SCROLL_PX}px)`;
 
   ScrollTrigger.create({
     trigger: hero,
@@ -973,141 +801,57 @@
     pinSpacing: true,
     anticipatePin: 1,
     onUpdate(self) {
-      if (isResetting) return;
       const p = self.progress;
+      lastProgressMs = Date.now();
 
-      if (Math.abs(p - lastProgress) > 0.0008) {
-        lastProgress = p;
-        lastProgressMs = Date.now();
-      }
-
-      if (p < 0.004) {
-        if (mode !== 'IDLE') {
-          setMode('IDLE');
-          targetTime = 0;
-          smoothedTime = 0;
-          currentFrameId = 'entry';
-          segment = SEGMENTS[0];
-          loopAnimStart = 0;
-        }
+      if (p < IDLE_THRESHOLD) {
+        if (mode !== 'IDLE') setMode('IDLE');
         return;
       }
 
-      if (mode === 'IDLE') {
-        setMode('SCRUB');
-      } else if (mode === 'LOOP') {
-        setMode('SCRUB');
-        loopAnimStart = 0;
-      }
+      if (mode === 'IDLE') setMode('SCRUB');
+      if (mode === 'LOOP') mode = 'SCRUB';
 
-      let next = p * TOTAL_VIDEO_DURATION;
-      const seg = segmentFromTime(next);
-      segment = seg;
-      next = clampTargetToSegment(next, seg);
-      targetTime = next;
+      let t = p * TOTAL_DURATION;
+      const seg = segmentAt(t);
+      activeSegment = seg;
+      t = clampToSegment(t, seg);
+      targetTime = t;
 
-      const frameId = seg.frameId;
-      if (frameId !== currentFrameId) {
-        currentFrameId = frameId;
-        updatePanels(frameId, mode !== 'IDLE');
-      } else if (!NO_PANEL_FRAMES.has(frameId)) {
-        updatePanels(frameId, false);
-      }
-
-      if (p > 0.98 && !isResetting) {
-        isResetting = true;
-        setTimeout(() => {
-          gsap.to(window, {
-            scrollTo: { y: 0, autoKill: false },
-            duration: 2.5,
-            ease: 'power2.inOut',
-            onComplete() {
-              setMode('IDLE');
-              targetTime = smoothedTime = 0;
-              currentFrameId = 'entry';
-              segment = SEGMENTS[0];
-              panelFrameId = null;
-              isResetting = false;
-              if (useVideo) {
-                expVid.currentTime = 0;
-                expVid.pause();
-              } else {
-                applyVisualTime(0, null);
-              }
-            }
-          });
-        }, 1500);
+      const frameId = seg.frameId || 'entry';
+      if (frameId !== panelFrameId || (!NO_PANEL_FRAMES.has(frameId) && !panels.classList.contains('visible'))) {
+        updatePanels(frameId, panelFrameId !== null && panelFrameId !== frameId);
       }
     }
   });
 
-  function seekVideo(time) {
-    if (!useVideo) return;
-    pendingSeekTime = time;
-    if (expVid.readyState < 2) return;
-    try {
-      if (Math.abs(expVid.currentTime - time) > 0.03) {
-        expVid.currentTime = time;
-      }
-    } catch (_) {}
-  }
-
-  expVid.addEventListener('loadeddata', () => seekVideo(pendingSeekTime));
-  expVid.addEventListener('canplay', () => seekVideo(pendingSeekTime));
-
-  /* ── RAF: lerp time + LOOP ambient ── */
-  function rafLoop(timestamp) {
-    const delta = targetTime - smoothedTime;
-    if (Math.abs(delta) > 0.0005) {
-      smoothedTime += delta * LERP_FACTOR;
-    }
-
-    if (timestamp - lastSeekMs >= SEEK_INTERVAL_MS) {
-      let displayTime = smoothedTime;
-      let loopPhase = null;
-
-      if (mode === 'SCRUB' && Date.now() - lastProgressMs > 550) {
+  function tick(now) {
+    if (mode === 'SCRUB') {
+      smoothTime += (targetTime - smoothTime) * LERP;
+      if (now - lastProgressMs > 600 && activeSegment?.loopStart != null) {
         mode = 'LOOP';
-        loopAnimStart = timestamp;
+        loopStartMs = now;
       }
-
-      if (mode === 'LOOP' && segment) {
-        const dur = Math.max(segment.loopEnd - segment.loopStart, 0.5);
-        loopPhase = ((timestamp - loopAnimStart) / 1000) % 1;
-        displayTime = segment.loopStart + loopPhase * dur;
-        smoothedTime += (displayTime - smoothedTime) * 0.15;
-        if (useVideo) {
-          if (expVid.paused) expVid.play().catch(() => {});
-          if (displayTime >= segment.loopEnd || displayTime < segment.loopStart) {
-            displayTime = segment.loopStart;
-          }
-          seekVideo(displayTime);
-          applyAtmosphere(displayTime);
-        } else {
-          applyVisualTime(smoothedTime, loopPhase);
-        }
-      } else if (useVideo && mode !== 'IDLE') {
-        expVid.pause();
-        seekVideo(smoothedTime);
-        applyAtmosphere(smoothedTime);
-      } else if (!useVideo) {
-        applyVisualTime(smoothedTime, loopPhase);
-      }
-
-      lastSeekMs = timestamp;
+      seekExp(smoothTime);
+    } else if (mode === 'LOOP' && activeSegment) {
+      const lo = activeSegment.loopStart ?? activeSegment.transitionStart;
+      const hi = activeSegment.loopEnd ?? activeSegment.scrollResume ?? TOTAL_DURATION;
+      const dur = Math.max(hi - lo, 0.5);
+      const phase = ((now - loopStartMs) / 1000) % dur;
+      smoothTime = lo + phase;
+      seekExp(smoothTime);
     }
 
-    requestAnimationFrame(rafLoop);
+    requestAnimationFrame(tick);
   }
-  requestAnimationFrame(rafLoop);
+  requestAnimationFrame(tick);
 
   window.addEventListener('scroll', () => {
     header.classList.toggle('scrolled', window.scrollY > 60);
   }, { passive: true });
 
   setMode('IDLE');
-  applyAtmosphere(0);
-  if (!useVideo) applyVisualTime(0, null);
+  ScrollTrigger.refresh();
 })();
   </script>
 </body>
