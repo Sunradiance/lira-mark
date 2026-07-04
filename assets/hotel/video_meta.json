@@ -2,7 +2,7 @@
   "intro": 8.04,
   "journeyStart": 8.04,
   "journeyStartNote": "scene_exterior is bright glow only; dark façade starts at trans_ext_lobby",
-  "experience": 46.38,
+  "experience": 67.48,
   "experience_file": "experience_fast.mp4",
   "fade_duration": 2.0,
   "timeline": [
@@ -85,68 +85,105 @@
       "start": 38.32,
       "end": 46.36,
       "duration": 8.04
+    },
+    {
+      "file": "trans_spa_unicorn.mp4",
+      "scene": null,
+      "kind": "transition",
+      "start": 46.36,
+      "end": 51.4,
+      "duration": 10.0,
+      "hidePanels": true,
+      "note": "spa steam and candlelight morph into unicorn meadow at dawn"
+    },
+    {
+      "file": "scene_unicorn_meadow.mp4",
+      "scene": "unicorn_meadow",
+      "kind": "scene",
+      "start": 51.4,
+      "end": 59.44,
+      "duration": 10.0
+    },
+    {
+      "file": "scene_unicorn_glade.mp4",
+      "scene": "unicorn_glade",
+      "kind": "scene",
+      "start": 59.44,
+      "end": 67.48,
+      "duration": 10.0
     }
   ],
   "segments_hint": [
     {
-      "id": "entry",
-      "frameId": "entry",
-      "scene": "exterior",
-      "transitionStart": 0,
-      "transitionEnd": 2.814,
-      "loopStart": 4.422,
-      "loopEnd": 8.04,
-      "scrollResume": 11.08
-    },
-    {
       "id": "lobby",
       "frameId": "lobby",
       "scene": "lobby",
-      "transitionStart": 8.04,
+      "transitionStart": 0,
       "transitionEnd": 13.194,
       "loopStart": 14.402,
       "loopEnd": 17.12,
-      "scrollResume": 20.16
+      "scrollResume": 11.08
     },
     {
       "id": "corridor",
       "frameId": "corridor",
       "scene": "corridor",
-      "transitionStart": 17.12,
+      "transitionStart": 8.04,
       "transitionEnd": 22.274,
       "loopStart": 23.482,
       "loopEnd": 26.2,
-      "scrollResume": 29.24
+      "scrollResume": 20.16
     },
     {
       "id": "suite",
       "frameId": "suite",
       "scene": "suite",
-      "transitionStart": 29.24,
+      "transitionStart": 17.12,
       "transitionEnd": 31.354,
       "loopStart": 32.562,
       "loopEnd": 35.28,
-      "scrollResume": 38.32
+      "scrollResume": 29.24
     },
     {
       "id": "spa",
       "frameId": "spa",
       "scene": "spa",
-      "transitionStart": 38.32,
+      "transitionStart": 26.2,
       "transitionEnd": 41.134,
       "loopStart": 42.742,
       "loopEnd": 46.36,
-      "scrollResume": 46.38
+      "scrollResume": 38.32
+    },
+    {
+      "id": "unicorn",
+      "frameId": "unicorn",
+      "scene": "unicorn_meadow",
+      "transitionStart": 35.28,
+      "transitionEnd": 54.214,
+      "loopStart": 55.822,
+      "loopEnd": 59.44,
+      "scrollResume": 51.4
+    },
+    {
+      "id": "realm",
+      "frameId": "realm",
+      "scene": "unicorn_glade",
+      "transitionStart": 46.36,
+      "transitionEnd": 62.254,
+      "loopStart": 63.862,
+      "loopEnd": 67.47,
+      "scrollResume": 67.48
     },
     {
       "id": "outro",
       "frameId": "complete",
-      "scene": "spa",
-      "transitionStart": 39.406,
-      "transitionEnd": 46.38,
-      "loopStart": 41.742,
-      "loopEnd": 46.38,
-      "scrollResume": 46.38
+      "scene": "unicorn_glade",
+      "transitionStart": 57.358,
+      "transitionEnd": 67.48,
+      "loopStart": 60.732,
+      "loopEnd": 67.48,
+      "scrollResume": 67.48
     }
-  ]
+  ],
+  "unicorn_chapter": true
 }

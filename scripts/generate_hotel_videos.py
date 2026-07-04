@@ -31,6 +31,9 @@ CLIP_PLAN = [
     ("scene_suite.mp4", "suite", "scene"),
     ("trans_suite_spa.mp4", None, "transition"),
     ("scene_spa.mp4", "spa", "scene"),
+    ("trans_spa_unicorn.mp4", None, "transition"),
+    ("scene_unicorn_meadow.mp4", "unicorn_meadow", "scene"),
+    ("scene_unicorn_glade.mp4", "unicorn_glade", "scene"),
 ]
 
 
@@ -202,6 +205,37 @@ STEPS = {
             "materials shift from silk and glass to stone and mist, seamless crossfade"
         ),
     },
+    "trans_spa_unicorn": {
+        "type": "reference",
+        "images": ["spa.jpg", "unicorn_meadow.jpg"],
+        "out": "trans_spa_unicorn.mp4",
+        "duration": 10,
+        "prompt": (
+            "Scene dance transition. <IMAGE_1> luxury spa steam and candlelight on black water glows "
+            "with inner starlight and dissolves into <IMAGE_2> a vast unicorn meadow at dawn with "
+            "aurora, iridescent grass, and distant unicorns. Dreamlike morph, seamless crossfade"
+        ),
+    },
+    "scene_unicorn_meadow": {
+        "type": "image",
+        "image": "unicorn_meadow.jpg",
+        "out": "scene_unicorn_meadow.mp4",
+        "duration": 10,
+        "prompt": (
+            "Animate this EXACT unicorn meadow. Slow forward float, distant unicorns lift their heads, "
+            "aurora shimmers, bioluminescent flowers pulse. Premium fantasy cinematography, 16:9"
+        ),
+    },
+    "scene_unicorn_glade": {
+        "type": "image",
+        "image": "unicorn_glade.jpg",
+        "out": "scene_unicorn_glade.mp4",
+        "duration": 10,
+        "prompt": (
+            "Animate this EXACT enchanted glade. Slow glide toward the white unicorn, floating petals, "
+            "stardust particles, mirror pool ripples. Sacred luxury fantasy, no cartoon style"
+        ),
+    },
 }
 
 
@@ -342,6 +376,8 @@ def build_segments_hint(timeline: list[dict], total: float) -> list[dict]:
         "corridor": "corridor",
         "suite": "suite",
         "spa": "spa",
+        "unicorn_meadow": "unicorn",
+        "unicorn_glade": "realm",
     }
 
     segments = []
@@ -423,6 +459,7 @@ def main() -> None:
         "intro",
         "scene_exterior", "scene_lobby", "scene_corridor", "scene_suite", "scene_spa",
         "trans_ext_lobby", "trans_lobby_corridor", "trans_corridor_suite", "trans_suite_spa",
+        "trans_spa_unicorn", "scene_unicorn_meadow", "scene_unicorn_glade",
     ]
     for name in order:
         if only and name not in only:

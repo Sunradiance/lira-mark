@@ -523,7 +523,7 @@
   const TRANSITION_SCROLL_SHARE = 0.125;
   const TIME_SMOOTH = 16;
   const NO_PANEL_FRAMES = new Set(['entry', 'complete']);
-  const CACHE = '?v=27';
+  const CACHE = '?v=29';
   const LOAD_CAP_MS = 5000;
   const ASSET = 'assets/hotel/';
   let JOURNEY_T0 = 8.04;
@@ -535,13 +535,16 @@
     corridor: { chapter: '02 — Passage', title: 'Corridors that remember', subtitle: 'Each step deepens the hush. Sconces paint the walls in slow fire.', detail: { notes: ['Velvet silence', 'Brass sconce light', 'Scent of cedar'], price: 'From €620', cta: 'Explore Passage' } },
     suite:    { chapter: '03 — Residence', title: 'Your suite above the city', subtitle: 'Silk, glass, and the whole skyline laid at your feet.', detail: { notes: ['Panoramic glass', 'Silk linens', 'Midnight skyline'], price: 'From €1,200', cta: 'Book Penthouse' } },
     spa:      { chapter: '04 — Submersion', title: 'The spa at the edge of sleep', subtitle: 'Steam, stone, candlelight on black water. Time dissolves here.', detail: { notes: ['Thermal stone', 'Black water pool', 'Candlelit steam'], price: 'From €480', cta: 'Reserve Ritual' } },
-    complete: { chapter: 'The Return', title: 'You crossed the veil.', subtitle: 'The circle is complete. Scroll again to walk the path once more.', detail: null },
+    unicorn:  { chapter: '05 — The Crossing', title: 'Where steam becomes stardust', subtitle: 'The spa veil lifts. Meadow light spills in — unicorns move like legends at the horizon.', detail: { notes: ['Aurora meadow', 'Iridescent mist', 'Distant unicorns'], price: 'By invitation', cta: 'Cross the Veil' } },
+    realm:    { chapter: '06 — Unicorn Lands', title: 'The glade remembers you', subtitle: 'A white unicorn waits among floating petals and mirror-still water. Magic, utterly quiet.', detail: { notes: ['Enchanted glade', 'Luminous mane', 'Stardust air'], price: 'Priceless', cta: 'Stay in the Legend' } },
+    complete: { chapter: 'The Return', title: 'You crossed into legend.', subtitle: 'Hotel, spa, and the unicorn lands — one breath. Scroll again to walk the path once more.', detail: null },
   };
 
   let SEGMENTS = [];
   let PACE_ZONES = [];
   let GLOW_FROM = 36.75;
   let GLOW_TO = 38.32;
+  let HIDDEN_ZONES = [];
   let FRAME_LIST = [];
   let FRAME_FPS = 8;
   let TOTAL_DURATION = 46.38;
@@ -783,8 +786,16 @@
     });
   }
 
+  function inHiddenZone(t) {
+    if (t >= GLOW_FROM && t < GLOW_TO) return true;
+    for (const z of HIDDEN_ZONES) {
+      if (t >= z.from && t < z.to) return true;
+    }
+    return false;
+  }
+
   function syncPanels(t, animate) {
-    if (t >= GLOW_FROM && t < GLOW_TO) {
+    if (inHiddenZone(t)) {
       if (panelFrameId !== 'glow') {
         panels.classList.remove('visible');
         panelFrameId = 'glow';
@@ -861,6 +872,12 @@
       const glow = meta.timeline.find(c => c.file === 'trans_suite_spa.mp4');
       if (glow?.playStart != null) GLOW_FROM = glow.playStart;
       if (glow?.playEnd != null) GLOW_TO = glow.playEnd;
+      HIDDEN_ZONES = meta.timeline
+        .filter(c => c.hidePanels && c.start != null && c.end != null)
+        .map(c => ({
+          from: c.playStart ?? c.start,
+          to: c.playEnd ?? c.end,
+        }));
     }
     if (manifest?.frames?.length) {
       FRAME_LIST = manifest.frames;
