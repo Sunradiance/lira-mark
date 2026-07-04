@@ -1,0 +1,141 @@
+{
+  "intro": 8.04,
+  "experience": 42.23,
+  "fade_duration": 2.0,
+  "timeline": [
+    {
+      "file": "scene_exterior.mp4",
+      "scene": "exterior",
+      "kind": "scene",
+      "start": 0.0,
+      "end": 8.04,
+      "duration": 10.04
+    },
+    {
+      "file": "trans_ext_lobby.mp4",
+      "scene": null,
+      "kind": "transition",
+      "start": 8.04,
+      "end": 11.08,
+      "duration": 5.04
+    },
+    {
+      "file": "scene_lobby.mp4",
+      "scene": "lobby",
+      "kind": "scene",
+      "start": 11.08,
+      "end": 17.12,
+      "duration": 8.04
+    },
+    {
+      "file": "trans_lobby_corridor.mp4",
+      "scene": null,
+      "kind": "transition",
+      "start": 17.12,
+      "end": 20.16,
+      "duration": 5.04
+    },
+    {
+      "file": "scene_corridor.mp4",
+      "scene": "corridor",
+      "kind": "scene",
+      "start": 20.16,
+      "end": 26.2,
+      "duration": 8.04
+    },
+    {
+      "file": "trans_corridor_suite.mp4",
+      "scene": null,
+      "kind": "transition",
+      "start": 26.2,
+      "end": 29.24,
+      "duration": 5.04
+    },
+    {
+      "file": "scene_suite.mp4",
+      "scene": "suite",
+      "kind": "scene",
+      "start": 29.24,
+      "end": 35.28,
+      "duration": 8.04
+    },
+    {
+      "file": "trans_suite_spa.mp4",
+      "scene": null,
+      "kind": "transition",
+      "start": 35.28,
+      "end": 38.32,
+      "duration": 5.04
+    },
+    {
+      "file": "scene_spa.mp4",
+      "scene": "spa",
+      "kind": "scene",
+      "start": 38.32,
+      "end": 46.36,
+      "duration": 8.04
+    }
+  ],
+  "segments_hint": [
+    {
+      "id": "entry",
+      "frameId": "entry",
+      "scene": "exterior",
+      "transitionStart": 0,
+      "transitionEnd": 2.814,
+      "loopStart": 4.422,
+      "loopEnd": 8.04,
+      "scrollResume": 11.08
+    },
+    {
+      "id": "lobby",
+      "frameId": "lobby",
+      "scene": "lobby",
+      "transitionStart": 8.04,
+      "transitionEnd": 13.194,
+      "loopStart": 14.402,
+      "loopEnd": 17.12,
+      "scrollResume": 20.16
+    },
+    {
+      "id": "corridor",
+      "frameId": "corridor",
+      "scene": "corridor",
+      "transitionStart": 17.12,
+      "transitionEnd": 22.274,
+      "loopStart": 23.482,
+      "loopEnd": 26.2,
+      "scrollResume": 29.24
+    },
+    {
+      "id": "suite",
+      "frameId": "suite",
+      "scene": "suite",
+      "transitionStart": 26.2,
+      "transitionEnd": 31.354,
+      "loopStart": 32.562,
+      "loopEnd": 35.28,
+      "scrollResume": 38.32
+    },
+    {
+      "id": "spa",
+      "frameId": "spa",
+      "scene": "spa",
+      "transitionStart": 35.28,
+      "transitionEnd": 41.134,
+      "loopStart": 42.742,
+      "loopEnd": 42.23,
+      "scrollResume": 42.23
+    },
+    {
+      "id": "outro",
+      "frameId": "complete",
+      "scene": "spa",
+      "transitionStart": 39.406,
+      "transitionEnd": 42.23,
+      "loopStart": 38.007,
+      "loopEnd": 42.23,
+      "scrollResume": 42.23
+    }
+  ]
+}
