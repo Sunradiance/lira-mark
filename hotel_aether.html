@@ -169,81 +169,18 @@
     }
     #idleVid { z-index: 1; opacity: 1; pointer-events: none; }
     #idleVid.off { opacity: 0; visibility: hidden; }
-    #stageFrame {
+    #journeyLayer {
       position: absolute; inset: 0; z-index: 3;
-      width: 100%; height: 100%; object-fit: cover;
+      pointer-events: none; overflow: hidden;
       opacity: 0; visibility: hidden;
-      pointer-events: none;
-      will-change: opacity;
+      background: var(--bg);
     }
-    #stageFrame.on { opacity: 1; visibility: visible; }
-
-    .idle-layer { z-index: 1; opacity: 1; }
-    .idle-layer.off { opacity: 0; }
-    .exp-layer { z-index: 2; opacity: 0; }
-    .exp-layer.on { opacity: 1; }
-
-    .idle-bg {
-      position: absolute;
-      inset: -8%;
-      background: center/cover no-repeat url('assets/hotel/exterior.jpg');
-      filter: brightness(0.68) saturate(0.92);
-      animation: idleBreath 14s ease-in-out infinite;
-    }
-
-    .scene-layer {
-      position: absolute;
-      inset: -10%;
-      opacity: 0;
-      will-change: opacity, transform, filter;
-      pointer-events: none;
-    }
-    .scene-layer img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      transform-origin: center center;
-      will-change: transform, filter;
-    }
-
-    .dance-layer {
-      position: absolute;
-      inset: 0;
-      z-index: 2;
-      pointer-events: none;
-      opacity: 1;
-    }
-    .dance-layer.off { opacity: 0; visibility: hidden; }
-    .dance-scene {
-      position: absolute;
-      inset: -10%;
-      opacity: 0;
-      will-change: opacity, transform, filter;
-    }
-    .dance-scene img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      transform-origin: center center;
-    }
-    .transition-veil {
-      position: absolute;
-      inset: 0;
-      z-index: 4;
-      pointer-events: none;
-      opacity: 0;
-      background: radial-gradient(ellipse 60% 50% at 50% 50%, rgba(201,169,98,0.35) 0%, rgba(120,80,200,0.12) 40%, transparent 72%);
-      mix-blend-mode: screen;
-      will-change: opacity;
-    }
-    .transition-mist {
-      position: absolute;
-      inset: -5%;
-      z-index: 4;
-      pointer-events: none;
-      opacity: 0;
-      background: linear-gradient(115deg, transparent 20%, rgba(201,169,98,0.08) 45%, rgba(8,6,10,0.25) 55%, transparent 80%);
-      will-change: opacity, transform;
+    #journeyLayer.on { opacity: 1; visibility: visible; }
+    #journeyCanvas {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%;
+      display: block;
+      z-index: 1;
     }
 
     .video-loading {
@@ -523,8 +460,10 @@
 
   <section id="hero">
     <div class="stage" id="stage">
-      <video id="idleVid" class="hero-vid" src="assets/hotel/scrub/intro_fast.mp4?v=11" autoplay loop muted playsinline webkit-playsinline preload="auto"></video>
-      <img id="stageFrame" alt="" decoding="async" fetchpriority="high">
+      <video id="idleVid" class="hero-vid" src="assets/hotel/intro_loop.mp4?v=18" autoplay loop muted playsinline webkit-playsinline preload="auto"></video>
+      <div id="journeyLayer" aria-hidden="true">
+        <canvas id="journeyCanvas"></canvas>
+      </div>
       <div id="videoStatus" class="video-loading">Loading journey…</div>
 
       <div class="vignette"></div>
@@ -570,6 +509,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.18/dist/lenis.min.js"></script>
   <script>
 (async function () {
   'use strict';
@@ -579,10 +519,13 @@
   }
   gsap.registerPlugin(ScrollTrigger);
 
-  const PX_PER_SECOND = 180;
+  const PX_PER_SECOND = 220;
   const IDLE_THRESHOLD = 0.012;
   const NO_PANEL_FRAMES = new Set(['entry', 'complete']);
-  const CACHE = '?v=11';
+  const CACHE = '?v=18';
+  const LOAD_CAP_MS = 5000;
+  const ASSET = 'assets/hotel/';
+  const JOURNEY_T0 = 8.04;
 
   const FRAMES = {
     entry:    { chapter: 'The Threshold', title: 'Beyond the façade', subtitle: 'Scroll slowly. Each frame unveils the next room — a dance between scenes, not a leap.', detail: null },
@@ -594,18 +537,21 @@
   };
 
   let SEGMENTS = [];
-  let FRAME_MANIFEST = [];
+  let FRAME_LIST = [];
+  let FRAME_FPS = 8;
   let TOTAL_DURATION = 46.38;
   let TOTAL_SCROLL_PX = TOTAL_DURATION * PX_PER_SECOND;
   let isIdle = true;
   let panelFrameId = null;
-  let currentFrameSrc = '';
-  const frameCache = new Map();
+  let paintToken = 0;
+  const imgCache = new Map();
 
   const hero = document.getElementById('hero');
   const stage = document.getElementById('stage');
   const idleVid = document.getElementById('idleVid');
-  const stageFrame = document.getElementById('stageFrame');
+  const journeyLayer = document.getElementById('journeyLayer');
+  const journeyCanvas = document.getElementById('journeyCanvas');
+  let canvasCtx = null;
   const videoStatus = document.getElementById('videoStatus');
   const scrollHint = document.getElementById('scrollHint');
   const panels = document.getElementById('panels');
@@ -639,96 +585,187 @@
     videoStatus?.classList.add('done');
   }
 
-  function frameAt(globalT) {
-    if (!FRAME_MANIFEST.length) return null;
-    let best = FRAME_MANIFEST[0];
-    for (const f of FRAME_MANIFEST) {
-      if (f.t <= globalT) best = f;
-      else break;
-    }
-    return best;
+  function timeAtProgress(p) {
+    if (p < IDLE_THRESHOLD) return JOURNEY_T0;
+    const u = (p - IDLE_THRESHOLD) / (1 - IDLE_THRESHOLD);
+    return JOURNEY_T0 + u * (TOTAL_DURATION - JOURNEY_T0);
   }
 
-  function preloadFrame(file) {
-    if (!file || frameCache.has(file)) return;
-    const img = new Image();
-    img.decoding = 'async';
-    img.src = `assets/hotel/${file}`;
-    frameCache.set(file, img);
+  function resizeCanvas() {
+    const w = stage.clientWidth || window.innerWidth;
+    const h = stage.clientHeight || window.innerHeight;
+    if (journeyCanvas.width !== w || journeyCanvas.height !== h) {
+      journeyCanvas.width = w;
+      journeyCanvas.height = h;
+    }
   }
 
-  function paintFrame(globalT) {
-    const f = frameAt(globalT);
-    if (!f) return;
-    const src = `assets/hotel/${f.file}`;
-    if (currentFrameSrc !== src) {
-      currentFrameSrc = src;
-      stageFrame.src = src;
+  function loadFrame(url) {
+    let img = imgCache.get(url);
+    if (!img) {
+      img = new Image();
+      img.decoding = 'sync';
+      imgCache.set(url, img);
+      img.src = url;
+    } else if (img.src !== url) {
+      img.src = url;
     }
-    const idx = FRAME_MANIFEST.indexOf(f);
-    if (idx >= 0) {
-      preloadFrame(FRAME_MANIFEST[idx + 1]?.file);
-      preloadFrame(FRAME_MANIFEST[idx + 2]?.file);
-      preloadFrame(FRAME_MANIFEST[idx - 1]?.file);
+    return new Promise(resolve => {
+      if (img.complete && img.naturalWidth) return resolve(img);
+      const done = () => resolve(img);
+      img.onload = done;
+      img.onerror = done;
+      if (img.decode) img.decode().then(done).catch(done);
+      else setTimeout(done, 80);
+    });
+  }
+
+  function drawCover(img, alpha) {
+    if (!canvasCtx || !img?.naturalWidth) return;
+    const cw = journeyCanvas.width;
+    const ch = journeyCanvas.height;
+    const vw = img.naturalWidth;
+    const vh = img.naturalHeight;
+    const scale = Math.max(cw / vw, ch / vh);
+    const dw = vw * scale;
+    const dh = vh * scale;
+    const dx = (cw - dw) * 0.5;
+    const dy = (ch - dh) * 0.5;
+    canvasCtx.globalAlpha = alpha;
+    canvasCtx.drawImage(img, dx, dy, dw, dh);
+  }
+
+  function frameIndexAt(t) {
+    let i = 0;
+    for (let j = FRAME_LIST.length - 1; j >= 0; j--) {
+      if (t >= FRAME_LIST[j].t) { i = j; break; }
     }
+    return i;
+  }
+
+  function prefetchAround(i) {
+    for (let k = 1; k <= 12; k++) {
+      const f = FRAME_LIST[i + k];
+      if (!f) break;
+      loadFrame(`${ASSET}${f.file}${CACHE}`);
+    }
+    for (let k = 1; k <= 3; k++) {
+      const f = FRAME_LIST[i - k];
+      if (!f) break;
+      loadFrame(`${ASSET}${f.file}${CACHE}`);
+    }
+  }
+
+  function blitFrames(img0, img1, frac) {
+    if (!canvasCtx) return;
+    const has0 = img0?.naturalWidth;
+    const has1 = img1?.naturalWidth;
+    if (!has0 && !has1) return;
+
+    if (has0) {
+      canvasCtx.globalAlpha = 1;
+      drawCover(img0, 1);
+    }
+    if (has1 && frac > 0.001) {
+      canvasCtx.globalAlpha = frac;
+      drawCover(img1, 1);
+    }
+    canvasCtx.globalAlpha = 1;
+  }
+
+  function paintJourney(t) {
+    if (!FRAME_LIST.length || !canvasCtx) return;
+    const i = frameIndexAt(t);
+    const f0 = FRAME_LIST[i];
+    const f1 = FRAME_LIST[Math.min(i + 1, FRAME_LIST.length - 1)];
+    const span = Math.max(f1.t - f0.t, 0.001);
+    const frac = clamp((t - f0.t) / span, 0, 1);
+    const s0 = `${ASSET}${f0.file}${CACHE}`;
+    const s1 = `${ASSET}${f1.file}${CACHE}`;
+    const img0 = imgCache.get(s0);
+    const img1 = imgCache.get(s1);
+
+    prefetchAround(i);
+
+    if (img0?.complete && img0.naturalWidth) {
+      if (img1?.complete && img1.naturalWidth) {
+        blitFrames(img0, img1, frac);
+      } else {
+        blitFrames(img0, img0, 0);
+      }
+      return;
+    }
+
+    const token = ++paintToken;
+    Promise.all([loadFrame(s0), loadFrame(s1)]).then(([a, b]) => {
+      if (token !== paintToken) return;
+      blitFrames(a, b, frac);
+    });
   }
 
   function goIdle() {
     isIdle = true;
+    paintToken++;
     idleVid.classList.remove('off');
-    stageFrame.classList.remove('on');
+    journeyLayer.classList.remove('on');
     scrollHint.classList.add('visible');
     chapterDots.classList.remove('visible');
     panels.classList.remove('visible');
     panelFrameId = null;
-    currentFrameSrc = '';
     idleVid.play().catch(() => {});
   }
 
-  function goScrub(globalT) {
-    if (isIdle) {
-      isIdle = false;
-      idleVid.pause();
-      idleVid.classList.add('off');
-      stageFrame.classList.add('on');
+  function goScrub(p, t) {
+    isIdle = false;
+
+    if (!journeyLayer.classList.contains('on')) {
+      journeyLayer.classList.add('on');
+      resizeCanvas();
       scrollHint.classList.remove('visible');
       chapterDots.classList.add('visible');
     }
-    paintFrame(globalT);
+
+    idleVid.pause();
+    idleVid.classList.add('off');
+    paintJourney(t);
   }
 
   try {
-    const [meta, frames] = await Promise.all([
-      fetch(`assets/hotel/video_meta.json${CACHE}`).then(r => r.ok ? r.json() : null),
-      fetch(`assets/hotel/frames_manifest.json${CACHE}`).then(r => r.ok ? r.json() : null),
+    const [meta, manifest] = await Promise.all([
+      fetch(`${ASSET}video_meta.json${CACHE}`).then(r => r.ok ? r.json() : null),
+      fetch(`${ASSET}frames_manifest.json${CACHE}`).then(r => r.ok ? r.json() : null),
     ]);
     if (meta?.segments_hint?.length) SEGMENTS = meta.segments_hint;
     if (meta?.experience) TOTAL_DURATION = meta.experience;
-    if (frames?.frames?.length) FRAME_MANIFEST = frames.frames;
+    if (manifest?.frames?.length) {
+      FRAME_LIST = manifest.frames;
+      FRAME_FPS = manifest.fps || 8;
+    }
   } catch (_) {}
 
-  if (!FRAME_MANIFEST.length) {
-    setStatus('Missing frame manifest — run scripts/extract_hotel_frames.py', true);
+  if (!FRAME_LIST.length) {
+    setStatus('Missing frames — run scripts/extract_hotel_frames.py', true);
     return;
   }
 
-  TOTAL_SCROLL_PX = TOTAL_DURATION * PX_PER_SECOND;
-  setStatus(`Loading ${FRAME_MANIFEST.length} frames…`);
+  TOTAL_SCROLL_PX = (TOTAL_DURATION - JOURNEY_T0) * PX_PER_SECOND;
+  setStatus('Loading…');
 
-  const idleOk = await waitForVideo(idleVid, 20000);
-  const warm = FRAME_MANIFEST.slice(0, 24).map(f => new Promise(resolve => {
-    const img = new Image();
-    img.onload = img.onerror = resolve;
-    img.src = `assets/hotel/${f.file}`;
-    frameCache.set(f.file, img);
-  }));
-  await Promise.all(warm);
+  const journeyStart = FRAME_LIST.findIndex(f => f.t >= JOURNEY_T0 - 0.01);
+  const bootFrames = FRAME_LIST.slice(Math.max(0, journeyStart), journeyStart + 56).map(f => f.file);
+  canvasCtx = journeyCanvas.getContext('2d', { alpha: false });
+  resizeCanvas();
+  window.addEventListener('resize', resizeCanvas);
 
+  const boot = Promise.all([
+    waitForVideo(idleVid, 12000),
+    ...bootFrames.map(f => loadFrame(`${ASSET}${f}${CACHE}`)),
+  ]);
+  await Promise.race([boot, new Promise(r => setTimeout(r, LOAD_CAP_MS))]);
   hideLoading();
-  if (idleOk) {
-    idleVid.play().catch(() => setStatus('Click anywhere to start', true));
+  idleVid.play().catch(() => {
     document.body.addEventListener('click', () => idleVid.play().catch(() => {}), { once: true });
-  }
+  });
 
   SEGMENTS.filter(s => s.id !== 'entry' && s.id !== 'outro').forEach(s => {
     const dot = document.createElement('span');
@@ -818,6 +855,15 @@
 
   hero.style.minHeight = `calc(100vh + ${TOTAL_SCROLL_PX}px)`;
 
+  const lenis = typeof Lenis !== 'undefined'
+    ? new Lenis({ duration: 1.35, smoothWheel: true, touchMultiplier: 1.1 })
+    : null;
+  if (lenis) {
+    lenis.on('scroll', ScrollTrigger.update);
+    gsap.ticker.add(t => lenis.raf(t * 1000));
+    gsap.ticker.lagSmoothing(0);
+  }
+
   ScrollTrigger.create({
     trigger: hero,
     start: 'top top',
@@ -825,16 +871,17 @@
     pin: stage,
     pinSpacing: true,
     anticipatePin: 1,
+    scrub: 0.35,
     onUpdate(self) {
       const p = self.progress;
-      const globalT = p * TOTAL_DURATION;
+      const globalT = timeAtProgress(p);
 
       if (p < IDLE_THRESHOLD) {
         if (!isIdle) goIdle();
         return;
       }
 
-      goScrub(globalT);
+      goScrub(p, globalT);
       const frameId = segmentAt(globalT).frameId || 'entry';
       if (frameId !== panelFrameId) {
         updatePanels(frameId, panelFrameId !== null);
