@@ -169,7 +169,7 @@
     }
     #idleVid { z-index: 1; opacity: 1; }
     #idleVid.off { opacity: 0; }
-    #expVid { z-index: 2; opacity: 0; }
+    #expVid { z-index: 3; opacity: 0; }
     #expVid.on { opacity: 1; }
 
     .idle-layer { z-index: 1; opacity: 1; }
@@ -203,10 +203,11 @@
     .dance-layer {
       position: absolute;
       inset: 0;
-      z-index: 3;
+      z-index: 2;
       pointer-events: none;
       opacity: 1;
     }
+    .dance-layer.off { opacity: 0; visibility: hidden; }
     .dance-scene {
       position: absolute;
       inset: -10%;
@@ -238,6 +239,22 @@
       background: linear-gradient(115deg, transparent 20%, rgba(201,169,98,0.08) 45%, rgba(8,6,10,0.25) 55%, transparent 80%);
       will-change: opacity, transform;
     }
+
+    .video-loading {
+      position: absolute;
+      inset: 0;
+      z-index: 9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(5,5,9,0.85);
+      font-size: 0.65rem;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: rgba(201,169,98,0.7);
+      transition: opacity 0.6s ease;
+    }
+    .video-loading.done { opacity: 0; pointer-events: none; }
 
     .vignette {
       position: absolute;
@@ -500,12 +517,13 @@
 
   <section id="hero">
     <div class="stage" id="stage">
-      <video id="idleVid" class="hero-vid" autoplay loop muted playsinline preload="auto" crossorigin="anonymous">
-        <source src="assets/hotel/intro_loop.mp4" type="video/mp4">
+      <video id="idleVid" class="hero-vid" autoplay loop muted playsinline preload="auto">
+        <source src="assets/hotel/intro_fast.mp4" type="video/mp4">
       </video>
-      <video id="expVid" class="hero-vid" muted playsinline preload="auto" crossorigin="anonymous">
-        <source src="assets/hotel/experience_v2.mp4" type="video/mp4">
+      <video id="expVid" class="hero-vid" muted playsinline preload="auto" playsinline webkit-playsinline>
+        <source src="assets/hotel/experience_fast.mp4" type="video/mp4">
       </video>
+      <div id="videoLoading" class="video-loading">Preparing experience…</div>
 
       <div class="dance-layer" id="danceLayer">
         <div class="dance-scene" data-scene="exterior"><img src="assets/hotel/exterior.jpg" alt=""></div>
@@ -636,75 +654,73 @@
   const danceLayer = document.getElementById('danceLayer');
 
   let useVideo = false;
+  let introVideoOk = false;
+  let expVideoReady = false;
+  let pendingSeekTime = 0;
   let TOTAL_SCROLL_PX = TOTAL_VIDEO_DURATION * PX_PER_SECOND;
+  const videoLoading = document.getElementById('videoLoading');
+
+  function waitForVideo(el, timeoutMs = 90000) {
+    return new Promise(resolve => {
+      if (!el) return resolve(false);
+      const finish = ok => {
+        clearTimeout(timer);
+        resolve(ok);
+      };
+      const timer = setTimeout(() => finish(el.readyState >= 2), timeoutMs);
+      if (el.readyState >= 3) return finish(true);
+      const onReady = () => finish(el.readyState >= 2);
+      el.addEventListener('canplay', onReady, { once: true });
+      el.addEventListener('loadeddata', onReady, { once: true });
+      el.addEventListener('error', () => finish(false), { once: true });
+    });
+  }
 
   async function probeVideoMode() {
     try {
       const meta = await fetch('assets/hotel/video_meta.json').then(r => r.ok ? r.json() : null);
-      if (meta?.experience) {
-        TOTAL_VIDEO_DURATION = meta.experience;
-        if (meta.segments_hint) {
-          SEGMENTS = meta.segments_hint;
-          rebuildSceneSegMap();
-        }
-        if (meta.timeline) TIMELINE = meta.timeline;
-        if (meta.experience_file && expVid) {
-          const src = expVid.querySelector('source');
-          if (src) src.src = 'assets/hotel/' + meta.experience_file;
-          expVid.load();
-        }
+      if (meta?.experience) TOTAL_VIDEO_DURATION = meta.experience;
+      if (meta?.segments_hint) {
+        SEGMENTS = meta.segments_hint;
+        rebuildSceneSegMap();
       }
+      if (meta?.timeline) TIMELINE = meta.timeline;
     } catch (_) {}
 
-    const introOk = await new Promise(resolve => {
-      if (!idleVid) return resolve(false);
-      const done = () => { idleVid.removeEventListener('loadeddata', done); resolve(idleVid.readyState >= 2); };
-      if (idleVid.readyState >= 2) return resolve(true);
-      idleVid.addEventListener('loadeddata', done);
-      idleVid.addEventListener('error', () => resolve(false), { once: true });
-    });
+    introVideoOk = await waitForVideo(idleVid, 20000);
+    expVideoReady = await waitForVideo(expVid, 120000);
 
-    const expOk = await new Promise(resolve => {
-      if (!expVid) return resolve(false);
-      const done = () => {
-        expVid.removeEventListener('loadedmetadata', done);
-        if (expVid.duration && isFinite(expVid.duration)) {
-          TOTAL_VIDEO_DURATION = expVid.duration;
-          if (SEGMENTS === DEFAULT_SEGMENTS) {
-            const d = TOTAL_VIDEO_DURATION;
-            SEGMENTS = [
-              { id: 'entry', frameId: 'entry', transitionStart: 0, transitionEnd: d*0.08, loopStart: d*0.05, loopEnd: d*0.1, scrollResume: d*0.1 },
-              { id: 'lobby', frameId: 'lobby', transitionStart: d*0.08, transitionEnd: d*0.22, loopStart: d*0.18, loopEnd: d*0.26, scrollResume: d*0.26 },
-              { id: 'corridor', frameId: 'corridor', transitionStart: d*0.22, transitionEnd: d*0.38, loopStart: d*0.34, loopEnd: d*0.42, scrollResume: d*0.42 },
-              { id: 'suite', frameId: 'suite', transitionStart: d*0.38, transitionEnd: d*0.58, loopStart: d*0.52, loopEnd: d*0.62, scrollResume: d*0.62 },
-              { id: 'spa', frameId: 'spa', transitionStart: d*0.58, transitionEnd: d*0.78, loopStart: d*0.72, loopEnd: d*0.82, scrollResume: d*0.82 },
-              { id: 'outro', frameId: 'complete', transitionStart: d*0.78, transitionEnd: d, loopStart: d*0.85, loopEnd: d, scrollResume: d },
-            ];
-          }
-        }
-        resolve(expVid.readyState >= 1);
-      };
-      if (expVid.readyState >= 1) done();
-      else {
-        expVid.addEventListener('loadedmetadata', done);
-        expVid.addEventListener('error', () => resolve(false), { once: true });
-      }
-    });
+    if (expVid && expVid.duration && isFinite(expVid.duration)) {
+      TOTAL_VIDEO_DURATION = expVid.duration;
+    }
 
-    useVideo = introOk && expOk;
+    useVideo = expVideoReady;
     TOTAL_SCROLL_PX = TOTAL_VIDEO_DURATION * PX_PER_SECOND;
 
     if (!useVideo) {
-      idleVid.hidden = true;
-      expVid.hidden = true;
-      danceLayer.hidden = true;
+      idleVid.style.display = 'none';
+      expVid.style.display = 'none';
+      danceLayer.classList.remove('off');
       idleFallback.hidden = false;
       expFallback.hidden = false;
+      if (videoLoading) videoLoading.textContent = 'Video unavailable — image mode';
+      setTimeout(() => videoLoading?.classList.add('done'), 1200);
     } else {
       idleFallback.hidden = true;
       expFallback.hidden = true;
-      danceLayer.hidden = false;
+      danceLayer.classList.add('off');
       expVid.pause();
+      expVid.currentTime = 0;
+      pendingSeekTime = 0;
+      if (!introVideoOk) {
+        idleVid.style.display = 'none';
+        idleFallback.hidden = false;
+        idleFallback.classList.remove('off');
+      } else {
+        idleFallback.hidden = true;
+        idleVid.play().catch(() => {});
+      }
+      if (videoLoading) videoLoading.classList.add('done');
     }
     return useVideo;
   }
@@ -805,41 +821,31 @@
     return clamp(blend, 0, 1);
   }
 
-  function applyDanceLayer(t, loopPhase) {
+  function applyAtmosphere(t) {
     const blend = transitionBlendAt(t);
-    const inTransition = blend > 0.08;
-    const holdFade = inTransition ? 0.35 : 0.92;
+    if (useVideo) {
+      transitionVeil.style.opacity = blend * 0.28;
+      transitionMist.style.opacity = blend * 0.18;
+      transitionMist.style.transform = `translateX(${blend * 4 - 2}%)`;
+      if (expVid) expVid.style.filter = '';
+      return;
+    }
 
+    const inTransition = blend > 0.08;
     danceScenes.forEach(layer => {
       const key = layer.dataset.scene;
       const w = sceneWeightForTime(t, key);
       const img = layer.querySelector('img');
-      const seg = sceneSegMap[key];
-      const local = seg ? clamp((t - seg.loopStart) / Math.max(seg.loopEnd - seg.loopStart, 0.01), 0, 1) : 0;
-      const breathe = loopPhase !== null ? Math.sin(loopPhase * Math.PI * 2) * 0.012 : Math.sin(local * Math.PI) * 0.006;
-      const drift = (key === 'corridor' || key === 'spa' ? -1 : 1) * (1.2 + breathe * 30);
-
-      const holdOpacity = w * holdFade;
-      const transOpacity = inTransition ? w * (0.55 + blend * 0.45) : w * 0.08;
-      const opacity = inTransition ? Math.max(holdOpacity, transOpacity) : holdOpacity;
-
+      const opacity = inTransition ? w * blend * 0.85 : w * 0.92;
       layer.style.opacity = opacity;
-      img.style.transform = `translate3d(${drift * blend}%, ${breathe * 80}%, 0) scale(${1.04 + breathe + blend * 0.06})`;
-      img.style.filter = `brightness(${0.58 + w * 0.3}) saturate(${0.9 + w * 0.12})`;
+      img.style.transform = `scale(${1.04 + blend * 0.04})`;
     });
-
-    transitionVeil.style.opacity = blend * 0.75;
-    transitionMist.style.opacity = blend * 0.65;
-    transitionMist.style.transform = `translateX(${blend * 6 - 3}%) scale(${1 + blend * 0.05})`;
-
-    if (useVideo && expVid) {
-      const vidBlur = inTransition ? blend * 4 : 0;
-      expVid.style.filter = `brightness(${0.88 + blend * 0.08}) saturate(${0.95 + blend * 0.1}) blur(${vidBlur}px)`;
-    }
+    transitionVeil.style.opacity = blend * 0.55;
+    transitionMist.style.opacity = blend * 0.45;
   }
 
   function applyVisualTime(t, loopPhase) {
-    applyDanceLayer(t, loopPhase);
+    applyAtmosphere(t);
     sceneLayers.forEach(layer => {
       const key = layer.dataset.scene;
       const w = sceneWeightForTime(t, key);
@@ -908,13 +914,23 @@
     mode = next;
     const isIdle = mode === 'IDLE';
     if (useVideo) {
-      idleVid.classList.toggle('off', !isIdle);
+      if (introVideoOk) {
+        idleVid.classList.toggle('off', !isIdle);
+        idleFallback.hidden = true;
+      } else {
+        idleFallback.hidden = false;
+        idleFallback.classList.toggle('off', !isIdle);
+      }
       expVid.classList.toggle('on', !isIdle);
       if (isIdle) {
-        idleVid.play().catch(() => {});
+        if (introVideoOk) idleVid.play().catch(() => {});
+        expVid.classList.remove('on');
         expVid.pause();
+        expVid.currentTime = 0;
+        pendingSeekTime = 0;
       } else {
-        idleVid.pause();
+        if (introVideoOk) idleVid.pause();
+        expVid.classList.add('on');
       }
     } else {
       idleFallback.classList.toggle('off', !isIdle);
@@ -943,7 +959,11 @@
   gsap.ticker.add(t => lenis.raf(t * 1000));
   gsap.ticker.lagSmoothing(0);
 
-  hero.style.minHeight = `calc(100vh + ${TOTAL_SCROLL_PX}px)`;
+  function mountScroll() {
+    hero.style.minHeight = `calc(100vh + ${TOTAL_SCROLL_PX}px)`;
+    ScrollTrigger.refresh();
+  }
+  mountScroll();
 
   ScrollTrigger.create({
     trigger: hero,
@@ -1022,11 +1042,18 @@
   });
 
   function seekVideo(time) {
-    if (!useVideo || expVid.readyState < 2) return;
-    if (Math.abs(expVid.currentTime - time) > 0.04) {
-      expVid.currentTime = time;
-    }
+    if (!useVideo) return;
+    pendingSeekTime = time;
+    if (expVid.readyState < 2) return;
+    try {
+      if (Math.abs(expVid.currentTime - time) > 0.03) {
+        expVid.currentTime = time;
+      }
+    } catch (_) {}
   }
+
+  expVid.addEventListener('loadeddata', () => seekVideo(pendingSeekTime));
+  expVid.addEventListener('canplay', () => seekVideo(pendingSeekTime));
 
   /* ── RAF: lerp time + LOOP ambient ── */
   function rafLoop(timestamp) {
@@ -1055,13 +1082,14 @@
             displayTime = segment.loopStart;
           }
           seekVideo(displayTime);
+          applyAtmosphere(displayTime);
         } else {
           applyVisualTime(smoothedTime, loopPhase);
         }
       } else if (useVideo && mode !== 'IDLE') {
         expVid.pause();
         seekVideo(smoothedTime);
-        applyDanceLayer(smoothedTime, loopPhase);
+        applyAtmosphere(smoothedTime);
       } else if (!useVideo) {
         applyVisualTime(smoothedTime, loopPhase);
       }
@@ -1078,7 +1106,7 @@
   }, { passive: true });
 
   setMode('IDLE');
-  applyDanceLayer(0, null);
+  applyAtmosphere(0);
   if (!useVideo) applyVisualTime(0, null);
 })();
   </script>

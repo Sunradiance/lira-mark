@@ -299,7 +299,7 @@ def concat_experience() -> list[dict]:
         "-filter_complex", ";".join(filters),
         "-map", "[vout]",
         "-c:v", "libx264", "-preset", "fast", "-crf", "18",
-        "-pix_fmt", "yuv420p", "-an", str(tmp),
+        "-pix_fmt", "yuv420p", "-movflags", "+faststart", "-an", str(tmp),
     ])
     proc = subprocess.run(cmd, capture_output=True, text=True, timeout=900)
     if proc.returncode != 0:
@@ -387,7 +387,7 @@ def build_segments_hint(timeline: list[dict], total: float) -> list[dict]:
 
 
 def experience_path() -> Path:
-    for name in ("experience_v2.mp4", "experience.mp4"):
+    for name in ("experience_fast.mp4", "experience_v2.mp4", "experience.mp4"):
         p = ASSETS / name
         if p.exists():
             return p
