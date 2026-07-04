@@ -1,5 +1,7 @@
 {
   "intro": 8.04,
+  "journeyStart": 8.04,
+  "journeyStartNote": "scene_exterior is bright glow only; dark façade starts at trans_ext_lobby",
   "experience": 46.38,
   "experience_file": "experience_fast.mp4",
   "fade_duration": 2.0,
@@ -10,7 +12,9 @@
       "kind": "scene",
       "start": 0.0,
       "end": 8.04,
-      "duration": 10.04
+      "duration": 10.04,
+      "skipInJourney": true,
+      "note": "entire clip is bright glowing windows zoom — not used in scroll"
     },
     {
       "file": "trans_ext_lobby.mp4",
@@ -18,7 +22,10 @@
       "kind": "transition",
       "start": 8.04,
       "end": 11.08,
-      "duration": 5.04
+      "playStart": 8.04,
+      "playEnd": 11.08,
+      "duration": 5.04,
+      "note": "dark façade zoom (lights off) then crossing into lit lobby"
     },
     {
       "file": "scene_lobby.mp4",
@@ -66,7 +73,10 @@
       "kind": "transition",
       "start": 35.28,
       "end": 38.32,
-      "duration": 5.04
+      "playStart": 36.75,
+      "playEnd": 38.32,
+      "duration": 5.04,
+      "note": "playStart skips duplicate suite reprise; keeps magic glow into spa"
     },
     {
       "file": "scene_spa.mp4",
@@ -112,7 +122,7 @@
       "id": "suite",
       "frameId": "suite",
       "scene": "suite",
-      "transitionStart": 26.2,
+      "transitionStart": 29.24,
       "transitionEnd": 31.354,
       "loopStart": 32.562,
       "loopEnd": 35.28,
@@ -122,7 +132,7 @@
       "id": "spa",
       "frameId": "spa",
       "scene": "spa",
-      "transitionStart": 35.28,
+      "transitionStart": 38.32,
       "transitionEnd": 41.134,
       "loopStart": 42.742,
       "loopEnd": 46.36,

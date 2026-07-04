@@ -244,7 +244,7 @@
       grid-template-columns: minmax(260px, 1fr) 2.4fr minmax(260px, 1fr);
       pointer-events: none;
       opacity: 0;
-      transition: opacity 0.6s ease;
+      transition: opacity 0.45s cubic-bezier(0.22, 1, 0.36, 1);
     }
     .panels.visible { opacity: 1; }
     .panel-left, .panel-right {
@@ -272,16 +272,16 @@
     .panel-card {
       max-width: 300px;
       opacity: 0;
-      transform: translateX(-20px);
-      transition: opacity 0.55s cubic-bezier(0.25,0.46,0.45,0.94), transform 0.55s cubic-bezier(0.25,0.46,0.45,0.94);
+      transform: translateX(-14px);
+      transition: opacity 0.42s cubic-bezier(0.22, 1, 0.36, 1), transform 0.42s cubic-bezier(0.22, 1, 0.36, 1);
     }
     .panel-card.right {
       max-width: 280px;
-      transform: translateX(20px);
+      transform: translateX(14px);
     }
     .panel-card.show { opacity: 1; transform: none; }
-    .panel-card.exit-left { opacity: 0; transform: translateX(-12px); }
-    .panel-card.exit-right { opacity: 0; transform: translateX(12px); }
+    .panel-card.exit-left { opacity: 0; transform: translateX(-8px); }
+    .panel-card.exit-right { opacity: 0; transform: translateX(8px); }
 
     .chapter-label {
       font-size: 9px;
@@ -460,8 +460,7 @@
 
   <section id="hero">
     <div class="stage" id="stage">
-      <video id="idleVid" class="hero-vid" src="assets/hotel/intro_loop.mp4?v=18" autoplay loop muted playsinline webkit-playsinline preload="auto"></video>
-      <div id="journeyLayer" aria-hidden="true">
+      <div id="journeyLayer">
         <canvas id="journeyCanvas"></canvas>
       </div>
       <div id="videoStatus" class="video-loading">Loading journey…</div>
@@ -519,13 +518,16 @@
   }
   gsap.registerPlugin(ScrollTrigger);
 
-  const PX_PER_SECOND = 220;
+  const PX_PER_SECOND = 270;
   const IDLE_THRESHOLD = 0.012;
+  const TRANSITION_SCROLL_SHARE = 0.125;
+  const TIME_SMOOTH = 16;
   const NO_PANEL_FRAMES = new Set(['entry', 'complete']);
-  const CACHE = '?v=18';
+  const CACHE = '?v=27';
   const LOAD_CAP_MS = 5000;
   const ASSET = 'assets/hotel/';
-  const JOURNEY_T0 = 8.04;
+  let JOURNEY_T0 = 8.04;
+  let IDLE_T = 8.04;
 
   const FRAMES = {
     entry:    { chapter: 'The Threshold', title: 'Beyond the façade', subtitle: 'Scroll slowly. Each frame unveils the next room — a dance between scenes, not a leap.', detail: null },
@@ -537,6 +539,9 @@
   };
 
   let SEGMENTS = [];
+  let PACE_ZONES = [];
+  let GLOW_FROM = 36.75;
+  let GLOW_TO = 38.32;
   let FRAME_LIST = [];
   let FRAME_FPS = 8;
   let TOTAL_DURATION = 46.38;
@@ -544,11 +549,23 @@
   let isIdle = true;
   let panelFrameId = null;
   let paintToken = 0;
+  let targetT = 8.04;
+  let displayT = 8.04;
+  let lastTickMs = 0;
   const imgCache = new Map();
+
+  function smoothstep(x) {
+    x = clamp(x, 0, 1);
+    return x * x * (3 - 2 * x);
+  }
+
+  function smootherstep(x) {
+    x = clamp(x, 0, 1);
+    return x * x * x * (x * (x * 6 - 15) + 10);
+  }
 
   const hero = document.getElementById('hero');
   const stage = document.getElementById('stage');
-  const idleVid = document.getElementById('idleVid');
   const journeyLayer = document.getElementById('journeyLayer');
   const journeyCanvas = document.getElementById('journeyCanvas');
   let canvasCtx = null;
@@ -585,10 +602,48 @@
     videoStatus?.classList.add('done');
   }
 
+  function buildPaceZones(timeline, t0, tEnd) {
+    if (!timeline?.length) return [];
+    const journey = timeline.filter(c =>
+      c.end > t0 + 0.01 && c.start < tEnd - 0.01 && !c.skipInJourney);
+    const transitions = journey.filter(c => c.kind === 'transition');
+    const scenes = journey.filter(c => c.kind === 'scene');
+    const transBudget = transitions.length * TRANSITION_SCROLL_SHARE;
+    const sceneDur = scenes.reduce((sum, c) => {
+      const start = Math.max(c.start, t0);
+      const end = Math.min(c.end, tEnd);
+      return sum + Math.max(0, end - start);
+    }, 0);
+    const sceneBudget = Math.max(0.001, 1 - transBudget);
+    return journey.map(c => {
+      const clipStart = c.playStart ?? c.start;
+      const clipEnd = c.playEnd ?? c.end;
+      const start = Math.max(clipStart, t0);
+      const end = Math.min(clipEnd, tEnd);
+      const fullDur = Math.max(0.001, Math.min(c.end, tEnd) - Math.max(c.start, t0));
+      const share = c.kind === 'transition'
+        ? TRANSITION_SCROLL_SHARE
+        : sceneBudget * (fullDur / sceneDur);
+      return { start, end, share, kind: c.kind, file: c.file };
+    });
+  }
+
   function timeAtProgress(p) {
     if (p < IDLE_THRESHOLD) return JOURNEY_T0;
     const u = (p - IDLE_THRESHOLD) / (1 - IDLE_THRESHOLD);
-    return JOURNEY_T0 + u * (TOTAL_DURATION - JOURNEY_T0);
+    if (!PACE_ZONES.length) {
+      return JOURNEY_T0 + u * (TOTAL_DURATION - JOURNEY_T0);
+    }
+    let acc = 0;
+    for (const z of PACE_ZONES) {
+      if (u <= acc + z.share + 1e-9) {
+        const raw = Math.min(1, Math.max(0, (u - acc) / z.share));
+        const local = z.kind === 'transition' ? smootherstep(raw) : raw;
+        return z.start + local * (z.end - z.start);
+      }
+      acc += z.share;
+    }
+    return PACE_ZONES[PACE_ZONES.length - 1].end;
   }
 
   function resizeCanvas() {
@@ -597,6 +652,7 @@
     if (journeyCanvas.width !== w || journeyCanvas.height !== h) {
       journeyCanvas.width = w;
       journeyCanvas.height = h;
+      if (canvasCtx && journeyLayer.classList.contains('on')) paintJourney(displayT);
     }
   }
 
@@ -620,13 +676,14 @@
     });
   }
 
-  function drawCover(img, alpha) {
+  function drawCover(img, alpha, zoom) {
     if (!canvasCtx || !img?.naturalWidth) return;
     const cw = journeyCanvas.width;
     const ch = journeyCanvas.height;
     const vw = img.naturalWidth;
     const vh = img.naturalHeight;
-    const scale = Math.max(cw / vw, ch / vh);
+    const z = zoom || 1;
+    const scale = Math.max(cw / vw, ch / vh) * z;
     const dw = vw * scale;
     const dh = vh * scale;
     const dx = (cw - dw) * 0.5;
@@ -644,90 +701,146 @@
   }
 
   function prefetchAround(i) {
-    for (let k = 1; k <= 12; k++) {
+    for (let k = 1; k <= 20; k++) {
       const f = FRAME_LIST[i + k];
       if (!f) break;
       loadFrame(`${ASSET}${f.file}${CACHE}`);
     }
-    for (let k = 1; k <= 3; k++) {
+    for (let k = 1; k <= 6; k++) {
       const f = FRAME_LIST[i - k];
       if (!f) break;
       loadFrame(`${ASSET}${f.file}${CACHE}`);
     }
   }
 
-  function blitFrames(img0, img1, frac) {
+  function journeyZoom(t) {
+    return 1.038 + t * 0.00042;
+  }
+
+  function blitFrames(img0, img1, frac, t) {
     if (!canvasCtx) return;
     const has0 = img0?.naturalWidth;
     const has1 = img1?.naturalWidth;
     if (!has0 && !has1) return;
 
+    const blend = clamp(frac, 0, 1);
+    const zoom = journeyZoom(t);
+
+    // Never clear to black — opaque base + alpha overlay avoids mid-blend dark flashes.
     if (has0) {
       canvasCtx.globalAlpha = 1;
-      drawCover(img0, 1);
+      drawCover(img0, 1, zoom);
     }
-    if (has1 && frac > 0.001) {
-      canvasCtx.globalAlpha = frac;
-      drawCover(img1, 1);
+    if (has1 && blend > 0.002 && img1 !== img0) {
+      canvasCtx.globalAlpha = blend;
+      drawCover(img1, 1, zoom);
     }
     canvasCtx.globalAlpha = 1;
   }
 
-  function paintJourney(t) {
-    if (!FRAME_LIST.length || !canvasCtx) return;
+  function frameBlendAt(t) {
     const i = frameIndexAt(t);
     const f0 = FRAME_LIST[i];
     const f1 = FRAME_LIST[Math.min(i + 1, FRAME_LIST.length - 1)];
     const span = Math.max(f1.t - f0.t, 0.001);
-    const frac = clamp((t - f0.t) / span, 0, 1);
-    const s0 = `${ASSET}${f0.file}${CACHE}`;
-    const s1 = `${ASSET}${f1.file}${CACHE}`;
+    return {
+      i,
+      f0,
+      f1,
+      frac: clamp((t - f0.t) / span, 0, 1),
+      s0: `${ASSET}${f0.file}${CACHE}`,
+      s1: `${ASSET}${f1.file}${CACHE}`,
+    };
+  }
+
+  function paintJourney(t) {
+    if (!FRAME_LIST.length || !canvasCtx) return;
+    const { i, s0, s1 } = frameBlendAt(t);
     const img0 = imgCache.get(s0);
     const img1 = imgCache.get(s1);
 
     prefetchAround(i);
 
-    if (img0?.complete && img0.naturalWidth) {
-      if (img1?.complete && img1.naturalWidth) {
-        blitFrames(img0, img1, frac);
-      } else {
-        blitFrames(img0, img0, 0);
-      }
+    const draw = (a, b, at) => {
+      const blend = frameBlendAt(at);
+      if (b?.naturalWidth) blitFrames(a, b, blend.frac, at);
+      else blitFrames(a, a, 0, at);
+    };
+
+    const ready0 = img0?.complete && img0.naturalWidth;
+    const ready1 = img1?.complete && img1.naturalWidth;
+
+    if (ready0) {
+      draw(img0, ready1 ? img1 : null, t);
       return;
     }
 
+    // Missing frame: keep last canvas pixels; load without blanking.
     const token = ++paintToken;
     Promise.all([loadFrame(s0), loadFrame(s1)]).then(([a, b]) => {
       if (token !== paintToken) return;
-      blitFrames(a, b, frac);
+      if (a?.naturalWidth || b?.naturalWidth) draw(a, b, displayT);
     });
+  }
+
+  function syncPanels(t, animate) {
+    if (t >= GLOW_FROM && t < GLOW_TO) {
+      if (panelFrameId !== 'glow') {
+        panels.classList.remove('visible');
+        panelFrameId = 'glow';
+      }
+      return;
+    }
+    const frameId = segmentAt(t).frameId || 'entry';
+    if (frameId !== panelFrameId) {
+      updatePanels(frameId, animate && panelFrameId !== null && panelFrameId !== 'glow');
+    }
   }
 
   function goIdle() {
     isIdle = true;
     paintToken++;
-    idleVid.classList.remove('off');
-    journeyLayer.classList.remove('on');
+    targetT = IDLE_T;
+    displayT = IDLE_T;
+    lastTickMs = 0;
+    journeyLayer.classList.add('on');
+    resizeCanvas();
+    paintJourney(IDLE_T);
     scrollHint.classList.add('visible');
     chapterDots.classList.remove('visible');
     panels.classList.remove('visible');
     panelFrameId = null;
-    idleVid.play().catch(() => {});
   }
 
-  function goScrub(p, t) {
+  function goScrub(t) {
     isIdle = false;
+    targetT = t;
 
     if (!journeyLayer.classList.contains('on')) {
       journeyLayer.classList.add('on');
       resizeCanvas();
-      scrollHint.classList.remove('visible');
-      chapterDots.classList.add('visible');
+    }
+    scrollHint.classList.remove('visible');
+    chapterDots.classList.add('visible');
+  }
+
+  function tickJourney(time) {
+    if (!journeyLayer.classList.contains('on')) return;
+    const now = typeof time === 'number' ? time * 1000 : performance.now();
+    const dt = lastTickMs ? Math.min(0.05, (now - lastTickMs) / 1000) : 1 / 60;
+    lastTickMs = now;
+
+    const diff = targetT - displayT;
+    if (Math.abs(diff) < 0.00025) {
+      displayT = targetT;
+    } else {
+      const catchUp = Math.min(0.35, Math.abs(diff) * 0.14);
+      const k = 1 - Math.exp(-(TIME_SMOOTH + catchUp) * dt);
+      displayT += diff * k;
     }
 
-    idleVid.pause();
-    idleVid.classList.add('off');
-    paintJourney(t);
+    paintJourney(displayT);
+    if (!isIdle) syncPanels(displayT, true);
   }
 
   try {
@@ -736,7 +849,19 @@
       fetch(`${ASSET}frames_manifest.json${CACHE}`).then(r => r.ok ? r.json() : null),
     ]);
     if (meta?.segments_hint?.length) SEGMENTS = meta.segments_hint;
+    if (meta?.journeyStart) {
+      JOURNEY_T0 = meta.journeyStart;
+      IDLE_T = meta.journeyStart;
+      targetT = meta.journeyStart;
+      displayT = meta.journeyStart;
+    }
     if (meta?.experience) TOTAL_DURATION = meta.experience;
+    if (meta?.timeline) {
+      PACE_ZONES = buildPaceZones(meta.timeline, JOURNEY_T0, TOTAL_DURATION);
+      const glow = meta.timeline.find(c => c.file === 'trans_suite_spa.mp4');
+      if (glow?.playStart != null) GLOW_FROM = glow.playStart;
+      if (glow?.playEnd != null) GLOW_TO = glow.playEnd;
+    }
     if (manifest?.frames?.length) {
       FRAME_LIST = manifest.frames;
       FRAME_FPS = manifest.fps || 8;
@@ -752,20 +877,16 @@
   setStatus('Loading…');
 
   const journeyStart = FRAME_LIST.findIndex(f => f.t >= JOURNEY_T0 - 0.01);
-  const bootFrames = FRAME_LIST.slice(Math.max(0, journeyStart), journeyStart + 56).map(f => f.file);
+  const bootFrames = FRAME_LIST.slice(Math.max(0, journeyStart), journeyStart + 96).map(f => f.file);
   canvasCtx = journeyCanvas.getContext('2d', { alpha: false });
+  canvasCtx.imageSmoothingEnabled = true;
+  if ('imageSmoothingQuality' in canvasCtx) canvasCtx.imageSmoothingQuality = 'high';
   resizeCanvas();
   window.addEventListener('resize', resizeCanvas);
 
-  const boot = Promise.all([
-    waitForVideo(idleVid, 12000),
-    ...bootFrames.map(f => loadFrame(`${ASSET}${f}${CACHE}`)),
-  ]);
+  const boot = Promise.all(bootFrames.map(f => loadFrame(`${ASSET}${f}${CACHE}`)));
   await Promise.race([boot, new Promise(r => setTimeout(r, LOAD_CAP_MS))]);
   hideLoading();
-  idleVid.play().catch(() => {
-    document.body.addEventListener('click', () => idleVid.play().catch(() => {}), { once: true });
-  });
 
   SEGMENTS.filter(s => s.id !== 'entry' && s.id !== 'outro').forEach(s => {
     const dot = document.createElement('span');
@@ -818,7 +939,7 @@
     if (animate && panelFrameId && !NO_PANEL_FRAMES.has(panelFrameId)) {
       framePanel.className = 'glass panel-card exit-left';
       detailPanel.className = 'glass panel-card right exit-right';
-      setTimeout(swap, 280);
+      setTimeout(swap, 200);
     } else {
       swap();
     }
@@ -856,13 +977,14 @@
   hero.style.minHeight = `calc(100vh + ${TOTAL_SCROLL_PX}px)`;
 
   const lenis = typeof Lenis !== 'undefined'
-    ? new Lenis({ duration: 1.35, smoothWheel: true, touchMultiplier: 1.1 })
+    ? new Lenis({ duration: 1.2, smoothWheel: true, lerp: 0.12, wheelMultiplier: 0.95, touchMultiplier: 1.05 })
     : null;
   if (lenis) {
     lenis.on('scroll', ScrollTrigger.update);
     gsap.ticker.add(t => lenis.raf(t * 1000));
     gsap.ticker.lagSmoothing(0);
   }
+  gsap.ticker.add(tickJourney);
 
   ScrollTrigger.create({
     trigger: hero,
@@ -871,21 +993,16 @@
     pin: stage,
     pinSpacing: true,
     anticipatePin: 1,
-    scrub: 0.35,
+    scrub: 0.45,
     onUpdate(self) {
       const p = self.progress;
-      const globalT = timeAtProgress(p);
 
       if (p < IDLE_THRESHOLD) {
         if (!isIdle) goIdle();
         return;
       }
 
-      goScrub(p, globalT);
-      const frameId = segmentAt(globalT).frameId || 'entry';
-      if (frameId !== panelFrameId) {
-        updatePanels(frameId, panelFrameId !== null);
-      }
+      goScrub(timeAtProgress(p));
     },
   });
 
