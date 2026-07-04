@@ -169,14 +169,14 @@
     }
     #idleVid { z-index: 1; opacity: 1; pointer-events: none; }
     #idleVid.off { opacity: 0; visibility: hidden; }
-    #clipLayer { position: absolute; inset: 0; z-index: 3; pointer-events: none; }
-    .clip-vid {
-      position: absolute; inset: 0;
+    #stageFrame {
+      position: absolute; inset: 0; z-index: 3;
       width: 100%; height: 100%; object-fit: cover;
       opacity: 0; visibility: hidden;
-      transition: none;
+      pointer-events: none;
+      will-change: opacity;
     }
-    .clip-vid.active { opacity: 1; visibility: visible; z-index: 1; }
+    #stageFrame.on { opacity: 1; visibility: visible; }
 
     .idle-layer { z-index: 1; opacity: 1; }
     .idle-layer.off { opacity: 0; }
@@ -523,9 +523,9 @@
 
   <section id="hero">
     <div class="stage" id="stage">
-      <video id="idleVid" class="hero-vid" src="assets/hotel/scrub/intro_fast.mp4?v=6" autoplay loop muted playsinline webkit-playsinline preload="auto"></video>
-      <div id="clipLayer" aria-hidden="true"></div>
-      <div id="videoStatus" class="video-loading">Loading scenes…</div>
+      <video id="idleVid" class="hero-vid" src="assets/hotel/scrub/intro_fast.mp4?v=11" autoplay loop muted playsinline webkit-playsinline preload="auto"></video>
+      <img id="stageFrame" alt="" decoding="async" fetchpriority="high">
+      <div id="videoStatus" class="video-loading">Loading journey…</div>
 
       <div class="vignette"></div>
 
@@ -582,8 +582,7 @@
   const PX_PER_SECOND = 180;
   const IDLE_THRESHOLD = 0.012;
   const NO_PANEL_FRAMES = new Set(['entry', 'complete']);
-  const CLIP_DIR = 'assets/hotel/scrub/';
-  const CACHE = '?v=6';
+  const CACHE = '?v=11';
 
   const FRAMES = {
     entry:    { chapter: 'The Threshold', title: 'Beyond the façade', subtitle: 'Scroll slowly. Each frame unveils the next room — a dance between scenes, not a leap.', detail: null },
@@ -594,19 +593,19 @@
     complete: { chapter: 'The Return', title: 'You crossed the veil.', subtitle: 'The circle is complete. Scroll again to walk the path once more.', detail: null },
   };
 
-  let TIMELINE = [];
   let SEGMENTS = [];
+  let FRAME_MANIFEST = [];
   let TOTAL_DURATION = 46.38;
   let TOTAL_SCROLL_PX = TOTAL_DURATION * PX_PER_SECOND;
-  let clipVids = [];
   let isIdle = true;
   let panelFrameId = null;
-  let activeClipIdx = -1;
+  let currentFrameSrc = '';
+  const frameCache = new Map();
 
   const hero = document.getElementById('hero');
   const stage = document.getElementById('stage');
   const idleVid = document.getElementById('idleVid');
-  const clipLayer = document.getElementById('clipLayer');
+  const stageFrame = document.getElementById('stageFrame');
   const videoStatus = document.getElementById('videoStatus');
   const scrollHint = document.getElementById('scrollHint');
   const panels = document.getElementById('panels');
@@ -640,73 +639,49 @@
     videoStatus?.classList.add('done');
   }
 
-  function seekClip(v, t) {
-    if (!v || v.readyState < 2) return false;
-    const max = Math.max((v.duration || 0) - 0.04, 0);
-    const safe = clamp(t, 0, max);
-    try {
-      if (Math.abs(v.currentTime - safe) > 0.02) {
-        if (typeof v.fastSeek === 'function') v.fastSeek(safe);
-        else v.currentTime = safe;
-      }
-      return true;
-    } catch (_) {
-      try { v.currentTime = safe; return true; } catch (__) { return false; }
+  function frameAt(globalT) {
+    if (!FRAME_MANIFEST.length) return null;
+    let best = FRAME_MANIFEST[0];
+    for (const f of FRAME_MANIFEST) {
+      if (f.t <= globalT) best = f;
+      else break;
     }
+    return best;
   }
 
-  function buildClipVideos() {
-    clipVids = TIMELINE.map((item, i) => {
-      const v = document.createElement('video');
-      v.className = 'clip-vid';
-      v.src = `${CLIP_DIR}${item.file}${CACHE}`;
-      v.muted = true;
-      v.playsInline = true;
-      v.preload = 'auto';
-      v.setAttribute('webkit-playsinline', '');
-      v.dataset.idx = String(i);
-      clipLayer.appendChild(v);
-      return v;
-    });
-  }
-
-  function clipIndexAt(globalT) {
-    for (let i = TIMELINE.length - 1; i >= 0; i--) {
-      if (globalT >= TIMELINE[i].start - 0.001) return i;
-    }
-    return 0;
+  function preloadFrame(file) {
+    if (!file || frameCache.has(file)) return;
+    const img = new Image();
+    img.decoding = 'async';
+    img.src = `assets/hotel/${file}`;
+    frameCache.set(file, img);
   }
 
   function paintFrame(globalT) {
-    const idx = clipIndexAt(globalT);
-    const item = TIMELINE[idx];
-    const span = Math.max(item.end - item.start, 0.01);
-    const localT = clamp(globalT - item.start, 0, span - 0.02);
-
-    clipVids.forEach((v, i) => {
-      const on = i === idx;
-      v.classList.toggle('active', on);
-      if (on) {
-        v.pause();
-        if (!seekClip(v, localT) && v.readyState < 2) {
-          v.addEventListener('loadeddata', () => seekClip(v, localT), { once: true });
-        }
-        activeClipIdx = i;
-      }
-    });
+    const f = frameAt(globalT);
+    if (!f) return;
+    const src = `assets/hotel/${f.file}`;
+    if (currentFrameSrc !== src) {
+      currentFrameSrc = src;
+      stageFrame.src = src;
+    }
+    const idx = FRAME_MANIFEST.indexOf(f);
+    if (idx >= 0) {
+      preloadFrame(FRAME_MANIFEST[idx + 1]?.file);
+      preloadFrame(FRAME_MANIFEST[idx + 2]?.file);
+      preloadFrame(FRAME_MANIFEST[idx - 1]?.file);
+    }
   }
 
   function goIdle() {
     isIdle = true;
     idleVid.classList.remove('off');
-    clipLayer.style.opacity = '0';
-    clipLayer.style.visibility = 'hidden';
+    stageFrame.classList.remove('on');
     scrollHint.classList.add('visible');
     chapterDots.classList.remove('visible');
     panels.classList.remove('visible');
     panelFrameId = null;
-    clipVids.forEach(v => { v.classList.remove('active'); v.pause(); });
-    activeClipIdx = -1;
+    currentFrameSrc = '';
     idleVid.play().catch(() => {});
   }
 
@@ -715,8 +690,7 @@
       isIdle = false;
       idleVid.pause();
       idleVid.classList.add('off');
-      clipLayer.style.opacity = '1';
-      clipLayer.style.visibility = 'visible';
+      stageFrame.classList.add('on');
       scrollHint.classList.remove('visible');
       chapterDots.classList.add('visible');
     }
@@ -724,32 +698,31 @@
   }
 
   try {
-    const meta = await fetch(`assets/hotel/video_meta.json${CACHE}`).then(r => r.ok ? r.json() : null);
-    if (meta?.timeline?.length) TIMELINE = meta.timeline;
+    const [meta, frames] = await Promise.all([
+      fetch(`assets/hotel/video_meta.json${CACHE}`).then(r => r.ok ? r.json() : null),
+      fetch(`assets/hotel/frames_manifest.json${CACHE}`).then(r => r.ok ? r.json() : null),
+    ]);
     if (meta?.segments_hint?.length) SEGMENTS = meta.segments_hint;
     if (meta?.experience) TOTAL_DURATION = meta.experience;
+    if (frames?.frames?.length) FRAME_MANIFEST = frames.frames;
   } catch (_) {}
 
-  if (!TIMELINE.length) {
-    setStatus('Missing video timeline — check assets/hotel/video_meta.json', true);
+  if (!FRAME_MANIFEST.length) {
+    setStatus('Missing frame manifest — run scripts/extract_hotel_frames.py', true);
     return;
   }
 
-  buildClipVideos();
   TOTAL_SCROLL_PX = TOTAL_DURATION * PX_PER_SECOND;
+  setStatus(`Loading ${FRAME_MANIFEST.length} frames…`);
 
-  setStatus(`Loading ${clipVids.length} scenes…`);
   const idleOk = await waitForVideo(idleVid, 20000);
-  const clipResults = await Promise.all(clipVids.map(v => waitForVideo(v, 45000)));
-  const readyCount = clipResults.filter(Boolean).length;
-
-  if (readyCount === 0) {
-    setStatus('Videos failed to load — hard refresh (Ctrl+Shift+R)', true);
-    return;
-  }
-  if (readyCount < clipVids.length) {
-    console.warn(`AETHER: ${readyCount}/${clipVids.length} clips ready`);
-  }
+  const warm = FRAME_MANIFEST.slice(0, 24).map(f => new Promise(resolve => {
+    const img = new Image();
+    img.onload = img.onerror = resolve;
+    img.src = `assets/hotel/${f.file}`;
+    frameCache.set(f.file, img);
+  }));
+  await Promise.all(warm);
 
   hideLoading();
   if (idleOk) {
@@ -843,8 +816,6 @@
   attachCursorHover();
   new MutationObserver(attachCursorHover).observe(document.body, { childList: true, subtree: true });
 
-  clipLayer.style.opacity = '0';
-  clipLayer.style.visibility = 'hidden';
   hero.style.minHeight = `calc(100vh + ${TOTAL_SCROLL_PX}px)`;
 
   ScrollTrigger.create({
