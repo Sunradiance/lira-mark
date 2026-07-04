@@ -427,3 +427,14 @@ def main() -> None:
     for name in order:
         if only and name not in only:
             continue
+        run_step(key, name, STEPS[name], force=force)
+
+    timeline = []
+    if not only or "concat" in only:
+        timeline = concat_experience()
+    write_meta(timeline)
+    print("Done.")
+
+
+if __name__ == "__main__":
+    main()

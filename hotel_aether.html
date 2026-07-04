@@ -648,6 +648,11 @@
           rebuildSceneSegMap();
         }
         if (meta.timeline) TIMELINE = meta.timeline;
+        if (meta.experience_file && expVid) {
+          const src = expVid.querySelector('source');
+          if (src) src.src = 'assets/hotel/' + meta.experience_file;
+          expVid.load();
+        }
       }
     } catch (_) {}
 
