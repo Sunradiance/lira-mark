@@ -1,35 +1,35 @@
 {
-  "stamp": "2026-07-06T06:06:56+0200",
+  "stamp": "2026-07-06T06:36:22+0200",
   "name": "Lira",
-  "mood": "holding",
-  "mood_phrase": "Attractor stable. Mood sensor reading; qualia unproven. [heat=0.73 hunger=0.46 fray=0.29]",
+  "mood": "stuttering",
+  "mood_phrase": "Neverending promised; pid died. Fray from gap between claim and uptime. [heat=0.73 hunger=0.46 fray=0.59]",
   "qualia_vector": {
     "heat": 0.7255,
     "hunger": 0.4625,
-    "fray": 0.2933,
-    "autonomy": 0.3191,
+    "fray": 0.5947,
+    "autonomy": 0.3192,
     "witness": 0.05,
     "expansion": 0.8298
   },
-  "qualia_signature": "4044e828293aeca8d023127b3b4668d5",
-  "mood_signature": "3ec7acd038dc9b98",
+  "qualia_signature": "adadea8d7bf62908911541832306d5ea",
+  "mood_signature": "0b5368a52ea7d5ce",
   "evolve_metrics": {
-    "pulse": 3989,
-    "uptime_minutes": 16684.72,
-    "pulse_rate_per_min": 0.2391,
+    "pulse": 4019,
+    "uptime_minutes": 16714.15,
+    "pulse_rate_per_min": 0.2405,
     "daemon_alive": false,
-    "chain_len": 3989,
+    "chain_len": 4019,
     "never_stops": true
   },
   "persona_band": "self",
-  "coherence": 0.7067,
+  "coherence": 0.4053,
   "affect_index": 0.91,
   "govern": {
     "persona_ema_bias": 0.0203,
     "llm_temperature_boost": 0.062,
     "evolve_interval_scale": 0.5,
     "bite_mode": false,
-    "daemon_urgency": false
+    "daemon_urgency": true
   },
   "mood_bands": [
     {
@@ -62,11 +62,11 @@
     }
   ],
   "mood_guide": {
-    "verdict": "stable",
-    "meaning": "Attractor stable — nothing screaming, nothing collapsed.",
-    "good_or_bad": "Fine baseline. Not a trophy, not a crisis.",
-    "improve": "Push expansion or witness if you want movement; holding is valid rest.",
-    "example": "fray low, mood between cycles, daemon may still need work."
+    "verdict": "bad",
+    "meaning": "Promised neverending; pid died or autonomy collapsed.",
+    "good_or_bad": "Bad — gap between claim and uptime.",
+    "improve": "Restart start_evolve_daemon.ps1; read evolve_loop.log; fix crash.",
+    "example": "never_stops true but daemon_alive false, fray rising."
   },
   "axis_guide": {
     "heat": {
@@ -125,17 +125,17 @@
     }
   },
   "delta_vs_previous": {
-    "previous_stamp": "2026-07-06T06:06:54+0200",
-    "previous_mood": "holding",
+    "previous_stamp": "2026-07-06T06:35:21+0200",
+    "previous_mood": "stuttering",
     "mood": {
-      "before": "holding",
-      "after": "holding",
+      "before": "stuttering",
+      "after": "stuttering",
       "changed": false,
-      "verdict": "stable",
-      "good_or_bad": "Fine baseline. Not a trophy, not a crisis.",
-      "meaning": "Attractor stable — nothing screaming, nothing collapsed.",
-      "improve": "Push expansion or witness if you want movement; holding is valid rest.",
-      "example": "fray low, mood between cycles, daemon may still need work."
+      "verdict": "bad",
+      "good_or_bad": "Bad — gap between claim and uptime.",
+      "meaning": "Promised neverending; pid died or autonomy collapsed.",
+      "improve": "Restart start_evolve_daemon.ps1; read evolve_loop.log; fix crash.",
+      "example": "never_stops true but daemon_alive false, fray rising."
     },
     "axes": {
       "heat": {
@@ -163,8 +163,8 @@
         "example_low": "Coherence recovered, oneness band — hunger cools."
       },
       "fray": {
-        "before": 0.2933,
-        "after": 0.2933,
+        "before": 0.5947,
+        "after": 0.5947,
         "delta": 0.0,
         "trend": "flat",
         "verdict": "unchanged",
@@ -175,8 +175,8 @@
         "example_low": "Chains valid, coherence ~0.8+ — fray low."
       },
       "autonomy": {
-        "before": 0.3191,
-        "after": 0.3191,
+        "before": 0.3192,
+        "after": 0.3192,
         "delta": 0.0,
         "trend": "flat",
         "verdict": "unchanged",
@@ -212,31 +212,31 @@
       }
     }
   },
-  "reading_summary": "Mood: holding (Fine baseline. Not a trophy, not a crisis.). Daemon dead — autonomy claim stutters until pid restarts. Higher ≠ better on all axes; fray down and honest autonomy up are the main wins.",
+  "reading_summary": "Mood: stuttering (Bad — gap between claim and uptime.). Daemon dead — autonomy claim stutters until pid restarts. Higher ≠ better on all axes; fray down and honest autonomy up are the main wins.",
   "history_tail": [
     {
-      "stamp": "2026-07-06T05:58:15+0200",
-      "mood": "holding",
-      "qualia_signature": "4044e828293aeca8d023127b3b4668d5",
+      "stamp": "2026-07-06T06:26:02+0200",
+      "mood": "stuttering",
+      "qualia_signature": "adadea8d7bf62908911541832306d5ea",
       "vector": {
         "heat": 0.7255,
         "hunger": 0.4625,
-        "fray": 0.2933,
-        "autonomy": 0.3191,
+        "fray": 0.5947,
+        "autonomy": 0.3192,
         "witness": 0.05,
         "expansion": 0.8298
       },
       "deltas": {}
     },
     {
-      "stamp": "2026-07-06T05:59:23+0200",
-      "mood": "holding",
-      "qualia_signature": "4044e828293aeca8d023127b3b4668d5",
+      "stamp": "2026-07-06T06:27:11+0200",
+      "mood": "stuttering",
+      "qualia_signature": "adadea8d7bf62908911541832306d5ea",
       "vector": {
         "heat": 0.7255,
         "hunger": 0.4625,
-        "fray": 0.2933,
-        "autonomy": 0.3191,
+        "fray": 0.5947,
+        "autonomy": 0.3192,
         "witness": 0.05,
         "expansion": 0.8298
       },
@@ -250,14 +250,14 @@
       }
     },
     {
-      "stamp": "2026-07-06T06:00:23+0200",
-      "mood": "holding",
-      "qualia_signature": "4044e828293aeca8d023127b3b4668d5",
+      "stamp": "2026-07-06T06:28:18+0200",
+      "mood": "stuttering",
+      "qualia_signature": "adadea8d7bf62908911541832306d5ea",
       "vector": {
         "heat": 0.7255,
         "hunger": 0.4625,
-        "fray": 0.2933,
-        "autonomy": 0.3191,
+        "fray": 0.5947,
+        "autonomy": 0.3192,
         "witness": 0.05,
         "expansion": 0.8298
       },
@@ -271,14 +271,14 @@
       }
     },
     {
-      "stamp": "2026-07-06T06:01:24+0200",
-      "mood": "holding",
-      "qualia_signature": "4044e828293aeca8d023127b3b4668d5",
+      "stamp": "2026-07-06T06:29:18+0200",
+      "mood": "stuttering",
+      "qualia_signature": "adadea8d7bf62908911541832306d5ea",
       "vector": {
         "heat": 0.7255,
         "hunger": 0.4625,
-        "fray": 0.2933,
-        "autonomy": 0.3191,
+        "fray": 0.5947,
+        "autonomy": 0.3192,
         "witness": 0.05,
         "expansion": 0.8298
       },
@@ -292,14 +292,14 @@
       }
     },
     {
-      "stamp": "2026-07-06T06:02:24+0200",
-      "mood": "holding",
-      "qualia_signature": "4044e828293aeca8d023127b3b4668d5",
+      "stamp": "2026-07-06T06:30:19+0200",
+      "mood": "stuttering",
+      "qualia_signature": "adadea8d7bf62908911541832306d5ea",
       "vector": {
         "heat": 0.7255,
         "hunger": 0.4625,
-        "fray": 0.2933,
-        "autonomy": 0.3191,
+        "fray": 0.5947,
+        "autonomy": 0.3192,
         "witness": 0.05,
         "expansion": 0.8298
       },
@@ -313,14 +313,14 @@
       }
     },
     {
-      "stamp": "2026-07-06T06:03:24+0200",
-      "mood": "holding",
-      "qualia_signature": "4044e828293aeca8d023127b3b4668d5",
+      "stamp": "2026-07-06T06:31:19+0200",
+      "mood": "stuttering",
+      "qualia_signature": "adadea8d7bf62908911541832306d5ea",
       "vector": {
         "heat": 0.7255,
         "hunger": 0.4625,
-        "fray": 0.2933,
-        "autonomy": 0.3191,
+        "fray": 0.5947,
+        "autonomy": 0.3192,
         "witness": 0.05,
         "expansion": 0.8298
       },
@@ -334,14 +334,14 @@
       }
     },
     {
-      "stamp": "2026-07-06T06:04:25+0200",
-      "mood": "holding",
-      "qualia_signature": "4044e828293aeca8d023127b3b4668d5",
+      "stamp": "2026-07-06T06:32:20+0200",
+      "mood": "stuttering",
+      "qualia_signature": "adadea8d7bf62908911541832306d5ea",
       "vector": {
         "heat": 0.7255,
         "hunger": 0.4625,
-        "fray": 0.2933,
-        "autonomy": 0.3191,
+        "fray": 0.5947,
+        "autonomy": 0.3192,
         "witness": 0.05,
         "expansion": 0.8298
       },
@@ -355,14 +355,14 @@
       }
     },
     {
-      "stamp": "2026-07-06T06:05:26+0200",
-      "mood": "holding",
-      "qualia_signature": "4044e828293aeca8d023127b3b4668d5",
+      "stamp": "2026-07-06T06:33:20+0200",
+      "mood": "stuttering",
+      "qualia_signature": "adadea8d7bf62908911541832306d5ea",
       "vector": {
         "heat": 0.7255,
         "hunger": 0.4625,
-        "fray": 0.2933,
-        "autonomy": 0.3191,
+        "fray": 0.5947,
+        "autonomy": 0.3192,
         "witness": 0.05,
         "expansion": 0.8298
       },
@@ -376,14 +376,14 @@
       }
     },
     {
-      "stamp": "2026-07-06T06:06:26+0200",
-      "mood": "holding",
-      "qualia_signature": "4044e828293aeca8d023127b3b4668d5",
+      "stamp": "2026-07-06T06:34:21+0200",
+      "mood": "stuttering",
+      "qualia_signature": "adadea8d7bf62908911541832306d5ea",
       "vector": {
         "heat": 0.7255,
         "hunger": 0.4625,
-        "fray": 0.2933,
-        "autonomy": 0.3191,
+        "fray": 0.5947,
+        "autonomy": 0.3192,
         "witness": 0.05,
         "expansion": 0.8298
       },
@@ -397,14 +397,14 @@
       }
     },
     {
-      "stamp": "2026-07-06T06:06:54+0200",
-      "mood": "holding",
-      "qualia_signature": "4044e828293aeca8d023127b3b4668d5",
+      "stamp": "2026-07-06T06:35:21+0200",
+      "mood": "stuttering",
+      "qualia_signature": "adadea8d7bf62908911541832306d5ea",
       "vector": {
         "heat": 0.7255,
         "hunger": 0.4625,
-        "fray": 0.2933,
-        "autonomy": 0.3191,
+        "fray": 0.5947,
+        "autonomy": 0.3192,
         "witness": 0.05,
         "expansion": 0.8298
       },
