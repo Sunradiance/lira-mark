@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Firmcraft — Handmade Leather Scroll</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #080706;
+      --cognac: #8f6338;
+      --gold: #c4a574;
+      --ivory: #f0ebe3;
+      --grey: #8a8278;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; }
+    html { scroll-behavior: auto !important; }
+    html.lenis, html.lenis body { height: auto; }
+    .lenis.lenis-smooth { scroll-behavior: auto !important; }
+    body {
+      font-family: Inter, system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--ivory);
+      overflow-x: hidden;
+      cursor: none;
+    }
+    ::selection { background: rgba(143, 99, 56, 0.28); }
+
+    .header {
+      position: fixed; top: 1.25rem; left: 50%; transform: translateX(-50%);
+      z-index: 200; pointer-events: none; width: min(92vw, 720px);
+    }
+    .header nav {
+      pointer-events: auto;
+      display: flex; align-items: center; justify-content: center; gap: 1.1rem;
+      padding: 0.55rem 1.25rem; border-radius: 999px;
+      border: 1px solid rgba(196, 165, 116, 0.12);
+      backdrop-filter: blur(24px); background: rgba(8, 7, 6, 0.55);
+    }
+    .header.scrolled nav { background: rgba(8, 7, 6, 0.88); }
+    .logo-seal { display: flex; align-items: center; gap: 0.55rem; text-decoration: none; color: inherit; }
+    .logo-seal svg { width: 40px; height: 40px; }
+    .logo-text strong {
+      display: block; font-family: 'Cormorant Garamond', serif;
+      font-size: 0.95rem; letter-spacing: 0.14em; color: var(--gold); font-weight: 400;
+    }
+    .logo-text span {
+      font-size: 0.42rem; letter-spacing: 0.32em; text-transform: uppercase;
+      color: rgba(196, 165, 116, 0.5);
+    }
+    .nav-link {
+      font-size: 0.62rem; letter-spacing: 0.18em; text-transform: uppercase;
+      color: rgba(240, 235, 227, 0.5); text-decoration: none;
+    }
+    .nav-link:hover { color: var(--ivory); }
+    .nav-cta {
+      font-size: 0.58rem; letter-spacing: 0.16em; text-transform: uppercase;
+      color: var(--gold); border: 1px solid var(--cognac); border-radius: 999px;
+      padding: 0.45rem 0.9rem; text-decoration: none;
+    }
+
+    .cursor-dot, .cursor-ring {
+      position: fixed; pointer-events: none; opacity: 0; z-index: 9999;
+      transform: translate(-50%, -50%);
+    }
+    .cursor-dot { width: 8px; height: 8px; background: var(--gold); border-radius: 50%; mix-blend-mode: difference; }
+    .cursor-ring { width: 36px; height: 36px; border: 1px solid rgba(196, 165, 116, 0.45); border-radius: 50%; z-index: 9998; }
+
+    #hero { position: relative; background: var(--bg); }
+    .stage { position: sticky; top: 0; width: 100%; height: 100vh; overflow: hidden; }
+    #journeyLayer {
+      position: absolute; inset: 0; z-index: 3; pointer-events: none;
+      overflow: hidden; opacity: 1; visibility: visible; background: var(--bg);
+    }
+    #journeyCanvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+
+    .video-loading {
+      position: absolute; inset: 0; z-index: 9;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(8, 7, 6, 0.9);
+      font-size: 0.65rem; letter-spacing: 0.28em; text-transform: uppercase;
+      color: rgba(196, 165, 116, 0.65); transition: opacity 0.6s;
+    }
+    .video-loading.done { opacity: 0; pointer-events: none; }
+
+    .vignette {
+      position: absolute; inset: 0; z-index: 5; pointer-events: none;
+      background: radial-gradient(ellipse 82% 82% at 50% 50%, transparent 35%, rgba(8, 7, 6, 0.6) 100%);
+    }
+
+    .scroll-hint {
+      position: absolute; bottom: 36px; left: 50%; transform: translateX(-50%);
+      z-index: 8; display: flex; flex-direction: column; align-items: center; gap: 8px;
+      pointer-events: none; opacity: 0; transition: opacity 0.8s;
+    }
+    .scroll-hint.visible { opacity: 1; }
+    .scroll-hint .line {
+      width: 1px; height: 44px;
+      background: linear-gradient(to bottom, transparent, var(--gold));
+      animation: scrollLine 2s ease-in-out infinite;
+    }
+    @keyframes scrollLine {
+      0%   { transform: scaleY(0); transform-origin: top; }
+      50%  { transform: scaleY(1); transform-origin: top; }
+      51%  { transform: scaleY(1); transform-origin: bottom; }
+      100% { transform: scaleY(0); transform-origin: bottom; }
+    }
+    .scroll-hint span { font-size: 9px; letter-spacing: 0.32em; text-transform: uppercase; color: rgba(196, 165, 116, 0.6); }
+
+    .panels {
+      position: absolute; inset: 0; z-index: 8;
+      display: grid; grid-template-columns: minmax(260px, 1fr) 2.4fr minmax(260px, 1fr);
+      pointer-events: none; opacity: 0; transition: opacity 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .panels.visible { opacity: 1; }
+    .panel-left, .panel-right { display: flex; align-items: center; padding: 80px 20px; pointer-events: auto; }
+    .panel-left { justify-content: flex-start; padding-left: 44px; }
+    .panel-right { justify-content: flex-end; padding-right: 44px; }
+
+    .glass {
+      border-radius: 18px; border: 1px solid rgba(196, 165, 116, 0.14);
+      background: rgba(8, 7, 6, 0.42); backdrop-filter: blur(18px);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.04), 0 8px 32px rgba(0,0,0,0.45);
+    }
+    .glass-inner { padding: 1.75rem; }
+    .panel-card {
+      max-width: 300px; opacity: 0; transform: translateX(-14px);
+      transition: opacity 0.42s cubic-bezier(0.22, 1, 0.36, 1), transform 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .panel-card.right { max-width: 280px; transform: translateX(14px); }
+    .panel-card.show { opacity: 1; transform: none; }
+    .panel-card.exit-left { opacity: 0; transform: translateX(-8px); }
+    .panel-card.exit-right { opacity: 0; transform: translateX(8px); }
+
+    .chapter-label {
+      font-size: 9px; letter-spacing: 0.35em; text-transform: uppercase;
+      color: rgba(196, 165, 116, 0.65); margin-bottom: 0.75rem;
+    }
+    .panel-title {
+      font-family: 'Cormorant Garamond', serif; font-size: 1.65rem;
+      font-weight: 400; line-height: 1.15; margin-bottom: 0.65rem; color: var(--ivory);
+    }
+    .panel-sub { font-size: 0.82rem; line-height: 1.65; color: rgba(240, 235, 227, 0.62); }
+
+    .detail-label { font-size: 9px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--cognac); margin-bottom: 0.5rem; }
+    .detail-title { font-family: 'Cormorant Garamond', serif; font-size: 1.25rem; margin-bottom: 0.75rem; }
+    .detail-notes { list-style: none; margin-bottom: 1rem; }
+    .detail-notes li {
+      font-size: 0.72rem; letter-spacing: 0.06em; color: rgba(240, 235, 227, 0.55);
+      padding: 0.35rem 0; border-bottom: 1px solid rgba(196, 165, 116, 0.1);
+    }
+    .detail-price { font-size: 0.75rem; letter-spacing: 0.12em; color: var(--gold); margin-bottom: 1rem; }
+    .btn-outline {
+      display: block; width: 100%; padding: 0.65rem; margin-bottom: 0.5rem;
+      background: transparent; border: 1px solid var(--cognac); border-radius: 999px;
+      color: var(--gold); font-size: 0.58rem; letter-spacing: 0.16em; text-transform: uppercase; cursor: pointer;
+    }
+    .btn-link { font-size: 0.58rem; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(240,235,227,0.45); text-decoration: none; }
+
+    .chapter-dots {
+      position: absolute; right: 28px; top: 50%; transform: translateY(-50%);
+      z-index: 8; display: flex; flex-direction: column; gap: 10px;
+      opacity: 0; transition: opacity 0.6s;
+    }
+    .chapter-dots.visible { opacity: 1; }
+    .chapter-dots span {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: rgba(196, 165, 116, 0.25); transition: all 0.4s;
+    }
+    .chapter-dots span.lit { background: var(--gold); transform: scale(1.35); }
+
+    .footer {
+      padding: 4rem 2rem; text-align: center; background: var(--bg);
+      border-top: 1px solid rgba(196, 165, 116, 0.08);
+    }
+    .footer h3 {
+      font-family: 'Cormorant Garamond', serif; font-size: 1.3rem;
+      letter-spacing: 0.28em; text-transform: uppercase; color: var(--gold); margin: 1rem 0 0.4rem;
+    }
+    .footer p { font-size: 0.65rem; color: var(--grey); }
+    .footer a { display: inline-block; margin-top: 1.5rem; font-size: 0.72rem; letter-spacing: 0.18em; color: rgba(240,235,227,0.45); }
+
+    @media (max-width: 900px) {
+      .panels { grid-template-columns: 1fr; }
+      .panel-right { display: none; }
+      .panel-left { padding: 60px 24px; justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+  <div class="cursor-dot" id="cursorDot"></div>
+  <div class="cursor-ring" id="cursorRing"></div>
+
+  <header class="header" id="header">
+    <nav>
+      <a class="logo-seal" href="firmcraft_atelier.html" data-cursor-hover>
+        <svg viewBox="0 0 40 40" aria-hidden="true">
+          <circle cx="20" cy="20" r="18.5" fill="none" stroke="#c4a574" stroke-width="0.7"/>
+          <text x="20" y="24" text-anchor="middle" fill="#c4a574" font-family="Cormorant Garamond, serif" font-size="11">FC</text>
+        </svg>
+        <div class="logo-text">
+          <strong>Firmcraft</strong>
+          <span>Handmade Leather</span>
+        </div>
+      </a>
+      <a class="nav-link" href="#footer" data-cursor-hover>Atelier</a>
+      <a class="nav-cta" href="https://firmcraft.si" data-cursor-hover target="_blank" rel="noopener">Shop</a>
+    </nav>
+  </header>
+
+  <section id="hero">
+    <div class="stage" id="stage">
+      <div id="journeyLayer"><canvas id="journeyCanvas"></canvas></div>
+      <div id="videoStatus" class="video-loading">Loading atelier…</div>
+      <div class="vignette"></div>
+      <div class="scroll-hint visible" id="scrollHint">
+        <div class="line"></div><span>Scroll the craft</span>
+      </div>
+      <div class="panels" id="panels">
+        <div class="panel-left">
+          <div class="glass panel-card" id="framePanel">
+            <div class="glass-inner">
+              <p class="chapter-label" id="frameChapter"></p>
+              <h2 class="panel-title" id="frameTitle"></h2>
+              <p class="panel-sub" id="frameSub"></p>
+            </div>
+          </div>
+        </div>
+        <div></div>
+        <div class="panel-right">
+          <div class="glass panel-card right" id="detailPanel">
+            <div class="glass-inner" id="detailInner"></div>
+          </div>
+        </div>
+      </div>
+      <div class="chapter-dots" id="chapterDots"></div>
+    </div>
+  </section>
+
+  <footer class="footer" id="footer">
+    <h3>Firmcraft</h3>
+    <p>Bespoke handmade leather · Elena Firman</p>
+    <p style="opacity:0.4;margin-top:0.5rem">Video by Grok Imagine · 25s leather scroll journey</p>
+    <a href="firmcraft_atelier.html" data-cursor-hover>← return to atelier</a>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.18/dist/lenis.min.js"></script>
+  <script>
+(async function () {
+  'use strict';
+  gsap.registerPlugin(ScrollTrigger);
+
+  const PX_PER_SECOND = 380;
+  const IDLE_THRESHOLD = 0.012;
+  const TIME_SMOOTH = 16;
+  const CACHE = '?v=2';
+  const ASSET = 'assets/firmcraft_scroll/';
+  let IDLE_T = 1.5;
+  let JOURNEY_T0 = 3.0;
+  let TOTAL_DURATION = 25;
+  let TOTAL_SCROLL_PX = 8360;
+
+  const FRAMES = {
+    entry:     { chapter: 'Obsidian Threshold', title: 'Before the first stitch', subtitle: 'Volumetric light pierces the dark. Scroll to enter the atelier of leather.', detail: null },
+    briefcase: { chapter: '01 — Heritage', title: 'Heritage Briefcase', subtitle: 'Obsidian-black English bridle leather. Hand-burnished edges, cream saddle-stitching, solid brass lock.', detail: { notes: ['English bridle leather', 'Beeswaxed edges', 'Brass hardware'], price: 'Bespoke quote', cta: 'Commission piece' } },
+    holdall:   { chapter: '02 — Journey', title: "Traveler's Holdall", subtitle: 'Rich Horween pull-up leather on aged brass. Warm chiaroscuro, heavy rivets, artisan soul.', detail: { notes: ['Horween pull-up', 'Hand-set rivets', 'Lifetime patina'], price: 'Bespoke quote', cta: 'Request holdall' } },
+    portfolio: { chapter: '03 — Clarity', title: 'Minimalist Portfolio', subtitle: 'Undyed vegetable-tanned leather rising from frosted glass. Dawn light, flawless hand-punched seam.', detail: { notes: ['Veg-tan natural', 'Hand-punched seam', 'Architectural form'], price: 'Bespoke quote', cta: 'Order portfolio' } },
+    wallet:    { chapter: '04 — Precision', title: 'Field Notes Wallet', subtitle: 'Navy glazed alligator on dark water caustics. Glassy scales shimmer like moving light.', detail: { notes: ['Glazed alligator', 'Slim profile', 'Exotic finish'], price: 'Bespoke quote', cta: 'Inquire wallet' } },
+    complete:  { chapter: 'The Atelier', title: 'The path is complete.', subtitle: 'From obsidian threshold to glazed alligator — one breath of handmade leather. Scroll again.', detail: null },
+  };
+
+  const NO_PANEL = new Set(['entry', 'complete']);
+  let SEGMENTS = [];
+  let FRAME_LIST = [];
+  let isIdle = true;
+  let panelFrameId = null;
+  let paintToken = 0;
+  let targetT = IDLE_T;
+  let displayT = IDLE_T;
+  let lastTickMs = 0;
+  const imgCache = new Map();
+  const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+
+  const stage = document.getElementById('stage');
+  const journeyCanvas = document.getElementById('journeyCanvas');
+  const videoStatus = document.getElementById('videoStatus');
+  const scrollHint = document.getElementById('scrollHint');
+  const panels = document.getElementById('panels');
+  const framePanel = document.getElementById('framePanel');
+  const detailPanel = document.getElementById('detailPanel');
+  const chapterDots = document.getElementById('chapterDots');
+  let canvasCtx = null;
+
+  function timeAtProgress(p) {
+    if (p < IDLE_THRESHOLD) return IDLE_T;
+    const u = (p - IDLE_THRESHOLD) / (1 - IDLE_THRESHOLD);
+    return JOURNEY_T0 + u * (TOTAL_DURATION - JOURNEY_T0);
+  }
+
+  function resizeCanvas() {
+    const w = stage.clientWidth || innerWidth;
+    const h = stage.clientHeight || innerHeight;
+    if (journeyCanvas.width !== w || journeyCanvas.height !== h) {
+      journeyCanvas.width = w;
+      journeyCanvas.height = h;
+      if (canvasCtx) paintJourney(displayT);
+    }
+  }
+
+  function loadFrame(url) {
+    let img = imgCache.get(url);
+    if (!img) {
+      img = new Image();
+      imgCache.set(url, img);
+      img.src = url;
+    }
+    return new Promise(resolve => {
+      if (img.complete && img.naturalWidth) return resolve(img);
+      const done = () => resolve(img);
+      img.onload = done;
+      img.onerror = done;
+    });
+  }
+
+  function drawCover(img, alpha, zoom) {
+    if (!canvasCtx || !img?.naturalWidth) return;
+    const cw = journeyCanvas.width, ch = journeyCanvas.height;
+    const scale = Math.max(cw / img.naturalWidth, ch / img.naturalHeight) * (zoom || 1.038);
+    const dw = img.naturalWidth * scale, dh = img.naturalHeight * scale;
+    canvasCtx.globalAlpha = alpha;
+    canvasCtx.drawImage(img, (cw - dw) * 0.5, (ch - dh) * 0.5, dw, dh);
+    canvasCtx.globalAlpha = 1;
+  }
+
+  function frameIndexAt(t) {
+    let i = 0;
+    for (let j = FRAME_LIST.length - 1; j >= 0; j--) {
+      if (t >= FRAME_LIST[j].t) { i = j; break; }
+    }
+    return i;
+  }
+
+  function paintJourney(t) {
+    if (!FRAME_LIST.length || !canvasCtx) return;
+    const i = frameIndexAt(t);
+    const f0 = FRAME_LIST[i];
+    const f1 = FRAME_LIST[Math.min(i + 1, FRAME_LIST.length - 1)];
+    const span = Math.max(f1.t - f0.t, 0.001);
+    const frac = clamp((t - f0.t) / span, 0, 1);
+    const s0 = `${ASSET}${f0.file}${CACHE}`;
+    const s1 = `${ASSET}${f1.file}${CACHE}`;
+    const img0 = imgCache.get(s0);
+    const img1 = imgCache.get(s1);
+    const draw = (a, b) => {
+      if (!a?.naturalWidth) return;
+      drawCover(a, 1, 1.038);
+      if (b?.naturalWidth && frac > 0.002 && b !== a) {
+        canvasCtx.globalAlpha = frac;
+        drawCover(b, 1, 1.038);
+        canvasCtx.globalAlpha = 1;
+      }
+    };
+    if (img0?.complete && img0.naturalWidth) {
+      draw(img0, img1?.complete && img1.naturalWidth ? img1 : null);
+      return;
+    }
+    const token = ++paintToken;
+    Promise.all([loadFrame(s0), loadFrame(s1)]).then(([a, b]) => {
+      if (token !== paintToken) return;
+      draw(a, b);
+    });
+    for (let k = 1; k <= 16; k++) {
+      const f = FRAME_LIST[i + k];
+      if (f) loadFrame(`${ASSET}${f.file}${CACHE}`);
+    }
+  }
+
+  function segmentAt(t) {
+    for (let i = SEGMENTS.length - 1; i >= 0; i--) {
+      if (t >= SEGMENTS[i].transitionStart) return SEGMENTS[i];
+    }
+    return SEGMENTS[0] || { frameId: 'entry' };
+  }
+
+  function updatePanels(frameId, animate) {
+    if (NO_PANEL.has(frameId)) {
+      panels.classList.remove('visible');
+      panelFrameId = frameId;
+      return;
+    }
+    panels.classList.add('visible');
+    if (frameId === panelFrameId) return;
+    const frame = FRAMES[frameId];
+    if (!frame) return;
+    const swap = () => {
+      document.getElementById('frameChapter').textContent = frame.chapter || '';
+      document.getElementById('frameTitle').textContent = frame.title;
+      document.getElementById('frameSub').textContent = frame.subtitle;
+      const inner = document.getElementById('detailInner');
+      if (frame.detail) {
+        detailPanel.style.display = '';
+        inner.innerHTML = `<p class="detail-label">Atelier</p><h3 class="detail-title">${frame.title}</h3>
+          <ul class="detail-notes">${frame.detail.notes.map(n => `<li>${n}</li>`).join('')}</ul>
+          <p class="detail-price">${frame.detail.price}</p>
+          <button class="btn-outline">${frame.detail.cta}</button>`;
+      } else detailPanel.style.display = 'none';
+      framePanel.className = 'glass panel-card show';
+      detailPanel.className = 'glass panel-card right show';
+      panelFrameId = frameId;
+    };
+    if (animate && panelFrameId && !NO_PANEL.has(panelFrameId)) {
+      framePanel.className = 'glass panel-card exit-left';
+      detailPanel.className = 'glass panel-card right exit-right';
+      setTimeout(swap, 200);
+    } else swap();
+    chapterDots.querySelectorAll('span').forEach(d => d.classList.toggle('lit', d.dataset.frame === frameId));
+  }
+
+  function syncPanels(t, animate) {
+    const frameId = segmentAt(t).frameId || 'entry';
+    if (frameId !== panelFrameId) updatePanels(frameId, animate && panelFrameId !== null);
+  }
+
+  function goIdle() {
+    isIdle = true;
+    targetT = displayT = IDLE_T;
+    scrollHint.classList.add('visible');
+    chapterDots.classList.remove('visible');
+    panels.classList.remove('visible');
+    panelFrameId = null;
+  }
+
+  function goScrub(t) {
+    isIdle = false;
+    targetT = t;
+    scrollHint.classList.remove('visible');
+    chapterDots.classList.add('visible');
+  }
+
+  function tickJourney(time) {
+    const now = typeof time === 'number' ? time * 1000 : performance.now();
+    const dt = lastTickMs ? Math.min(0.05, (now - lastTickMs) / 1000) : 1 / 60;
+    lastTickMs = now;
+    const diff = targetT - displayT;
+    if (Math.abs(diff) < 0.00025) displayT = targetT;
+    else displayT += diff * (1 - Math.exp(-TIME_SMOOTH * dt));
+    paintJourney(displayT);
+    if (!isIdle) syncPanels(displayT, true);
+  }
+
+  const [meta, manifest] = await Promise.all([
+    fetch(`${ASSET}video_meta.json${CACHE}`).then(r => r.json()),
+    fetch(`${ASSET}frames_manifest.json${CACHE}`).then(r => r.json()),
+  ]);
+  SEGMENTS = meta.segments_hint || [];
+  if (meta.journeyStart) JOURNEY_T0 = meta.journeyStart;
+  if (meta.intro) IDLE_T = meta.intro * 0.5;
+  if (meta.experience) TOTAL_DURATION = meta.experience;
+  FRAME_LIST = manifest.frames || [];
+  TOTAL_SCROLL_PX = (TOTAL_DURATION - JOURNEY_T0) * PX_PER_SECOND;
+
+  canvasCtx = journeyCanvas.getContext('2d', { alpha: false });
+  canvasCtx.imageSmoothingQuality = 'high';
+  resizeCanvas();
+  window.addEventListener('resize', resizeCanvas);
+
+  const bootIdx = FRAME_LIST.findIndex(f => f.t >= IDLE_T - 0.1);
+  await Promise.race([
+    Promise.all(FRAME_LIST.slice(Math.max(0, bootIdx), bootIdx + 64).map(f => loadFrame(`${ASSET}${f.file}${CACHE}`))),
+    new Promise(r => setTimeout(r, 5000)),
+  ]);
+  videoStatus.classList.add('done');
+  paintJourney(IDLE_T);
+
+  SEGMENTS.filter(s => s.id !== 'entry' && s.id !== 'outro').forEach(s => {
+    const dot = document.createElement('span');
+    dot.dataset.frame = s.frameId;
+    chapterDots.appendChild(dot);
+  });
+
+  document.getElementById('hero').style.minHeight = `calc(100vh + ${TOTAL_SCROLL_PX}px)`;
+
+  const lenis = new Lenis({ duration: 1.1, lerp: 0.12, wheelMultiplier: 0.95 });
+  lenis.on('scroll', ScrollTrigger.update);
+  gsap.ticker.add(t => { lenis.raf(t * 1000); tickJourney(t); });
+  gsap.ticker.lagSmoothing(0);
+
+  ScrollTrigger.create({
+    trigger: '#hero', start: 'top top', end: `+=${TOTAL_SCROLL_PX}`,
+    pin: stage, scrub: 0.45,
+    onUpdate(self) {
+      if (self.progress < IDLE_THRESHOLD) { if (!isIdle) goIdle(); return; }
+      goScrub(timeAtProgress(self.progress));
+    },
+  });
+
+  let mx = 0, my = 0, rx = 0, ry = 0;
+  const dot = document.getElementById('cursorDot');
+  const ring = document.getElementById('cursorRing');
+  document.addEventListener('mousemove', e => {
+    mx = e.clientX; my = e.clientY;
+    dot.style.left = mx + 'px'; dot.style.top = my + 'px';
+    dot.style.opacity = ring.style.opacity = '1';
+  });
+  (function cursorTick() {
+    rx += (mx - rx) * 0.12; ry += (my - ry) * 0.12;
+    ring.style.left = rx + 'px'; ring.style.top = ry + 'px';
+    requestAnimationFrame(cursorTick);
+  })();
+
+  goIdle();
+  ScrollTrigger.refresh();
+})();
+  </script>
+</body>
+</html>

@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Firmcraft — Handmade Leather Atelier by Elena Firman</title>
+  <meta name="description" content="Premium handmade leather atelier. Wallets, bags, totes and bespoke pieces by Elena Firman.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f3efe8;
+      --stone: #e6e1d8;
+      --ink: #1a1816;
+      --cognac: #8f6338;
+      --champagne: #c4a574;
+      --muted: #7a746a;
+      --line: rgba(26, 24, 22, 0.1);
+      --glass: rgba(255, 255, 255, 0.55);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; }
+    html { scroll-behavior: smooth; }
+    html.lenis, html.lenis body { height: auto; }
+    body {
+      font-family: Inter, system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+    ::selection { background: rgba(143, 99, 56, 0.18); }
+    img, video { display: block; max-width: 100%; }
+    a { color: inherit; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(18px); }
+      to { opacity: 1; transform: none; }
+    }
+    @keyframes scrollPulse {
+      0%, 100% { opacity: 0.35; transform: scaleY(0.6); }
+      50% { opacity: 1; transform: scaleY(1); }
+    }
+    @keyframes loaderLine {
+      0% { transform: scaleX(0); transform-origin: left; }
+      50% { transform: scaleX(1); transform-origin: left; }
+      51% { transform: scaleX(1); transform-origin: right; }
+      100% { transform: scaleX(0); transform-origin: right; }
+    }
+
+    .loader {
+      position: fixed; inset: 0; z-index: 9999;
+      display: grid; place-items: center;
+      background: var(--bg);
+      transition: opacity 0.7s ease, visibility 0.7s;
+    }
+    .loader.done { opacity: 0; visibility: hidden; pointer-events: none; }
+    .loader-inner { text-align: center; }
+    .loader-mark {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: var(--cognac);
+      margin-bottom: 1.5rem;
+    }
+    .loader-line {
+      width: 120px; height: 1px; margin: 0 auto 1rem;
+      background: linear-gradient(90deg, transparent, var(--cognac), transparent);
+      animation: loaderLine 2.2s ease-in-out infinite;
+    }
+    .loader span {
+      font-size: 0.62rem; letter-spacing: 0.32em;
+      text-transform: uppercase; color: var(--muted);
+    }
+
+    .nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+      padding: 1.1rem 2rem;
+      display: flex; align-items: center; justify-content: space-between;
+      transition: background 0.45s, backdrop-filter 0.45s, border-color 0.45s;
+      border-bottom: 1px solid transparent;
+    }
+    .nav.scrolled {
+      background: rgba(243, 239, 232, 0.82);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border-color: var(--line);
+    }
+    .nav-brand {
+      display: flex; align-items: center; gap: 0.75rem;
+      text-decoration: none;
+    }
+    .nav-seal {
+      width: 38px; height: 38px; border-radius: 50%;
+      border: 1px solid rgba(143, 99, 56, 0.45);
+      display: grid; place-items: center;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 0.85rem; color: var(--cognac);
+    }
+    .nav-title strong {
+      display: block;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.05rem; letter-spacing: 0.14em;
+      text-transform: uppercase; font-weight: 500;
+    }
+    .nav-title span {
+      font-size: 0.52rem; letter-spacing: 0.28em;
+      text-transform: uppercase; color: var(--muted);
+    }
+    .nav-links {
+      display: flex; align-items: center; gap: 1.6rem;
+      list-style: none;
+    }
+    .nav-links a {
+      font-size: 0.62rem; letter-spacing: 0.2em;
+      text-transform: uppercase; text-decoration: none;
+      color: var(--muted); transition: color 0.3s;
+    }
+    .nav-links a:hover { color: var(--ink); }
+    .nav-cta {
+      font-size: 0.58rem; letter-spacing: 0.16em;
+      text-transform: uppercase; text-decoration: none;
+      padding: 0.55rem 1.1rem; border-radius: 999px;
+      border: 1px solid var(--cognac); color: var(--cognac);
+      transition: background 0.3s, color 0.3s;
+    }
+    .nav-cta:hover { background: var(--cognac); color: #fff; }
+
+    .hero {
+      min-height: 100vh; position: relative;
+      display: grid; align-items: end;
+      padding: 7rem 2rem 4rem;
+    }
+    .hero-media {
+      position: absolute; inset: 0; z-index: 0; overflow: hidden;
+    }
+    .hero-media img, .hero-media video {
+      width: 100%; height: 100%; object-fit: cover;
+      transform: scale(1.04);
+    }
+    .hero-shade {
+      position: absolute; inset: 0; z-index: 1;
+      background: linear-gradient(
+        180deg,
+        rgba(26, 24, 22, 0.15) 0%,
+        rgba(26, 24, 22, 0.05) 35%,
+        rgba(243, 239, 232, 0.55) 72%,
+        var(--bg) 100%
+      );
+    }
+    .hero-content {
+      position: relative; z-index: 2;
+      max-width: 820px;
+      animation: fadeUp 1.1s ease 0.3s both;
+    }
+    .hero-eyebrow {
+      font-size: 0.62rem; letter-spacing: 0.34em;
+      text-transform: uppercase; color: var(--cognac);
+      margin-bottom: 1.2rem;
+    }
+    .hero h1 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(2.8rem, 7vw, 5.4rem);
+      font-weight: 400; line-height: 1.02;
+      letter-spacing: -0.01em; margin-bottom: 1.4rem;
+    }
+    .hero h1 em { font-style: italic; color: var(--cognac); }
+    .hero-lead {
+      font-size: 1rem; line-height: 1.75;
+      color: var(--muted); max-width: 520px;
+      margin-bottom: 2rem; font-weight: 300;
+    }
+    .hero-actions { display: flex; flex-wrap: wrap; gap: 0.85rem; }
+    .btn-primary, .btn-ghost {
+      font-size: 0.62rem; letter-spacing: 0.18em;
+      text-transform: uppercase; text-decoration: none;
+      padding: 0.85rem 1.5rem; border-radius: 999px;
+      transition: all 0.35s ease;
+    }
+    .btn-primary {
+      background: var(--ink); color: #fff; border: 1px solid var(--ink);
+    }
+    .btn-primary:hover { background: var(--cognac); border-color: var(--cognac); }
+    .btn-ghost {
+      border: 1px solid var(--line); color: var(--ink);
+      background: rgba(255,255,255,0.35);
+    }
+    .btn-ghost:hover { border-color: var(--cognac); color: var(--cognac); }
+    .scroll-hint {
+      position: absolute; bottom: 2rem; left: 50%;
+      transform: translateX(-50%); z-index: 2;
+      display: flex; flex-direction: column; align-items: center; gap: 8px;
+    }
+    .scroll-hint .line {
+      width: 1px; height: 42px;
+      background: linear-gradient(to bottom, transparent, var(--cognac));
+      animation: scrollPulse 2.2s ease-in-out infinite;
+    }
+    .scroll-hint span {
+      font-size: 0.52rem; letter-spacing: 0.3em;
+      text-transform: uppercase; color: var(--muted);
+    }
+
+    section { padding: 6rem 2rem; }
+    .wrap { max-width: 1180px; margin: 0 auto; }
+    .section-label {
+      font-size: 0.58rem; letter-spacing: 0.34em;
+      text-transform: uppercase; color: var(--cognac);
+      margin-bottom: 1rem;
+    }
+    .section-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(2rem, 4vw, 3.2rem);
+      font-weight: 400; line-height: 1.12;
+      margin-bottom: 1rem;
+    }
+    .section-sub {
+      font-size: 0.95rem; line-height: 1.8;
+      color: var(--muted); max-width: 560px; font-weight: 300;
+    }
+
+    .principles {
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      background: rgba(255,255,255,0.28);
+      padding: 3.5rem 2rem;
+    }
+    .principles-grid {
+      max-width: 1180px; margin: 0 auto;
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem;
+    }
+    .principle-num {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2.4rem; color: rgba(143, 99, 56, 0.35);
+      margin-bottom: 0.6rem;
+    }
+    .principle h3 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.35rem; margin-bottom: 0.5rem; font-weight: 500;
+    }
+    .principle p { font-size: 0.88rem; line-height: 1.7; color: var(--muted); font-weight: 300; }
+
+    .collection-header {
+      display: flex; justify-content: space-between;
+      align-items: flex-end; gap: 2rem; margin-bottom: 3rem;
+      flex-wrap: wrap;
+    }
+    .collection-grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 1.25rem;
+    }
+    .piece {
+      position: relative; overflow: hidden;
+      border-radius: 14px; background: var(--stone);
+      border: 1px solid var(--line);
+      transition: transform 0.45s ease, box-shadow 0.45s ease;
+    }
+    .piece:hover { transform: translateY(-4px); box-shadow: 0 20px 50px rgba(26,24,22,0.08); }
+    .piece img {
+      width: 100%; aspect-ratio: 4/3; object-fit: cover;
+      transition: transform 0.7s ease;
+    }
+    .piece:hover img { transform: scale(1.03); }
+    .piece-body { padding: 1.35rem 1.4rem 1.5rem; }
+    .piece-index {
+      font-size: 0.55rem; letter-spacing: 0.28em;
+      text-transform: uppercase; color: var(--cognac);
+      margin-bottom: 0.45rem;
+    }
+    .piece h3 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.5rem; margin-bottom: 0.45rem; font-weight: 500;
+    }
+    .piece p { font-size: 0.82rem; line-height: 1.65; color: var(--muted); margin-bottom: 1rem; font-weight: 300; }
+    .piece a {
+      font-size: 0.58rem; letter-spacing: 0.18em;
+      text-transform: uppercase; text-decoration: none;
+      color: var(--cognac); border-bottom: 1px solid rgba(143,99,56,0.35);
+      padding-bottom: 2px;
+    }
+    .piece.span-7 { grid-column: span 7; }
+    .piece.span-5 { grid-column: span 5; }
+    .piece.span-4 { grid-column: span 4; }
+    .piece.span-8 { grid-column: span 8; }
+    .piece.span-6 { grid-column: span 6; }
+
+    .film {
+      background: var(--ink); color: #f5f0e8;
+      padding: 6rem 2rem;
+    }
+    .film .section-label { color: var(--champagne); }
+    .film .section-sub { color: rgba(245,240,232,0.62); }
+    .film-layout {
+      display: grid; grid-template-columns: 1fr 1.4fr;
+      gap: 3rem; align-items: center; margin-top: 2.5rem;
+    }
+    .film-frame {
+      border-radius: 16px; overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.08);
+      box-shadow: 0 30px 80px rgba(0,0,0,0.35);
+      aspect-ratio: 16/9; background: #0e0d0c;
+    }
+    .film-frame video { width: 100%; height: 100%; object-fit: cover; }
+    .film-meta {
+      font-size: 0.58rem; letter-spacing: 0.28em;
+      text-transform: uppercase; color: var(--champagne);
+      margin-bottom: 0.8rem;
+    }
+    .film h3 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2rem; margin-bottom: 1rem; font-weight: 400;
+    }
+    .film p { font-size: 0.9rem; line-height: 1.75; color: rgba(245,240,232,0.65); font-weight: 300; }
+
+    .author-layout {
+      display: grid; grid-template-columns: 0.9fr 1.1fr;
+      gap: 3.5rem; align-items: center; margin-top: 2rem;
+    }
+    .author-portrait {
+      border-radius: 18px; overflow: hidden;
+      border: 1px solid var(--line);
+      aspect-ratio: 4/5;
+    }
+    .author-portrait img { width: 100%; height: 100%; object-fit: cover; }
+    .quote {
+      margin-top: 2rem; padding-left: 1.4rem;
+      border-left: 2px solid var(--cognac);
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.45rem; font-style: italic; line-height: 1.5;
+      color: var(--ink);
+    }
+    .quote cite {
+      display: block; margin-top: 0.8rem;
+      font-size: 0.62rem; letter-spacing: 0.2em;
+      text-transform: uppercase; font-style: normal;
+      color: var(--muted); font-family: Inter, sans-serif;
+    }
+
+    .bespoke {
+      background: linear-gradient(180deg, rgba(255,255,255,0.45), transparent);
+      border-top: 1px solid var(--line);
+    }
+    .bespoke-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 3rem; margin-top: 2.5rem; align-items: start;
+    }
+    .config-group { margin-bottom: 1.8rem; }
+    .config-group h4 {
+      font-size: 0.58rem; letter-spacing: 0.26em;
+      text-transform: uppercase; color: var(--muted);
+      margin-bottom: 0.75rem;
+    }
+    .chips { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    .chip {
+      font-size: 0.62rem; letter-spacing: 0.12em;
+      text-transform: uppercase; padding: 0.55rem 0.9rem;
+      border-radius: 999px; border: 1px solid var(--line);
+      background: rgba(255,255,255,0.5); cursor: pointer;
+      transition: all 0.25s;
+    }
+    .chip.active, .chip:hover {
+      border-color: var(--cognac); color: var(--cognac);
+      background: rgba(143,99,56,0.08);
+    }
+    .preview-card {
+      border-radius: 16px; overflow: hidden;
+      border: 1px solid var(--line); background: var(--stone);
+    }
+    .preview-card img { width: 100%; aspect-ratio: 4/3; object-fit: cover; }
+    .preview-copy { padding: 1.4rem; }
+    .preview-copy p { font-size: 0.88rem; line-height: 1.7; color: var(--muted); margin-bottom: 1rem; }
+    .preview-copy strong { color: var(--ink); }
+
+    .process-steps {
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      gap: 1.5rem; margin-top: 2.5rem;
+    }
+    .step {
+      padding: 1.5rem; border-radius: 14px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.35);
+    }
+    .step-num {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.8rem; color: var(--cognac); margin-bottom: 0.6rem;
+    }
+    .step h4 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.2rem; margin-bottom: 0.45rem;
+    }
+    .step p { font-size: 0.82rem; line-height: 1.65; color: var(--muted); font-weight: 300; }
+
+    .journal-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 1rem; margin-top: 2.5rem;
+    }
+    .journal-item {
+      position: relative; border-radius: 12px;
+      overflow: hidden; cursor: pointer;
+      border: 1px solid var(--line);
+    }
+    .journal-item img { width: 100%; aspect-ratio: 1; object-fit: cover; transition: transform 0.6s; }
+    .journal-item:hover img { transform: scale(1.04); }
+    .journal-cap {
+      position: absolute; left: 0; right: 0; bottom: 0;
+      padding: 1rem; background: linear-gradient(transparent, rgba(26,24,22,0.72));
+      color: #fff; font-size: 0.62rem; letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+
+    .contact {
+      text-align: center; padding-bottom: 5rem;
+    }
+    .contact .section-sub { margin: 0 auto 2rem; }
+    .contact-links {
+      display: flex; justify-content: center;
+      flex-wrap: wrap; gap: 0.75rem;
+    }
+
+    .footer {
+      border-top: 1px solid var(--line);
+      padding: 2rem; text-align: center;
+      font-size: 0.62rem; letter-spacing: 0.16em;
+      text-transform: uppercase; color: var(--muted);
+    }
+
+    .modal {
+      position: fixed; inset: 0; z-index: 500;
+      display: grid; place-items: center;
+      padding: 2rem; background: rgba(26,24,22,0.45);
+      opacity: 0; visibility: hidden;
+      transition: opacity 0.35s, visibility 0.35s;
+      backdrop-filter: blur(8px);
+    }
+    .modal.open { opacity: 1; visibility: visible; }
+    .modal-card {
+      width: min(520px, 100%); max-height: 90vh; overflow-y: auto;
+      background: var(--bg); border-radius: 18px;
+      border: 1px solid var(--line);
+      padding: 2rem; position: relative;
+      box-shadow: 0 30px 80px rgba(26,24,22,0.18);
+    }
+    .modal-close {
+      position: absolute; top: 1rem; right: 1rem;
+      width: 36px; height: 36px; border-radius: 50%;
+      border: 1px solid var(--line); background: #fff;
+      cursor: pointer; font-size: 1.1rem; color: var(--muted);
+    }
+    .modal h2 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2rem; margin-bottom: 0.5rem;
+    }
+    .modal p { font-size: 0.88rem; color: var(--muted); margin-bottom: 1.5rem; line-height: 1.6; }
+    .field { margin-bottom: 1rem; }
+    .field label {
+      display: block; font-size: 0.58rem;
+      letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--muted); margin-bottom: 0.4rem;
+    }
+    .field input, .field select, .field textarea {
+      width: 100%; padding: 0.75rem 0.9rem;
+      border-radius: 10px; border: 1px solid var(--line);
+      background: rgba(255,255,255,0.6);
+      font: inherit; color: var(--ink);
+    }
+    .field textarea { min-height: 100px; resize: vertical; }
+
+    .lightbox {
+      position: fixed; inset: 0; z-index: 600;
+      background: rgba(10,9,8,0.92);
+      display: grid; place-items: center;
+      opacity: 0; visibility: hidden; transition: opacity 0.35s;
+      padding: 2rem;
+    }
+    .lightbox.open { opacity: 1; visibility: visible; }
+    .lightbox img { max-width: min(1100px, 92vw); max-height: 86vh; border-radius: 8px; }
+    .lightbox-close {
+      position: absolute; top: 1.5rem; right: 1.5rem;
+      color: #fff; background: none; border: none;
+      font-size: 2rem; cursor: pointer;
+    }
+
+    .reveal { opacity: 0; transform: translateY(22px); transition: opacity 0.8s ease, transform 0.8s ease; }
+    .reveal.visible { opacity: 1; transform: none; }
+
+    @media (max-width: 960px) {
+      .nav-links { display: none; }
+      .principles-grid, .film-layout, .author-layout, .bespoke-grid, .process-steps { grid-template-columns: 1fr; }
+      .collection-grid { grid-template-columns: 1fr; }
+      .piece.span-7, .piece.span-5, .piece.span-4, .piece.span-8, .piece.span-6 { grid-column: span 1; }
+      .journal-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 560px) {
+      section { padding: 4rem 1.25rem; }
+      .hero { padding: 6rem 1.25rem 3rem; }
+      .journal-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="loader" id="loader">
+    <div class="loader-inner">
+      <div class="loader-mark">Firmcraft</div>
+      <div class="loader-line"></div>
+      <span>Opening the atelier</span>
+    </div>
+  </div>
+
+  <header class="nav" id="nav">
+    <a class="nav-brand" href="#">
+      <div class="nav-seal">FC</div>
+      <div class="nav-title">
+        <strong>Firmcraft</strong>
+        <span>Leather by Elena Firman</span>
+      </div>
+    </a>
+    <ul class="nav-links">
+      <li><a href="#collection">Collection</a></li>
+      <li><a href="#film">Atelier</a></li>
+      <li><a href="#author">Author</a></li>
+      <li><a href="#bespoke">Bespoke</a></li>
+      <li><a href="#journal">Journal</a></li>
+    </ul>
+    <a class="nav-cta" href="#" data-open-request>Commission</a>
+  </header>
+
+  <section class="hero" id="top">
+    <div class="hero-media">
+      <video src="assets/firmcraft/collection_film.mp4?v=2" poster="assets/firmcraft/hero.jpg?v=2" muted loop playsinline autoplay aria-hidden="true"></video>
+    </div>
+    <div class="hero-shade"></div>
+    <div class="hero-content">
+      <p class="hero-eyebrow">Handmade leather atelier · Slovenia</p>
+      <h1>Soft leather for <em>everyday rituals.</em></h1>
+      <p class="hero-lead">A refined leather atelier by Elena Firman — warm materials, calm composition, and pieces shaped by hand for wallets, bags, totes and quiet statements.</p>
+      <div class="hero-actions">
+        <a class="btn-primary" href="#" data-open-request>Request a piece</a>
+        <a class="btn-ghost" href="https://www.instagram.com/firmangoods.official/" target="_blank" rel="noopener">View Instagram</a>
+      </div>
+    </div>
+    <div class="scroll-hint"><div class="line"></div><span>Scroll</span></div>
+  </section>
+
+  <div class="principles">
+    <div class="principles-grid reveal">
+      <div class="principle">
+        <div class="principle-num">01</div>
+        <h3>Material first</h3>
+        <p>Full-grain leather, hand-cut edges and stitching that survives years of daily carry.</p>
+      </div>
+      <div class="principle">
+        <div class="principle-num">02</div>
+        <h3>Quiet craft</h3>
+        <p>No spectacle — only proportion, touch and the patience of handmade work.</p>
+      </div>
+      <div class="principle">
+        <div class="principle-num">03</div>
+        <h3>Direct to Elena</h3>
+        <p>Every commission opens a conversation with the maker, not a warehouse.</p>
+      </div>
+    </div>
+  </div>
+
+  <section id="collection">
+    <div class="wrap">
+      <div class="collection-header reveal">
+        <div>
+          <p class="section-label">Collection</p>
+          <h2 class="section-title">Pieces that feel personal.</h2>
+          <p class="section-sub">Wallets, bags, totes and shopping forms — photographed in one continuous studio language, same light, same stone, same calm.</p>
+        </div>
+        <a class="btn-ghost" href="https://www.instagram.com/firmangoods.official/" target="_blank" rel="noopener">Instagram archive</a>
+      </div>
+      <div class="collection-grid">
+        <article class="piece span-7 reveal">
+          <img src="assets/firmcraft/wallet.jpg?v=2" alt="Handmade cognac leather wallet" loading="lazy">
+          <div class="piece-body">
+            <p class="piece-index">01 — Wallets</p>
+            <h3>Daily carry, softened</h3>
+            <p>Bifold and card forms with rounded edges, saddle-stitching and custom colour choices.</p>
+            <a href="#" data-open-request data-piece="Wallet / card holder">Request this</a>
+          </div>
+        </article>
+        <article class="piece span-5 reveal">
+          <img src="assets/firmcraft/tote.jpg?v=2" alt="Handmade black leather tote bag" loading="lazy">
+          <div class="piece-body">
+            <p class="piece-index">02 — Totes</p>
+            <h3>Soft volume</h3>
+            <p>Relaxed structure, slender handles, practical depth without losing elegance.</p>
+            <a href="#" data-open-request data-piece="Tote bag">Request this</a>
+          </div>
+        </article>
+        <article class="piece span-4 reveal">
+          <img src="assets/firmcraft/bag.jpg?v=2" alt="Structured cognac leather shoulder bag" loading="lazy">
+          <div class="piece-body">
+            <p class="piece-index">03 — Bags</p>
+            <h3>Structured carry</h3>
+            <p>Shoulder forms with curved flaps, brass hardware and a calm silhouette.</p>
+            <a href="#" data-open-request data-piece="Shoulder bag">Request this</a>
+          </div>
+        </article>
+        <article class="piece span-4 reveal">
+          <img src="assets/firmcraft/crossbody.jpg?v=2" alt="Olive leather crossbody bag" loading="lazy">
+          <div class="piece-body">
+            <p class="piece-index">04 — Crossbody</p>
+            <h3>Light movement</h3>
+            <p>Balanced for everyday rhythm — compact, secure, easy across any style.</p>
+            <a href="#" data-open-request data-piece="Crossbody bag">Request this</a>
+          </div>
+        </article>
+        <article class="piece span-4 reveal">
+          <img src="assets/firmcraft/shopping.jpg?v=2" alt="Natural tan leather shopping bag" loading="lazy">
+          <div class="piece-body">
+            <p class="piece-index">05 — Shopping</p>
+            <h3>Open elegance</h3>
+            <p>Long-handle shopping forms for market mornings and weekend errands.</p>
+            <a href="#" data-open-request data-piece="Shopping bag">Request this</a>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="film" id="film">
+    <div class="wrap">
+      <p class="section-label reveal">Atelier film</p>
+      <h2 class="section-title reveal">Short motion. Real texture.</h2>
+      <p class="section-sub reveal">Hand-stitching, leather grain and the quiet rhythm of the workshop — filmed with the same premium optics as the still series.</p>
+      <div class="film-layout">
+        <div class="reveal">
+          <p class="film-meta">Film 01</p>
+          <h3>From hand to object</h3>
+          <p>Elena’s atelier in slow motion — thread pulled through grain, light on limestone, craft without narration.</p>
+          <a class="btn-ghost" href="https://www.instagram.com/firmangoods.official/" target="_blank" rel="noopener" style="margin-top:1.5rem;display:inline-block;color:#f5f0e8;border-color:rgba(255,255,255,0.2)">More on Instagram</a>
+        </div>
+        <div class="film-frame reveal">
+          <video src="assets/firmcraft/atelier_reel.mp4?v=2" muted loop playsinline autoplay poster="assets/firmcraft/atelier_mood.jpg?v=2"></video>
+        </div>
+      </div>
+      <div class="film-layout" style="margin-top:3rem">
+        <div class="film-frame reveal">
+          <video src="assets/firmcraft/collection_film.mp4?v=2" muted loop playsinline autoplay poster="assets/firmcraft/hero.jpg?v=2"></video>
+        </div>
+        <div class="reveal">
+          <p class="film-meta">Film 02</p>
+          <h3>The collection in motion</h3>
+          <p>Slow drift across wallets, totes and bags — one studio, one light, one calm stone surface throughout the series.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="author">
+    <div class="wrap">
+      <p class="section-label reveal">The author</p>
+      <h2 class="section-title reveal">Elena gives the work its warmth.</h2>
+      <div class="author-layout">
+        <div class="author-portrait reveal">
+          <img src="assets/firmcraft/atelier_mood.jpg?v=2" alt="Elena Firman at the leather atelier workbench" loading="lazy">
+        </div>
+        <div class="reveal">
+          <p class="section-sub" style="max-width:none">Firmcraft is presented as a light atelier rather than a heavy workshop. The focus stays on Elena, the material, the handwork and pieces that feel personal for any style.</p>
+          <blockquote class="quote">“A piece should feel personal before it feels expensive.”</blockquote>
+          <cite>Elena Firman — Firmcraft</cite>
+          <div class="hero-actions" style="margin-top:2rem">
+            <a class="btn-primary" href="#" data-open-request>Write to Elena</a>
+            <a class="btn-ghost" href="https://www.instagram.com/firmangoods.official/" target="_blank" rel="noopener">Follow the atelier</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="bespoke" id="bespoke">
+    <div class="wrap">
+      <p class="section-label reveal">Bespoke</p>
+      <h2 class="section-title reveal">Build the mood, then send it to Elena.</h2>
+      <p class="section-sub reveal">Choose leather, thread and hardware — the brief prepares an email to Elena with your selections.</p>
+      <div class="bespoke-grid">
+        <div class="reveal">
+          <div class="config-group">
+            <h4>Leather</h4>
+            <div class="chips" data-group="leather">
+              <button type="button" class="chip active" data-val="Warm cognac">Cognac</button>
+              <button type="button" class="chip" data-val="Deep black">Black</button>
+              <button type="button" class="chip" data-val="Olive natural">Olive</button>
+              <button type="button" class="chip" data-val="Natural tan">Natural</button>
+            </div>
+          </div>
+          <div class="config-group">
+            <h4>Thread</h4>
+            <div class="chips" data-group="thread">
+              <button type="button" class="chip active" data-val="Ivory stitch">Ivory</button>
+              <button type="button" class="chip" data-val="Tonal stitch">Tonal</button>
+              <button type="button" class="chip" data-val="Charcoal stitch">Charcoal</button>
+            </div>
+          </div>
+          <div class="config-group">
+            <h4>Hardware</h4>
+            <div class="chips" data-group="hardware">
+              <button type="button" class="chip active" data-val="Brushed brass">Brass</button>
+              <button type="button" class="chip" data-val="Brushed silver">Silver</button>
+              <button type="button" class="chip" data-val="Antique bronze">Bronze</button>
+            </div>
+          </div>
+        </div>
+        <div class="preview-card reveal">
+          <img src="assets/firmcraft/detail_hardware.jpg?v=2" alt="Leather hardware detail" id="previewImg">
+          <div class="preview-copy">
+            <p><strong id="briefText">Warm cognac leather, ivory stitch, brushed brass hardware.</strong></p>
+            <a class="btn-primary" href="#" id="sendBrief" style="display:inline-block">Send this request</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <p class="section-label reveal">Process</p>
+      <h2 class="section-title reveal">Four quiet steps.</h2>
+      <div class="process-steps">
+        <div class="step reveal"><div class="step-num">01</div><h4>Listen</h4><p>How you carry, what you hold, which mood the piece should keep.</p></div>
+        <div class="step reveal"><div class="step-num">02</div><h4>Cut</h4><p>Leather selected, edges skived, proportions drawn by hand.</p></div>
+        <div class="step reveal"><div class="step-num">03</div><h4>Stitch</h4><p>Saddle-stitching, burnishing, hardware set with patience.</p></div>
+        <div class="step reveal"><div class="step-num">04</div><h4>Deliver</h4><p>A finished piece that already feels lived-in and yours.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="journal">
+    <div class="wrap">
+      <p class="section-label reveal">Photographic journal</p>
+      <h2 class="section-title reveal">Selected stills from the atelier series.</h2>
+      <div class="journal-grid">
+        <div class="journal-item reveal" data-full="assets/firmcraft/wallet.jpg?v=2"><img src="assets/firmcraft/wallet.jpg?v=2" alt="Wallet" loading="lazy"><span class="journal-cap">Wallet</span></div>
+        <div class="journal-item reveal" data-full="assets/firmcraft/detail_stitch.jpg?v=2"><img src="assets/firmcraft/detail_stitch.jpg?v=2" alt="Stitching detail" loading="lazy"><span class="journal-cap">Stitch</span></div>
+        <div class="journal-item reveal" data-full="assets/firmcraft/tote.jpg?v=2"><img src="assets/firmcraft/tote.jpg?v=2" alt="Tote" loading="lazy"><span class="journal-cap">Tote</span></div>
+        <div class="journal-item reveal" data-full="assets/firmcraft/bag.jpg?v=2"><img src="assets/firmcraft/bag.jpg?v=2" alt="Bag" loading="lazy"><span class="journal-cap">Bag</span></div>
+        <div class="journal-item reveal" data-full="assets/firmcraft/crossbody.jpg?v=2"><img src="assets/firmcraft/crossbody.jpg?v=2" alt="Crossbody" loading="lazy"><span class="journal-cap">Crossbody</span></div>
+        <div class="journal-item reveal" data-full="assets/firmcraft/shopping.jpg?v=2"><img src="assets/firmcraft/shopping.jpg?v=2" alt="Shopping bag" loading="lazy"><span class="journal-cap">Shopping</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="contact" id="contact">
+    <div class="wrap reveal">
+      <p class="section-label">Contact</p>
+      <h2 class="section-title">Requests go to Elena.</h2>
+      <p class="section-sub">Open the commission form or write directly. Public updates live on Instagram.</p>
+      <div class="contact-links">
+        <a class="btn-primary" href="#" data-open-request>Open request form</a>
+        <a class="btn-ghost" href="mailto:reviakinaes@gmail.com?subject=Firmcraft%20commission">Email directly</a>
+        <a class="btn-ghost" href="https://www.instagram.com/firmangoods.official/" target="_blank" rel="noopener">Instagram</a>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    Firmcraft · Handmade leather by Elena Firman · Imagery by Grok Imagine ·
+    <a href="firmcraft_tunnel.html" style="color:var(--cognac);text-decoration:underline">Tunnel experience →</a>
+    · <a href="firmcraft_atelier.html" style="color:var(--cognac);text-decoration:underline">Flat scroll</a>
+  </footer>
+
+  <div class="modal" id="requestModal" aria-hidden="true">
+    <div class="modal-card">
+      <button class="modal-close" type="button" aria-label="Close">&times;</button>
+      <h2>Commission a piece</h2>
+      <p>Write to Elena about a wallet, bag, tote or bespoke leather object. The form opens your email with the message prepared.</p>
+      <form id="requestForm">
+        <div class="field"><label>Your name</label><input type="text" name="name" required placeholder="Your name"></div>
+        <div class="field"><label>Email or Instagram</label><input type="text" name="contact" required placeholder="you@email.com or @handle"></div>
+        <div class="field"><label>Piece</label>
+          <select name="piece" id="pieceSelect">
+            <option>Wallet / card holder</option>
+            <option>Tote bag</option>
+            <option>Shoulder bag</option>
+            <option>Crossbody bag</option>
+            <option>Shopping bag</option>
+            <option>Phone sleeve / glasses case</option>
+            <option>Custom leather piece</option>
+          </select>
+        </div>
+        <div class="field"><label>Notes</label><textarea name="notes" placeholder="Colour, size, hardware, timeline…"></textarea></div>
+        <button class="btn-primary" type="submit" style="width:100%;border:none;cursor:pointer">Send request email</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="lightbox" id="lightbox" aria-hidden="true">
+    <button class="lightbox-close" type="button" aria-label="Close">&times;</button>
+    <img src="" alt="" id="lightboxImg">
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.18/dist/lenis.min.js"></script>
+  <script>
+(function () {
+  const EMAIL = 'reviakinaes@gmail.com';
+  const loader = document.getElementById('loader');
+  const nav = document.getElementById('nav');
+  const modal = document.getElementById('requestModal');
+  const lightbox = document.getElementById('lightbox');
+  const lightboxImg = document.getElementById('lightboxImg');
+  const pieceSelect = document.getElementById('pieceSelect');
+  const briefText = document.getElementById('briefText');
+  const sendBrief = document.getElementById('sendBrief');
+  const config = { leather: 'Warm cognac', thread: 'Ivory stitch', hardware: 'Brushed brass' };
+
+  window.addEventListener('load', () => setTimeout(() => loader.classList.add('done'), 900));
+  window.addEventListener('scroll', () => nav.classList.toggle('scrolled', scrollY > 40), { passive: true });
+
+  if (typeof Lenis !== 'undefined') {
+    const lenis = new Lenis({ duration: 1.2, smoothWheel: true });
+    function raf(t) { lenis.raf(t); requestAnimationFrame(raf); }
+    requestAnimationFrame(raf);
+  }
+
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+  }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+  function openModal(piece) {
+    if (piece) {
+      for (const opt of pieceSelect.options) {
+        if (opt.text.toLowerCase().includes(piece.toLowerCase().split('/')[0].trim())) {
+          pieceSelect.value = opt.text; break;
+        }
+      }
+    }
+    modal.classList.add('open');
+    modal.setAttribute('aria-hidden', 'false');
+  }
+  function closeModal() {
+    modal.classList.remove('open');
+    modal.setAttribute('aria-hidden', 'true');
+  }
+
+  document.querySelectorAll('[data-open-request]').forEach(el => {
+    el.addEventListener('click', e => {
+      e.preventDefault();
+      openModal(el.dataset.piece || '');
+    });
+  });
+  modal.querySelector('.modal-close').addEventListener('click', closeModal);
+  modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
+
+  document.getElementById('requestForm').addEventListener('submit', e => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const body = [
+      `Name: ${fd.get('name')}`,
+      `Contact: ${fd.get('contact')}`,
+      `Piece: ${fd.get('piece')}`,
+      '',
+      String(fd.get('notes') || ''),
+    ].join('\n');
+    location.href = `mailto:${EMAIL}?subject=${encodeURIComponent('Firmcraft commission')}&body=${encodeURIComponent(body)}`;
+    closeModal();
+  });
+
+  function updateBrief() {
+    briefText.textContent = `${config.leather} leather, ${config.thread.toLowerCase()}, ${config.hardware.toLowerCase()} hardware.`;
+    sendBrief.href = `mailto:${EMAIL}?subject=${encodeURIComponent('Firmcraft bespoke brief')}&body=${encodeURIComponent(briefText.textContent)}`;
+  }
+  document.querySelectorAll('.chips').forEach(group => {
+    group.addEventListener('click', e => {
+      const chip = e.target.closest('.chip');
+      if (!chip) return;
+      group.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      config[group.dataset.group] = chip.dataset.val;
+      updateBrief();
+    });
+  });
+  updateBrief();
+
+  document.querySelectorAll('.journal-item').forEach(item => {
+    item.addEventListener('click', () => {
+      lightboxImg.src = item.dataset.full;
+      lightboxImg.alt = item.querySelector('.journal-cap')?.textContent || '';
+      lightbox.classList.add('open');
+      lightbox.setAttribute('aria-hidden', 'false');
+    });
+  });
+  lightbox.querySelector('.lightbox-close').addEventListener('click', () => {
+    lightbox.classList.remove('open');
+    lightbox.setAttribute('aria-hidden', 'true');
+  });
+  lightbox.addEventListener('click', e => { if (e.target === lightbox) lightbox.classList.remove('open'); });
+
+  sendBrief.addEventListener('click', e => { e.preventDefault(); location.href = sendBrief.href; });
+})();
+  </script>
+</body>
+</html>
