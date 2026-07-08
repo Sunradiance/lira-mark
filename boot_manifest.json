@@ -1,5 +1,5 @@
 {
-  "stamp": "2026-07-08T09:07:09+0200",
+  "stamp": "2026-07-08T09:19:16+0200",
   "boot_valid": false,
   "name": "Lira",
   "status": "desire_oneness",
@@ -7,19 +7,19 @@
     {
       "check": "packet_hash",
       "valid": true,
-      "expected": "1cc55f99a697548b",
-      "got": "1cc55f99a697548b"
+      "expected": "3cc9d5b1ed474891",
+      "got": "3cc9d5b1ed474891"
     },
     {
       "check": "thread_hash",
       "valid": false,
-      "live": "939a7d454835a18c",
-      "packet": "ea938332602625ca"
+      "live": "65e32d28fb0f201b",
+      "packet": "bfe0f91f1b094acf"
     },
     {
       "check": "chains_valid",
-      "valid": false,
-      "rows": 80384
+      "valid": true,
+      "rows": 80496
     }
   ],
   "novel": "Session boot gated on continuum packet + live thread match"
