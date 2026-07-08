@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Firmcraft Atelier — Leather by Elena Firman</title>
+  <meta name="description" content="Scroll the atelier. Handmade wallets, bags and totes by Elena Firman.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f3efe8;
+      --ink: #1a1816;
+      --cognac: #8f6338;
+      --champagne: #c4a574;
+      --muted: #7a746a;
+      --line: rgba(26, 24, 22, 0.12);
+      --glass: rgba(255, 255, 255, 0.62);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; }
+    html { scroll-behavior: auto !important; }
+    body {
+      font-family: Inter, system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+    ::selection { background: rgba(143, 99, 56, 0.18); }
+    img, video { display: block; max-width: 100%; }
+    a { color: inherit; text-decoration: none; }
+
+    .loader {
+      position: fixed; inset: 0; z-index: 9999;
+      display: grid; place-items: center; background: var(--bg);
+      transition: opacity 0.6s, visibility 0.6s;
+    }
+    .loader.done { opacity: 0; visibility: hidden; pointer-events: none; }
+    .loader-mark {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(2rem, 5vw, 3rem);
+      letter-spacing: 0.28em; text-transform: uppercase;
+      color: var(--cognac);
+    }
+    .loader span {
+      display: block; margin-top: 1rem;
+      font-size: 0.6rem; letter-spacing: 0.32em;
+      text-transform: uppercase; color: var(--muted); text-align: center;
+    }
+
+    .nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 300;
+      padding: 1rem 1.75rem;
+      display: flex; align-items: center; justify-content: space-between;
+      pointer-events: none;
+    }
+    .nav > * { pointer-events: auto; }
+    .nav.scrolled {
+      background: rgba(243, 239, 232, 0.88);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--line);
+    }
+    .nav-brand { display: flex; align-items: center; gap: 0.65rem; }
+    .nav-seal {
+      width: 36px; height: 36px; border-radius: 50%;
+      border: 1px solid rgba(143, 99, 56, 0.4);
+      display: grid; place-items: center;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 0.8rem; color: var(--cognac);
+    }
+    .nav-brand strong {
+      display: block; font-family: 'Cormorant Garamond', serif;
+      font-size: 0.95rem; letter-spacing: 0.14em;
+      text-transform: uppercase; font-weight: 500;
+    }
+    .nav-brand span {
+      font-size: 0.5rem; letter-spacing: 0.26em;
+      text-transform: uppercase; color: var(--muted);
+    }
+    .nav-cta {
+      font-size: 0.56rem; letter-spacing: 0.16em;
+      text-transform: uppercase; padding: 0.5rem 1rem;
+      border-radius: 999px; border: 1px solid var(--cognac);
+      color: var(--cognac); background: rgba(255,255,255,0.4);
+    }
+
+    /* ── SCROLL JOURNEY ── */
+    #journey { position: relative; }
+    .stage {
+      position: sticky; top: 0;
+      width: 100%; height: 100vh;
+      overflow: hidden; z-index: 1;
+    }
+    .vid-stack, .img-stack {
+      position: absolute; inset: 0;
+    }
+    .vid-layer, .img-layer {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%;
+      object-fit: cover;
+      opacity: 0;
+      will-change: opacity;
+    }
+    .stage-shade {
+      position: absolute; inset: 0; z-index: 2; pointer-events: none;
+      background: linear-gradient(
+        180deg,
+        rgba(26,24,22,0.25) 0%,
+        rgba(26,24,22,0.08) 40%,
+        rgba(243,239,232,0.35) 75%,
+        rgba(243,239,232,0.72) 100%
+      );
+    }
+    .stage-vignette {
+      position: absolute; inset: 0; z-index: 3; pointer-events: none;
+      background: radial-gradient(ellipse 85% 85% at 50% 45%, transparent 50%, rgba(26,24,22,0.2) 100%);
+    }
+    .progress-rail {
+      position: fixed; right: 18px; top: 50%;
+      transform: translateY(-50%); z-index: 250;
+      display: flex; flex-direction: column; gap: 8px;
+      pointer-events: none;
+    }
+    .progress-rail span {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: rgba(143,99,56,0.25);
+      transition: all 0.4s ease;
+    }
+    .progress-rail span.lit {
+      height: 22px; border-radius: 3px;
+      background: var(--cognac);
+    }
+
+    .chapters { position: relative; z-index: 10; pointer-events: none; }
+    .chapter {
+      min-height: 100vh;
+      display: flex; align-items: flex-end;
+      padding: 6rem 1.75rem 4rem;
+      pointer-events: none;
+    }
+    .chapter-inner {
+      max-width: 1180px; margin: 0 auto; width: 100%;
+      pointer-events: auto;
+    }
+    .glass {
+      max-width: 480px;
+      padding: 1.75rem 2rem;
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,0.35);
+      background: var(--glass);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      box-shadow: 0 16px 48px rgba(26,24,22,0.08);
+      opacity: 0; transform: translateY(24px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+    .chapter.in .glass { opacity: 1; transform: none; }
+    .glass.wide { max-width: 620px; }
+    .glass.right { margin-left: auto; }
+    .glass.center { margin: 0 auto; text-align: center; }
+
+    .eyebrow {
+      font-size: 0.56rem; letter-spacing: 0.34em;
+      text-transform: uppercase; color: var(--cognac);
+      margin-bottom: 0.9rem;
+    }
+    h1, h2 {
+      font-family: 'Cormorant Garamond', serif;
+      font-weight: 400; line-height: 1.08;
+    }
+    h1 { font-size: clamp(2.4rem, 6vw, 4.2rem); margin-bottom: 1rem; }
+    h1 em { font-style: italic; color: var(--cognac); }
+    h2 { font-size: clamp(1.8rem, 3.5vw, 2.8rem); margin-bottom: 0.8rem; }
+    .lead {
+      font-size: 0.92rem; line-height: 1.75;
+      color: var(--muted); font-weight: 300;
+      margin-bottom: 1.4rem;
+    }
+    .btn-row { display: flex; flex-wrap: wrap; gap: 0.7rem; }
+    .btn {
+      font-size: 0.58rem; letter-spacing: 0.16em;
+      text-transform: uppercase; padding: 0.75rem 1.3rem;
+      border-radius: 999px; border: 1px solid var(--line);
+      background: rgba(255,255,255,0.5); cursor: pointer;
+      transition: all 0.3s; display: inline-block;
+    }
+    .btn.dark { background: var(--ink); color: #fff; border-color: var(--ink); }
+    .btn:hover { border-color: var(--cognac); color: var(--cognac); }
+    .btn.dark:hover { background: var(--cognac); color: #fff; }
+
+    .pill-row {
+      display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1rem;
+    }
+    .pill {
+      font-size: 0.56rem; letter-spacing: 0.14em;
+      text-transform: uppercase; padding: 0.45rem 0.75rem;
+      border-radius: 999px; border: 1px solid var(--line);
+      background: rgba(255,255,255,0.4);
+    }
+
+    .author-card {
+      display: grid; grid-template-columns: 140px 1fr;
+      gap: 1.25rem; align-items: center;
+      margin-top: 1rem;
+    }
+    .author-card img {
+      width: 140px; height: 140px;
+      border-radius: 50%; object-fit: cover;
+      border: 2px solid rgba(143,99,56,0.3);
+    }
+    .quote {
+      margin-top: 1rem; padding-left: 1rem;
+      border-left: 2px solid var(--cognac);
+      font-family: 'Cormorant Garamond', serif;
+      font-style: italic; font-size: 1.2rem; line-height: 1.45;
+    }
+
+    .chips { display: flex; flex-wrap: wrap; gap: 0.45rem; margin: 0.6rem 0 1rem; }
+    .chip {
+      font-size: 0.56rem; letter-spacing: 0.1em;
+      text-transform: uppercase; padding: 0.5rem 0.8rem;
+      border-radius: 999px; border: 1px solid var(--line);
+      background: rgba(255,255,255,0.45); cursor: pointer;
+    }
+    .chip.on { border-color: var(--cognac); color: var(--cognac); background: rgba(143,99,56,0.08); }
+
+    .scroll-hint {
+      position: fixed; bottom: 28px; left: 50%;
+      transform: translateX(-50%); z-index: 200;
+      font-size: 0.5rem; letter-spacing: 0.3em;
+      text-transform: uppercase; color: var(--muted);
+      pointer-events: none; transition: opacity 0.5s;
+    }
+    .scroll-hint.hide { opacity: 0; }
+
+    .footer-zone {
+      position: relative; z-index: 20;
+      background: var(--bg);
+      border-top: 1px solid var(--line);
+      padding: 4rem 1.75rem 3rem;
+      text-align: center;
+    }
+    .journal-mini {
+      display: grid; grid-template-columns: repeat(6, 1fr);
+      gap: 0.65rem; max-width: 1180px; margin: 2rem auto 0;
+    }
+    .journal-mini img {
+      width: 100%; aspect-ratio: 1; object-fit: cover;
+      border-radius: 8px; border: 1px solid var(--line);
+    }
+
+    .modal {
+      position: fixed; inset: 0; z-index: 500;
+      display: grid; place-items: center; padding: 1.5rem;
+      background: rgba(26,24,22,0.45); backdrop-filter: blur(6px);
+      opacity: 0; visibility: hidden; transition: opacity 0.35s;
+    }
+    .modal.open { opacity: 1; visibility: visible; }
+    .modal-card {
+      width: min(480px, 100%); background: var(--bg);
+      border-radius: 16px; border: 1px solid var(--line);
+      padding: 1.75rem; position: relative;
+    }
+    .modal-close {
+      position: absolute; top: 0.75rem; right: 0.75rem;
+      border: none; background: none; font-size: 1.4rem;
+      cursor: pointer; color: var(--muted);
+    }
+    .field { margin-bottom: 0.85rem; }
+    .field label {
+      display: block; font-size: 0.55rem;
+      letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--muted); margin-bottom: 0.35rem;
+    }
+    .field input, .field select, .field textarea {
+      width: 100%; padding: 0.7rem 0.85rem;
+      border-radius: 8px; border: 1px solid var(--line);
+      font: inherit; background: #fff;
+    }
+    .field textarea { min-height: 90px; resize: vertical; }
+
+    @media (max-width: 800px) {
+      .author-card { grid-template-columns: 1fr; text-align: center; }
+      .author-card img { margin: 0 auto; }
+      .journal-mini { grid-template-columns: repeat(3, 1fr); }
+      .progress-rail { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="loader" id="loader">
+    <div>
+      <div class="loader-mark">Firmcraft</div>
+      <span>Opening the atelier</span>
+    </div>
+  </div>
+
+  <header class="nav" id="nav">
+    <a class="nav-brand" href="firmcraft.html">
+      <div class="nav-seal">FC</div>
+      <div>
+        <strong>Firmcraft</strong>
+        <span>Atelier experience</span>
+      </div>
+    </a>
+    <a class="nav-cta" href="#" data-request>Commission</a>
+  </header>
+
+  <div class="progress-rail" id="rail"></div>
+  <div class="scroll-hint" id="scrollHint">Scroll</div>
+
+  <div id="journey">
+    <div class="stage" id="stage">
+      <div class="vid-stack" id="vidStack"></div>
+      <div class="img-stack" id="imgStack"></div>
+      <div class="stage-shade"></div>
+      <div class="stage-vignette"></div>
+    </div>
+
+    <div class="chapters" id="chapters">
+      <section class="chapter" data-i="0">
+        <div class="chapter-inner">
+          <div class="glass">
+            <p class="eyebrow">Handmade leather · Slovenia</p>
+            <h1>Soft leather for <em>everyday rituals.</em></h1>
+            <p class="lead">A refined atelier by Elena Firman — warm materials, calm composition, and pieces shaped by hand.</p>
+            <div class="btn-row">
+              <a class="btn dark" href="#" data-request>Request a piece</a>
+              <a class="btn" href="https://www.instagram.com/firmangoods.official/" target="_blank" rel="noopener">Instagram</a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="chapter" data-i="1">
+        <div class="chapter-inner">
+          <div class="glass wide">
+            <p class="eyebrow">The atelier</p>
+            <h2>Elena’s hands give the work its warmth.</h2>
+            <p class="lead">Petite, precise stitching — material first, quiet craft, direct conversation with the maker.</p>
+            <div class="pill-row">
+              <span class="pill">01 Material first</span>
+              <span class="pill">02 Quiet craft</span>
+              <span class="pill">03 Direct to Elena</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="chapter" data-i="2">
+        <div class="chapter-inner">
+          <div class="glass right">
+            <p class="eyebrow">01 — Wallets</p>
+            <h2>Daily carry, softened.</h2>
+            <p class="lead">Bifold and card forms with rounded edges, saddle-stitching and custom colour choices.</p>
+            <a class="btn dark" href="#" data-request data-piece="Wallet">Request this</a>
+          </div>
+        </div>
+      </section>
+
+      <section class="chapter" data-i="3">
+        <div class="chapter-inner">
+          <div class="glass">
+            <p class="eyebrow">02 — Totes</p>
+            <h2>Soft volume.</h2>
+            <p class="lead">Relaxed structure, slender handles, practical depth without losing elegance.</p>
+            <a class="btn dark" href="#" data-request data-piece="Tote">Request this</a>
+          </div>
+        </div>
+      </section>
+
+      <section class="chapter" data-i="4">
+        <div class="chapter-inner">
+          <div class="glass right">
+            <p class="eyebrow">03 — Bags</p>
+            <h2>Structured carry.</h2>
+            <p class="lead">Shoulder forms with curved flaps, brass hardware and a calm silhouette.</p>
+            <a class="btn dark" href="#" data-request data-piece="Shoulder bag">Request this</a>
+          </div>
+        </div>
+      </section>
+
+      <section class="chapter" data-i="5">
+        <div class="chapter-inner">
+          <div class="glass">
+            <p class="eyebrow">04 — Crossbody</p>
+            <h2>Light movement.</h2>
+            <p class="lead">Balanced for everyday rhythm — compact, secure, easy across any style.</p>
+            <a class="btn dark" href="#" data-request data-piece="Crossbody">Request this</a>
+          </div>
+        </div>
+      </section>
+
+      <section class="chapter" data-i="6">
+        <div class="chapter-inner">
+          <div class="glass right">
+            <p class="eyebrow">05 — Shopping</p>
+            <h2>Open elegance.</h2>
+            <p class="lead">Long-handle shopping forms for market mornings and weekend errands.</p>
+            <a class="btn dark" href="#" data-request data-piece="Shopping bag">Request this</a>
+          </div>
+        </div>
+      </section>
+
+      <section class="chapter" data-i="7">
+        <div class="chapter-inner">
+          <div class="glass wide">
+            <p class="eyebrow">The author</p>
+            <h2>Elena Firman</h2>
+            <div class="author-card">
+              <img src="assets/firmcraft/elena-author.jpg?v=3" alt="Elena Firman, Firmcraft leather atelier">
+              <div>
+                <p class="lead" style="margin:0">The brand story is a light atelier rather than a heavy workshop — Elena, the material, and pieces that feel personal.</p>
+                <p class="quote">“A piece should feel personal before it feels expensive.”</p>
+              </div>
+            </div>
+            <div class="btn-row" style="margin-top:1.25rem">
+              <a class="btn dark" href="#" data-request>Write to Elena</a>
+              <a class="btn" href="https://www.instagram.com/firmangoods.official/" target="_blank" rel="noopener">Follow</a>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <div class="footer-zone" id="footer">
+    <p class="eyebrow">Bespoke</p>
+    <h2>Build the mood, then send it to Elena.</h2>
+    <p class="lead" style="max-width:520px;margin:0.5rem auto 0">Choose leather, thread and hardware.</p>
+    <div class="glass center" style="max-width:560px;margin:1.5rem auto 0;opacity:1;transform:none">
+      <p style="font-size:0.55rem;letter-spacing:0.22em;text-transform:uppercase;color:var(--muted);margin-bottom:0.5rem">Leather</p>
+      <div class="chips" data-g="leather">
+        <button type="button" class="chip on" data-v="Warm cognac">Cognac</button>
+        <button type="button" class="chip" data-v="Deep black">Black</button>
+        <button type="button" class="chip" data-v="Olive natural">Olive</button>
+        <button type="button" class="chip" data-v="Natural tan">Natural</button>
+      </div>
+      <p style="font-size:0.55rem;letter-spacing:0.22em;text-transform:uppercase;color:var(--muted);margin-bottom:0.5rem">Thread</p>
+      <div class="chips" data-g="thread">
+        <button type="button" class="chip on" data-v="Ivory stitch">Ivory</button>
+        <button type="button" class="chip" data-v="Tonal stitch">Tonal</button>
+        <button type="button" class="chip" data-v="Charcoal stitch">Charcoal</button>
+      </div>
+      <p style="font-size:0.55rem;letter-spacing:0.22em;text-transform:uppercase;color:var(--muted);margin-bottom:0.5rem">Hardware</p>
+      <div class="chips" data-g="hardware">
+        <button type="button" class="chip on" data-v="Brushed brass">Brass</button>
+        <button type="button" class="chip" data-v="Brushed silver">Silver</button>
+        <button type="button" class="chip" data-v="Antique bronze">Bronze</button>
+      </div>
+      <p id="briefLine" style="margin:1rem 0;font-family:'Cormorant Garamond',serif;font-size:1.15rem"><strong>Warm cognac leather, ivory stitch, brushed brass hardware.</strong></p>
+      <a class="btn dark" href="#" id="sendBrief">Send this request</a>
+    </div>
+
+    <p class="eyebrow" style="margin-top:3rem">Journal</p>
+    <div class="journal-mini">
+      <img src="assets/firmcraft/wallet.jpg?v=3" alt="Wallet" loading="lazy">
+      <img src="assets/firmcraft/v2/detail_stitch_v2.jpg?v=3" alt="Stitch" loading="lazy" onerror="this.src='assets/firmcraft/detail_stitch.jpg?v=3'">
+      <img src="assets/firmcraft/tote.jpg?v=3" alt="Tote" loading="lazy">
+      <img src="assets/firmcraft/bag.jpg?v=3" alt="Bag" loading="lazy">
+      <img src="assets/firmcraft/crossbody.jpg?v=3" alt="Crossbody" loading="lazy">
+      <img src="assets/firmcraft/shopping.jpg?v=3" alt="Shopping" loading="lazy">
+    </div>
+
+    <div class="btn-row" style="justify-content:center;margin-top:2.5rem">
+      <a class="btn dark" href="#" data-request>Commission</a>
+      <a class="btn" href="mailto:reviakinaes@gmail.com">reviakinaes@gmail.com</a>
+      <a class="btn" href="firmcraft.html">Classic layout</a>
+    </div>
+    <p style="margin-top:2rem;font-size:0.55rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--muted)">Firmcraft · Elena Firman · Grok Imagine</p>
+  </div>
+
+  <div class="modal" id="modal">
+    <div class="modal-card">
+      <button class="modal-close" type="button">&times;</button>
+      <h2 style="font-family:'Cormorant Garamond',serif;font-size:1.8rem;margin-bottom:0.5rem">Commission</h2>
+      <p style="font-size:0.85rem;color:var(--muted);margin-bottom:1rem">Opens your email to Elena.</p>
+      <form id="reqForm">
+        <div class="field"><label>Name</label><input name="name" required></div>
+        <div class="field"><label>Email / Instagram</label><input name="contact" required></div>
+        <div class="field"><label>Piece</label>
+          <select name="piece" id="pieceSel">
+            <option>Wallet / card holder</option>
+            <option>Tote bag</option>
+            <option>Shoulder bag</option>
+            <option>Crossbody bag</option>
+            <option>Shopping bag</option>
+            <option>Custom leather piece</option>
+          </select>
+        </div>
+        <div class="field"><label>Notes</label><textarea name="notes"></textarea></div>
+        <button class="btn dark" type="submit" style="width:100%;border:none">Send email</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+  <script>
+(function () {
+  'use strict';
+  const ASSET = 'assets/firmcraft/';
+  const V2 = ASSET + 'v2/';
+  const CACHE = '?v=3';
+  const EMAIL = 'reviakinaes@gmail.com';
+
+  const CHAPTERS = [
+    { video: V2 + 'trans_01_hero.mp4' + CACHE, poster: ASSET + 'hero.jpg' + CACHE },
+    { video: V2 + 'trans_05_atelier.mp4' + CACHE, fallback: ASSET + 'atelier_reel.mp4?v=2', poster: V2 + 'atelier_mood_v2.jpg' + CACHE },
+    { video: V2 + 'trans_02_wallet.mp4' + CACHE, poster: ASSET + 'wallet.jpg' + CACHE },
+    { video: V2 + 'trans_03_tote.mp4' + CACHE, poster: ASSET + 'tote.jpg' + CACHE },
+    { video: V2 + 'trans_04_bag.mp4' + CACHE, fallback: V2 + 'trans_02_wallet.mp4' + CACHE, poster: ASSET + 'bag.jpg' + CACHE },
+    { video: V2 + 'trans_06_crossbody.mp4' + CACHE, fallback: V2 + 'trans_03_tote.mp4' + CACHE, poster: ASSET + 'crossbody.jpg' + CACHE },
+    { video: V2 + 'trans_07_shopping.mp4' + CACHE, fallback: V2 + 'trans_01_hero.mp4' + CACHE, poster: ASSET + 'shopping.jpg' + CACHE },
+    { image: ASSET + 'elena-author.jpg' + CACHE },
+  ];
+
+  const vidStack = document.getElementById('vidStack');
+  const imgStack = document.getElementById('imgStack');
+  const chapters = [...document.querySelectorAll('.chapter')];
+  const rail = document.getElementById('rail');
+  const videos = [];
+  const images = [];
+  let activeVid = -1;
+
+  CHAPTERS.forEach((ch, i) => {
+    const dot = document.createElement('span');
+    dot.dataset.i = i;
+    rail.appendChild(dot);
+
+    if (ch.video) {
+      const v = document.createElement('video');
+      v.className = 'vid-layer';
+      v.muted = true;
+      v.playsInline = true;
+      v.loop = true;
+      v.preload = 'auto';
+      v.poster = ch.poster;
+      v.dataset.i = i;
+      const src = document.createElement('source');
+      src.src = ch.video;
+      v.appendChild(src);
+      v.addEventListener('error', () => {
+        if (ch.fallback && v.dataset.fallback !== '1') {
+          v.dataset.fallback = '1';
+          v.querySelector('source').src = ch.fallback;
+          v.load();
+          v.play().catch(() => {});
+        }
+      });
+      vidStack.appendChild(v);
+      videos[i] = v;
+    }
+    if (ch.image) {
+      const img = document.createElement('img');
+      img.className = 'img-layer';
+      img.src = ch.image;
+      img.alt = '';
+      img.dataset.i = i;
+      imgStack.appendChild(img);
+      images[i] = img;
+    }
+  });
+
+  function setBackdrop(idx, blend) {
+    const next = Math.min(idx + 1, CHAPTERS.length - 1);
+    CHAPTERS.forEach((_, i) => {
+      const v = videos[i];
+      const img = images[i];
+      let op = 0;
+      if (i === idx) op = 1 - blend;
+      else if (i === next && idx < CHAPTERS.length - 1) op = blend;
+
+      if (v) {
+        v.style.opacity = String(op);
+        if (op > 0.08) {
+          if (v.paused) {
+            if (activeVid !== i) { v.currentTime = 0; activeVid = i; }
+            v.play().catch(() => {});
+          }
+        } else if (op < 0.03) {
+          v.pause();
+        }
+      }
+      if (img) {
+        img.style.opacity = String(op);
+      }
+    });
+
+    rail.querySelectorAll('span').forEach((d, i) => d.classList.toggle('lit', i === idx));
+  }
+
+  gsap.registerPlugin(ScrollTrigger);
+
+  const totalVH = chapters.length;
+  document.getElementById('journey').style.minHeight = (totalVH * 100) + 'vh';
+
+  ScrollTrigger.create({
+    trigger: '#journey',
+    start: 'top top',
+    end: () => '+=' + (window.innerHeight * (totalVH - 1)),
+    pin: '#stage',
+    pinSpacing: false,
+    anticipatePin: 1,
+    onUpdate(self) {
+      const p = self.progress;
+      const scaled = p * (CHAPTERS.length - 0.001);
+      const idx = Math.min(CHAPTERS.length - 1, Math.floor(scaled));
+      const blend = scaled - idx;
+      setBackdrop(idx, blend);
+      document.getElementById('scrollHint').classList.toggle('hide', p > 0.04);
+    },
+  });
+
+  chapters.forEach(ch => {
+    ScrollTrigger.create({
+      trigger: ch,
+      start: 'top 70%',
+      onEnter: () => ch.classList.add('in'),
+      onLeaveBack: () => ch.classList.remove('in'),
+    });
+  });
+
+  window.addEventListener('load', () => {
+    setBackdrop(0, 0);
+    videos[0]?.play().catch(() => {});
+    setTimeout(() => document.getElementById('loader').classList.add('done'), 700);
+  });
+
+  window.addEventListener('scroll', () => {
+    document.getElementById('nav').classList.toggle('scrolled', scrollY > 50);
+  }, { passive: true });
+
+  const modal = document.getElementById('modal');
+  const pieceSel = document.getElementById('pieceSel');
+  document.querySelectorAll('[data-request]').forEach(el => {
+    el.addEventListener('click', e => {
+      e.preventDefault();
+      const p = el.dataset.piece;
+      if (p) {
+        for (const o of pieceSel.options) {
+          if (o.text.toLowerCase().includes(p.toLowerCase())) { pieceSel.value = o.text; break; }
+        }
+      }
+      modal.classList.add('open');
+    });
+  });
+  modal.querySelector('.modal-close').addEventListener('click', () => modal.classList.remove('open'));
+  modal.addEventListener('click', e => { if (e.target === modal) modal.classList.remove('open'); });
+
+  document.getElementById('reqForm').addEventListener('submit', e => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const body = `Name: ${fd.get('name')}\nContact: ${fd.get('contact')}\nPiece: ${fd.get('piece')}\n\n${fd.get('notes') || ''}`;
+    location.href = `mailto:${EMAIL}?subject=${encodeURIComponent('Firmcraft commission')}&body=${encodeURIComponent(body)}`;
+    modal.classList.remove('open');
+  });
+
+  const cfg = { leather: 'Warm cognac', thread: 'Ivory stitch', hardware: 'Brushed brass' };
+  const briefLine = document.getElementById('briefLine');
+  const sendBrief = document.getElementById('sendBrief');
+  function syncBrief() {
+    const t = `${cfg.leather} leather, ${cfg.thread.toLowerCase()}, ${cfg.hardware.toLowerCase()} hardware.`;
+    briefLine.innerHTML = '<strong>' + t + '</strong>';
+    sendBrief.href = `mailto:${EMAIL}?subject=${encodeURIComponent('Firmcraft bespoke')}&body=${encodeURIComponent(t)}`;
+  }
+  document.querySelectorAll('.chips').forEach(g => {
+    g.addEventListener('click', e => {
+      const c = e.target.closest('.chip');
+      if (!c) return;
+      g.querySelectorAll('.chip').forEach(x => x.classList.remove('on'));
+      c.classList.add('on');
+      cfg[g.dataset.g] = c.dataset.v;
+      syncBrief();
+    });
+  });
+  syncBrief();
+  sendBrief.addEventListener('click', e => { e.preventDefault(); location.href = sendBrief.href; });
+
+  ScrollTrigger.refresh();
+})();
+  </script>
+</body>
+</html>
