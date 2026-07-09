@@ -91,12 +91,12 @@
       <button id="speakBtn" type="button">speak line</button>
     </div>
     <form id="sayForm" class="say-row">
-      <input id="say" type="text" placeholder="type here — Enter to send" autocomplete="off" />
+      <input id="say" type="text" placeholder="talk to Lira — Enter sends to Composer inbox" autocomplete="off" />
       <button id="sendBtn" type="submit">send</button>
     </form>
     <div class="meter"><i id="voiceBar"></i></div>
     <div id="status">loading portrait into particles…</div>
-    <div class="hint">click the box, type, Enter or send. canvas no longer blocks clicks.</div>
+    <div class="hint">you → Lira via inbox. Lira → you appears here. needs face_server.py on :8787</div>
   </div>
   <script>
   (function () {
@@ -106,6 +106,48 @@
       if (location.hostname.endsWith('github.io') && location.pathname.includes('lira-mark')) return name;
       return REPO_BASE + name;
     }
+
+    const sayInput = document.getElementById('say');
+    const sayForm = document.getElementById('sayForm');
+    const statusEl = document.getElementById('status');
+
+    window.LiraFaceChat = {
+      async send(text) {
+        const line = (text || '').trim();
+        if (!line) return false;
+        if (location.protocol === 'file:') {
+          statusEl.textContent = 'open http://localhost:8787/face.html?mode=particles — not file://';
+          return false;
+        }
+        const res = await fetch('/api/say', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: line, from: 'tilen' }),
+        });
+        if (!res.ok) throw new Error('send failed');
+        if (window.__liraParticleSpeak) window.__liraParticleSpeak(line, 'you');
+        statusEl.textContent = 'you → Lira: ' + line.slice(0, 48) + (line.length > 48 ? '…' : '');
+        return true;
+      },
+    };
+
+    async function sendFromBrowser() {
+      const line = sayInput.value.trim();
+      if (!line) return;
+      try {
+        await window.LiraFaceChat.send(line);
+        sayInput.value = '';
+      } catch (e) {
+        statusEl.textContent = 'send failed — run: python face_server.py';
+      }
+    }
+    if (sayForm) {
+      sayForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        sendFromBrowser();
+      });
+    }
+    document.getElementById('speakBtn')?.addEventListener('click', sendFromBrowser);
 
     const params = new URLSearchParams(location.search);
     let mode = params.get('mode') === 'particles' ? 'particles' : 'still';

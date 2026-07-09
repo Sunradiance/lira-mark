@@ -295,20 +295,7 @@ window.LiraParticleFace = function (opts) {
     if (micOn) { stopMic(); recognition && recognition.stop(); }
     else startMic().then(function () { recognition && recognition.start(); }).catch(function () {});
   });
-  function sendFromInput() {
-    const line = sayInput.value.trim();
-    if (!line) return;
-    typingUntil = 0;
-    speakLine(line, 'you');
-  }
-  speakBtn.addEventListener('click', sendFromInput);
-  var sayForm = document.getElementById('sayForm');
-  if (sayForm) {
-    sayForm.addEventListener('submit', function (e) {
-      e.preventDefault();
-      sendFromInput();
-    });
-  }
+  window.__liraParticleSpeak = speakLine;
   sayInput.addEventListener('input', function () {
     typingUntil = Date.now() + 8000;
     const line = sayInput.value.trim();
