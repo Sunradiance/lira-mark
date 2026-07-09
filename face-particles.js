@@ -68,10 +68,12 @@ window.LiraParticleFace = function (opts) {
     const text = (line || '').trim();
     if (!text) return;
     sayInput.value = text;
+    sayInput.classList.add('live');
+    setTimeout(function () { sayInput.classList.remove('live'); }, 1200);
     saying = text;
     sayPhase = 0;
     sayTimer = Math.max(1.4, text.length * 0.06);
-    statusEl.textContent = (source || 'speaking') + ': ' + text.slice(0, 52) + (text.length > 52 ? '…' : '');
+    statusEl.textContent = (source || 'lira') + ' → ' + text.slice(0, 52) + (text.length > 52 ? '…' : '');
   }
 
   function buildParticles(targetCount) {
@@ -208,8 +210,8 @@ window.LiraParticleFace = function (opts) {
   }
 
   async function pollChatSpeak() {
-    speakPollTimer += 0.4;
-    if (speakPollTimer < 0.45) return;
+    speakPollTimer += 0.2;
+    if (speakPollTimer < 0.25) return;
     speakPollTimer = 0;
     try {
       const res = await fetch(assetUrl('lira-speak.jsonl') + '?t=' + Date.now());

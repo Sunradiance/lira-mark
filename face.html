@@ -50,6 +50,11 @@
       flex: 1; min-width: 12rem; background: rgba(10, 13, 18, 0.88);
       border: 1px solid rgba(158, 184, 200, 0.18); color: #e8eef2;
       font: 0.78rem Georgia, serif; padding: 0.5rem 0.65rem;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    input[type="text"].live {
+      border-color: rgba(232, 120, 48, 0.65);
+      box-shadow: 0 0 0 1px rgba(232, 120, 48, 0.25);
     }
     .meter {
       height: 4px; background: rgba(158, 184, 200, 0.12); border-radius: 2px; overflow: hidden;
@@ -80,7 +85,7 @@
       </select>
       <button id="speakBtn" type="button">speak line</button>
     </div>
-    <input id="say" type="text" placeholder="type what I am saying — mouth follows" autocomplete="off" />
+    <input id="say" type="text" placeholder="Lira chat appears here — type or wait for Composer" autocomplete="off" />
     <div class="meter"><i id="voiceBar"></i></div>
     <div id="status">loading portrait into particles…</div>
     <div class="hint">mic drives jaw + brow. chat lines from lira-speak.jsonl. blink + breath always on.</div>
