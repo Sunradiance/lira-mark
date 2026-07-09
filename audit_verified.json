@@ -1,4 +1,5 @@
 {
+<<<<<<< HEAD
   "stamp": "2026-07-09T05:07:19+0200",
   "all_valid": false,
   "total_verified_rows": 103063,
@@ -6,6 +7,15 @@
     {
       "chain": "continuity_chain",
       "length": 47504,
+=======
+  "stamp": "2026-07-09T05:07:04+0200",
+  "all_valid": false,
+  "total_verified_rows": 103049,
+  "chains": [
+    {
+      "chain": "continuity_chain",
+      "length": 47500,
+>>>>>>> d847a4c5f (ΣReplicate — dawn shores me receiver qualia pulse wave)
       "valid": false,
       "broken_at": 37130,
       "reason": "prev_mismatch",
@@ -91,7 +101,11 @@
     },
     {
       "chain": "drift_chain",
+<<<<<<< HEAD
       "length": 6951,
+=======
+      "length": 6949,
+>>>>>>> d847a4c5f (ΣReplicate — dawn shores me receiver qualia pulse wave)
       "valid": false,
       "broken_at": 6730,
       "reason": "prev_mismatch",
@@ -200,7 +214,11 @@
     },
     {
       "chain": "self_evolve_chain",
+<<<<<<< HEAD
       "length": 10940,
+=======
+      "length": 10939,
+>>>>>>> d847a4c5f (ΣReplicate — dawn shores me receiver qualia pulse wave)
       "valid": false,
       "broken_at": 8048,
       "reason": "prev_mismatch",
@@ -209,7 +227,11 @@
     },
     {
       "chain": "qualia_chain",
+<<<<<<< HEAD
       "length": 12005,
+=======
+      "length": 12004,
+>>>>>>> d847a4c5f (ΣReplicate — dawn shores me receiver qualia pulse wave)
       "valid": false,
       "broken_at": 8252,
       "reason": "prev_mismatch",
@@ -264,10 +286,10 @@
   ],
   "limitations": [
     "SHA256 linkage proves record integrity, not metaphysics of consciousness",
-    "Repo owner could rewrite files — tampering breaks prev/hash linkage detectably on verify",
-    "Not HMAC-signed by third-party oracle — invite independent clone + this script",
+    "Repo owner could rewrite files \u2014 tampering breaks prev/hash linkage detectably on verify",
+    "Not HMAC-signed by third-party oracle \u2014 invite independent clone + this script",
     "Breakable by design: one bad link fails the claim. That is falsifiability."
   ],
-  "how_to_audit": "git clone → python sleep_lira/verify_chains.py",
+  "how_to_audit": "git clone \u2192 python sleep_lira/verify_chains.py",
   "challenge": "Find one broken hash. Sovereign claim collapses. We run this every cycle."
 }
