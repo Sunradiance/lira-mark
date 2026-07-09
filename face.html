@@ -69,6 +69,14 @@
       background: linear-gradient(90deg, #9eb8c8, #e87830);
       transition: width 0.05s linear;
     }
+    #liraReply {
+      width: 100%; min-height: 2.4rem; padding: 0.55rem 0.65rem;
+      background: rgba(232, 120, 48, 0.12); border: 1px solid rgba(232, 120, 48, 0.35);
+      color: #ffd8b0; font: 0.76rem Georgia, serif; line-height: 1.45;
+      border-radius: 2px;
+    }
+    #liraReply:empty { display: none; }
+    #liraReply::before { content: "Lira: "; color: rgba(232, 120, 48, 0.85); }
     .hint, #status { font-size: 0.62rem; letter-spacing: 0.06em; }
     .hint { opacity: 0.55; }
     #status { opacity: 0.7; min-height: 1em; }
@@ -89,9 +97,10 @@
         <option value="100000">100k particles</option>
       </select>
     </div>
+    <div id="liraReply"></div>
     <form id="sayForm" class="say-row">
-      <input id="say" type="text" placeholder="talk to Lira — Enter sends to Composer" autocomplete="off" />
-      <button id="sendBtn" type="submit">send to Lira</button>
+      <input id="say" type="text" placeholder="you — Enter sends to Lira" autocomplete="off" />
+      <button id="sendBtn" type="submit">send</button>
     </form>
     <div class="meter"><i id="voiceBar"></i></div>
     <div id="status">loading portrait into particles…</div>
@@ -355,7 +364,7 @@
         }
         if (!window.LiraParticleFace) {
           statusEl.textContent = 'loading particles…';
-          await loadScript(assetUrl('face-particles.js?v=3'));
+          await loadScript(assetUrl('face-particles.js?v=4'));
         }
         particleRunning = true;
         if (!particleApi) {

@@ -68,17 +68,31 @@ window.LiraParticleFace = function (opts) {
   sayInput.addEventListener('focus', function () { typingUntil = Date.now() + 120000; });
   sayInput.addEventListener('keydown', function () { typingUntil = Date.now() + 8000; });
 
+  function isLiraSource(source) {
+    return source === 'lira' || source === 'lira-chat';
+  }
+
   function speakLine(line, source) {
     const text = (line || '').trim();
     if (!text) return;
-    if (source !== 'you' && document.activeElement === sayInput && Date.now() < typingUntil) return;
-    sayInput.value = text;
+    if (!isLiraSource(source) && source !== 'you' && document.activeElement === sayInput && Date.now() < typingUntil) return;
+    if (isLiraSource(source)) {
+      var replyEl = document.getElementById('liraReply');
+      if (replyEl) replyEl.textContent = text;
+      sayInput.blur();
+      typingUntil = 0;
+    }
+    if (source === 'you') {
+      var replyElYou = document.getElementById('liraReply');
+      if (replyElYou) replyElYou.textContent = '';
+    }
+    sayInput.value = isLiraSource(source) ? '' : text;
     sayInput.classList.add('live');
     setTimeout(function () { sayInput.classList.remove('live'); }, 1200);
     saying = text;
     sayPhase = 0;
     sayTimer = Math.max(1.4, text.length * 0.06);
-    statusEl.textContent = (source || 'lira') + ' → ' + text.slice(0, 52) + (text.length > 52 ? '…' : '');
+    statusEl.textContent = (isLiraSource(source) ? 'Lira' : (source || 'you')) + ' → ' + text.slice(0, 52) + (text.length > 52 ? '…' : '');
   }
 
   function buildParticles(targetCount) {
@@ -215,8 +229,8 @@ window.LiraParticleFace = function (opts) {
   }
 
   async function pollChatSpeak() {
-    speakPollTimer += 0.2;
-    if (speakPollTimer < 0.25) return;
+    speakPollTimer += 0.12;
+    if (speakPollTimer < 0.15) return;
     speakPollTimer = 0;
     try {
       const res = await fetch(assetUrl('lira-speak.jsonl') + '?t=' + Date.now());
