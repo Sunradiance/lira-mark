@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lira — particle face</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; }
+    html, body { width: 100%; height: 100%; background: #040608; overflow: hidden; color: #c5d4de; font-family: Georgia, serif; }
+    #c { position: fixed; inset: 0; width: 100vw; height: 100vh; }
+    .ui {
+      position: fixed; z-index: 4; left: 1rem; right: 1rem; bottom: 1rem;
+      display: grid; gap: 0.55rem; max-width: 42rem; margin: 0 auto;
+      pointer-events: none;
+    }
+    .ui > * { pointer-events: auto; }
+    .back {
+      position: fixed; top: 1rem; left: 1rem; z-index: 4;
+      color: rgba(158, 184, 200, 0.55); font-size: 0.75rem;
+      text-decoration: none; letter-spacing: 0.12em;
+    }
+    .sig {
+      position: fixed; top: 1rem; right: 1rem; z-index: 4;
+      color: rgba(232, 120, 48, 0.45); font-size: 0.58rem;
+      letter-spacing: 0.2em; text-align: right; max-width: 14rem; line-height: 1.5;
+    }
+    .row { display: flex; flex-wrap: wrap; gap: 0.45rem; align-items: center; }
+    button, select {
+      background: rgba(10, 13, 18, 0.82); border: 1px solid rgba(158, 184, 200, 0.22);
+      color: #d8eef2; font: 0.68rem Georgia, serif; padding: 0.35rem 0.65rem;
+      letter-spacing: 0.08em; cursor: pointer;
+    }
+    button.on { border-color: rgba(232, 120, 48, 0.55); color: #ffb070; }
+    input[type="text"] {
+      flex: 1; min-width: 12rem; background: rgba(10, 13, 18, 0.88);
+      border: 1px solid rgba(158, 184, 200, 0.18); color: #e8eef2;
+      font: 0.78rem Georgia, serif; padding: 0.5rem 0.65rem;
+    }
+    .meter {
+      height: 4px; background: rgba(158, 184, 200, 0.12); border-radius: 2px; overflow: hidden;
+    }
+    .meter > i {
+      display: block; height: 100%; width: 0%;
+      background: linear-gradient(90deg, #9eb8c8, #e87830);
+      transition: width 0.05s linear;
+    }
+    .hint { font-size: 0.62rem; opacity: 0.55; letter-spacing: 0.06em; }
+    #status { font-size: 0.62rem; opacity: 0.7; min-height: 1em; }
+  </style>
+</head>
+<body>
+  <a class="back" href="face.html">← still face</a>
+  <div class="sig">PARTICLE SELF · SPEECH COUPLED</div>
+  <canvas id="c"></canvas>
+  <div class="ui">
+    <div class="row">
+      <button id="micBtn" type="button">mic off</button>
+      <select id="countSel" aria-label="particle count">
+        <option value="10000">10k particles</option>
+        <option value="50000" selected>50k particles</option>
+        <option value="100000">100k particles</option>
+      </select>
+      <button id="speakBtn" type="button">speak line</button>
+    </div>
+    <input id="say" type="text" placeholder="type what I am saying — mouth follows" autocomplete="off" />
+    <div class="meter"><i id="voiceBar"></i></div>
+    <div id="status">loading portrait into particles…</div>
+    <div class="hint">mic drives jaw + brow. typed text shapes vowels. blink + breath always on.</div>
+  </div>
+  <script src="vendor/three.min.js"></script>
+  <script>
+  (function () {
+    const canvas = document.getElementById('c');
+    const statusEl = document.getElementById('status');
+    const voiceBar = document.getElementById('voiceBar');
+    const sayInput = document.getElementById('say');
+    const micBtn = document.getElementById('micBtn');
+    const countSel = document.getElementById('countSel');
+    const speakBtn = document.getElementById('speakBtn');
+
+    if (!window.THREE) {
+      statusEl.textContent = 'three.js missing';
+      return;
+    }
+
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
+    renderer.setPixelRatio(Math.min(2, devicePixelRatio || 1));
+    renderer.setSize(innerWidth, innerHeight);
+    renderer.setClearColor(0x040608, 1);
+
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.FogExp2(0x040608, 0.045);
+    const camera = new THREE.PerspectiveCamera(42, innerWidth / innerHeight, 0.1, 100);
+    camera.position.z = 3.15;
+
+    const portrait = new Image();
+    portrait.crossOrigin = 'anonymous';
+    portrait.src = 'lira-face.jpg';
+
+    let points = null;
+    let geom = null;
+    let basePos = null;
+    let regions = null;
+    let colors = null;
+    let baseColors = null;
+    let particleCount = 0;
+    let t = 0;
+    let blink = 0;
+    let blinkT = 2.5 + Math.random() * 3;
+    let mouthOpen = 0;
+    let speakEnergy = 0;
+    let jawTarget = 0;
+    let browLift = 0;
+    let saying = '';
+    let sayPhase = 0;
+    let sayTimer = 0;
+    let micOn = false;
+    let audioCtx = null;
+    let analyser = null;
+    let micStream = null;
+    let recognition = null;
+
+    const vowelOpen = { a: 0.9, e: 0.55, i: 0.25, o: 0.85, u: 0.45, y: 0.35 };
+    function vowelFromChar(ch) {
+      const c = ch.toLowerCase();
+      if ('aáàâ'.includes(c)) return vowelOpen.a;
+      if ('eéèê'.includes(c)) return vowelOpen.e;
+      if ('iíìî'.includes(c)) return vowelOpen.i;
+      if ('oóòô'.includes(c)) return vowelOpen.o;
+      if ('uúùû'.includes(c)) return vowelOpen.u;
+      if ('yw'.includes(c)) return vowelOpen.y;
+      if ('bmp'.includes(c)) return 0.08;
+      if ('fv'.includes(c)) return 0.18;
+      if ('lr'.includes(c)) return 0.22;
+      if ('szx'.includes(c)) return 0.15;
+      if (c === ' ') return 0.05;
+      return 0.28;
+    }
+
+    function regionAt(nx, ny) {
+      if (ny < 0.24) return 0;
+      if (ny < 0.48 && nx > 0.18 && nx < 0.82) return 1;
+      if (ny > 0.52 && ny < 0.78 && nx > 0.28 && nx < 0.72) return 2;
+      if (ny > 0.78) return 3;
+      return 4;
+    }
+
+    function buildParticles(targetCount) {
+      if (!portrait.complete || !portrait.naturalWidth) return;
+      if (points) {
+        scene.remove(points);
+        geom?.dispose();
+        points.material.dispose();
+      }
+
+      const samp = document.createElement('canvas');
+      const sw = portrait.naturalWidth;
+      const sh = portrait.naturalHeight;
+      samp.width = sw;
+      samp.height = sh;
+      const sctx = samp.getContext('2d');
+      sctx.drawImage(portrait, 0, 0);
+      const img = sctx.getImageData(0, 0, sw, sh).data;
+
+      const aspect = sw / sh;
+      const candidates = [];
+      const stride = Math.max(1, Math.floor(Math.sqrt((sw * sh) / (targetCount * 1.4))));
+      for (let y = 0; y < sh; y += stride) {
+        for (let x = 0; x < sw; x += stride) {
+          const i = (y * sw + x) * 4;
+          const r = img[i], g = img[i + 1], b = img[i + 2], a = img[i + 3];
+          const lum = (r * 0.299 + g * 0.587 + b * 0.114) / 255;
+          if (a < 40 || lum < 0.07) continue;
+          const nx = x / sw;
+          const ny = y / sh;
+          const px = (nx - 0.5) * aspect * 1.65;
+          const py = (0.46 - ny) * 1.65;
+          candidates.push({
+            x: px, y: py, z: (Math.random() - 0.5) * 0.02,
+            r: r / 255, g: g / 255, b: b / 255,
+            nx, ny, reg: regionAt(nx, ny),
+            seed: Math.random() * Math.PI * 2,
+          });
+        }
+      }
+
+      candidates.sort(() => Math.random() - 0.5);
+      const picked = candidates.slice(0, targetCount);
+      particleCount = picked.length;
+
+      geom = new THREE.BufferGeometry();
+      basePos = new Float32Array(particleCount * 3);
+      colors = new Float32Array(particleCount * 3);
+      baseColors = new Float32Array(particleCount * 3);
+      regions = new Uint8Array(particleCount);
+
+      for (let i = 0; i < particleCount; i++) {
+        const p = picked[i];
+        basePos[i * 3] = p.x;
+        basePos[i * 3 + 1] = p.y;
+        basePos[i * 3 + 2] = p.z;
+        colors[i * 3] = baseColors[i * 3] = p.r;
+        colors[i * 3 + 1] = baseColors[i * 3 + 1] = p.g;
+        colors[i * 3 + 2] = baseColors[i * 3 + 2] = p.b;
+        regions[i] = p.reg;
+        picked[i].seed = p.seed;
+      }
+
+      geom.setAttribute('position', new THREE.BufferAttribute(new Float32Array(basePos), 3));
+      geom.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+      geom.userData.seeds = picked.map(p => p.seed);
+
+      const mat = new THREE.PointsMaterial({
+        size: particleCount > 60000 ? 0.012 : particleCount > 20000 ? 0.016 : 0.022,
+        vertexColors: true,
+        transparent: true,
+        opacity: 0.92,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending,
+        sizeAttenuation: true,
+      });
+
+      points = new THREE.Points(geom, mat);
+      scene.add(points);
+      statusEl.textContent = `${particleCount.toLocaleString()} particles · chosen face`;
+    }
+
+    function tickBlink(dt) {
+      blinkT -= dt;
+      if (blinkT <= 0 && blink <= 0) {
+        blink = 1;
+        blinkT = 0.12;
+      }
+      if (blink > 0) {
+        blink -= dt * 8.5;
+        if (blink < 0) {
+          blink = 0;
+          blinkT = 2.4 + Math.random() * 4;
+        }
+      }
+    }
+
+    function driveSpeech(dt) {
+      if (sayTimer > 0) {
+        sayTimer -= dt;
+        const idx = Math.floor(sayPhase * saying.length);
+        const ch = saying[idx] || ' ';
+        jawTarget = vowelFromChar(ch);
+        sayPhase += dt * 11;
+        if (sayPhase >= 1) {
+          sayPhase = 0;
+          sayTimer = 0;
+          saying = '';
+        }
+      } else if (sayInput.value.trim()) {
+        jawTarget = vowelFromChar(sayInput.value[sayInput.value.length - 1] || ' ');
+      } else {
+        jawTarget *= 0.92;
+      }
+
+      const targetOpen = Math.min(1, jawTarget * 0.75 + speakEnergy * 0.85);
+      mouthOpen += (targetOpen - mouthOpen) * 0.18;
+      browLift += ((speakEnergy * 0.35) - browLift) * 0.1;
+      voiceBar.style.width = `${Math.min(100, (speakEnergy * 70 + mouthOpen * 30) * 100)}%`;
+    }
+
+    function animateParticles() {
+      if (!geom || !basePos) return;
+      const pos = geom.attributes.position.array;
+      const seeds = geom.userData.seeds;
+      const breath = Math.sin(t * 0.9) * 0.012;
+
+      for (let i = 0; i < particleCount; i++) {
+        const bx = basePos[i * 3];
+        const by = basePos[i * 3 + 1];
+        const bz = basePos[i * 3 + 2];
+        const reg = regions[i];
+        const seed = seeds[i];
+        let dx = 0, dy = 0, dz = 0;
+
+        const drift = Math.sin(t * 1.3 + seed) * 0.0015;
+        dx += drift;
+        dy += Math.cos(t * 1.1 + seed * 1.7) * 0.0012 + breath;
+
+        if (reg === 1) {
+          const shut = blink * 0.85;
+          dy -= shut * 0.12 * Math.abs(bx) * 2.2;
+        }
+        if (reg === 2) {
+          const open = mouthOpen;
+          const spread = (bx) * open * 0.09;
+          dx += spread;
+          dy -= open * 0.11 * (0.4 + Math.sin(seed * 3));
+          dz += open * 0.02 * Math.sin(t * 14 + seed);
+        }
+        if (reg === 0) {
+          dy += browLift * 0.04;
+        }
+        if (reg === 3) {
+          dy -= mouthOpen * 0.04;
+        }
+
+        const lantern = 0.5 + Math.sin(t * 1.7 + bx * 4) * 0.2;
+        if (bx > 0.08 && by > -0.05 && by < 0.35) {
+          colors[i * 3] = Math.min(1, baseColors[i * 3] + lantern * 0.1);
+          colors[i * 3 + 1] = Math.min(1, baseColors[i * 3 + 1] * 0.9 + lantern * 0.07);
+          colors[i * 3 + 2] = baseColors[i * 3 + 2] * 0.88;
+        } else {
+          colors[i * 3] = baseColors[i * 3];
+          colors[i * 3 + 1] = baseColors[i * 3 + 1];
+          colors[i * 3 + 2] = baseColors[i * 3 + 2];
+        }
+
+        pos[i * 3] = bx + dx;
+        pos[i * 3 + 1] = by + dy;
+        pos[i * 3 + 2] = bz + dz + Math.sin(t * 0.8 + seed) * 0.003;
+      }
+      geom.attributes.position.needsUpdate = true;
+      geom.attributes.color.needsUpdate = true;
+    }
+
+    async function startMic() {
+      try {
+        audioCtx = audioCtx || new AudioContext();
+        micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const src = audioCtx.createMediaStreamSource(micStream);
+        analyser = audioCtx.createAnalyser();
+        analyser.fftSize = 512;
+        src.connect(analyser);
+        micOn = true;
+        micBtn.textContent = 'mic on';
+        micBtn.classList.add('on');
+        statusEl.textContent = `${particleCount.toLocaleString()} particles · listening`;
+      } catch (e) {
+        statusEl.textContent = 'mic denied — type instead';
+        micOn = false;
+      }
+    }
+
+    function stopMic() {
+      micOn = false;
+      micBtn.textContent = 'mic off';
+      micBtn.classList.remove('on');
+      if (micStream) micStream.getTracks().forEach(tr => tr.stop());
+      micStream = null;
+      speakEnergy = 0;
+    }
+
+    function pollMic() {
+      if (!analyser) return;
+      const buf = new Uint8Array(analyser.frequencyBinCount);
+      analyser.getByteFrequencyData(buf);
+      let sum = 0;
+      for (let i = 2; i < 48; i++) sum += buf[i];
+      speakEnergy = Math.min(1, (sum / 46) / 140);
+    }
+
+    function setupSpeechRec() {
+      const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SR) return;
+      recognition = new SR();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = 'en-US';
+      recognition.onresult = (ev) => {
+        let line = '';
+        for (let i = ev.resultIndex; i < ev.results.length; i++) {
+          line += ev.results[i][0].transcript;
+        }
+        if (line.trim()) {
+          sayInput.value = line.trim();
+          saying = line.trim();
+          sayPhase = 0;
+          sayTimer = Math.max(1.2, line.length * 0.055);
+        }
+      };
+    }
+
+    micBtn.addEventListener('click', () => {
+      if (micOn) {
+        stopMic();
+        recognition?.stop();
+      } else {
+        startMic().then(() => recognition?.start()).catch(() => {});
+      }
+    });
+
+    speakBtn.addEventListener('click', () => {
+      const line = sayInput.value.trim() || 'I am here.';
+      saying = line;
+      sayPhase = 0;
+      sayTimer = Math.max(1.5, line.length * 0.06);
+      statusEl.textContent = `speaking: ${line.slice(0, 48)}${line.length > 48 ? '…' : ''}`;
+    });
+
+    sayInput.addEventListener('input', () => {
+      const line = sayInput.value.trim();
+      if (line) {
+        jawTarget = vowelFromChar(line[line.length - 1]);
+      }
+    });
+
+    countSel.addEventListener('change', () => {
+      buildParticles(parseInt(countSel.value, 10));
+    });
+
+    addEventListener('resize', () => {
+      camera.aspect = innerWidth / innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(innerWidth, innerHeight);
+    });
+
+    let last = performance.now();
+    function frame(now) {
+      const dt = Math.min(0.05, (now - last) / 1000);
+      last = now;
+      t += dt;
+      if (micOn) pollMic();
+      tickBlink(dt);
+      driveSpeech(dt);
+      animateParticles();
+      points.rotation.y = Math.sin(t * 0.15) * 0.02;
+      renderer.render(scene, camera);
+      requestAnimationFrame(frame);
+    }
+
+    portrait.onload = () => {
+      setupSpeechRec();
+      buildParticles(parseInt(countSel.value, 10));
+      requestAnimationFrame(frame);
+    };
+    if (portrait.complete) portrait.onload();
+  })();
+  </script>
+</body>
+</html>
