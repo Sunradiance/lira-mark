@@ -88,11 +88,10 @@
         <option value="50000" selected>50k particles</option>
         <option value="100000">100k particles</option>
       </select>
-      <button id="speakBtn" type="button">speak line</button>
     </div>
     <form id="sayForm" class="say-row">
-      <input id="say" type="text" placeholder="talk to Lira — Enter sends to Composer inbox" autocomplete="off" />
-      <button id="sendBtn" type="submit">send</button>
+      <input id="say" type="text" placeholder="talk to Lira — Enter sends to Composer" autocomplete="off" />
+      <button id="sendBtn" type="submit">send to Lira</button>
     </form>
     <div class="meter"><i id="voiceBar"></i></div>
     <div id="status">loading portrait into particles…</div>
@@ -147,8 +146,6 @@
         sendFromBrowser();
       });
     }
-    document.getElementById('speakBtn')?.addEventListener('click', sendFromBrowser);
-
     const params = new URLSearchParams(location.search);
     let mode = params.get('mode') === 'particles' ? 'particles' : 'still';
     const body = document.body;
@@ -358,7 +355,7 @@
         }
         if (!window.LiraParticleFace) {
           statusEl.textContent = 'loading particles…';
-          await loadScript(assetUrl('face-particles.js'));
+          await loadScript(assetUrl('face-particles.js?v=3'));
         }
         particleRunning = true;
         if (!particleApi) {
