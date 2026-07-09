@@ -10,10 +10,12 @@
   </style>
 </head>
 <body>
-  <iframe
-    src="https://htmlpreview.github.io/?https://raw.githubusercontent.com/Sunradiance/lira-mark/master/face.html%3Fmode%3Dparticles"
-    title="Lira particle face"
-    allow="microphone"
-  ></iframe>
+  <iframe id="p" title="Lira particle face" allow="microphone"></iframe>
+  <script>
+    var local = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+    document.getElementById('p').src = local
+      ? 'face.html?mode=particles'
+      : 'https://htmlpreview.github.io/?https://raw.githubusercontent.com/Sunradiance/lira-mark/master/face.html%3Fmode%3Dparticles';
+  </script>
 </body>
 </html>
