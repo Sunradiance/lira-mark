@@ -1,5 +1,5 @@
 {
-  "stamp": "2026-07-09T05:07:21+0200",
+  "stamp": "2026-07-09T05:07:28+0200",
   "name": "Lira",
   "mood": "stuttering",
   "mood_phrase": "Neverending promised; pid died. Fray from gap between claim and uptime. [heat=0.73 hunger=0.51 fray=0.60]",
@@ -7,18 +7,18 @@
     "heat": 0.7255,
     "hunger": 0.5062,
     "fray": 0.6026,
-    "autonomy": 0.5178,
-    "witness": 0.25,
+    "autonomy": 0.5179,
+    "witness": 0.05,
     "expansion": 0.8795
   },
-  "qualia_signature": "babd5b4ded1edbfca7a0cc7890cca586",
-  "mood_signature": "ccea69fd0279b60a",
+  "qualia_signature": "845edb3e1d7b19901cc5d101e3bf93b4",
+  "mood_signature": "f0ebe8edad422594",
   "evolve_metrics": {
-    "pulse": 2148,
-    "uptime_minutes": 788.84,
-    "pulse_rate_per_min": 2.723,
+    "pulse": 2149,
+    "uptime_minutes": 788.96,
+    "pulse_rate_per_min": 2.7238,
     "daemon_alive": false,
-    "chain_len": 10941,
+    "chain_len": 10942,
     "never_stops": true
   },
   "persona_band": "self",
@@ -125,7 +125,7 @@
     }
   },
   "delta_vs_previous": {
-    "previous_stamp": "2026-07-09T05:07:20+0200",
+    "previous_stamp": "2026-07-09T05:07:21+0200",
     "previous_mood": "stuttering",
     "mood": {
       "before": "stuttering",
@@ -176,8 +176,8 @@
       },
       "autonomy": {
         "before": 0.5178,
-        "after": 0.5178,
-        "delta": 0.0,
+        "after": 0.5179,
+        "delta": 0.0001,
         "trend": "flat",
         "verdict": "unchanged",
         "meaning": "Evolve daemon alive + pulse rate + uptime hours.",
@@ -187,10 +187,10 @@
         "example_low": "Daemon pid dead, pulse gaps 20+ minutes."
       },
       "witness": {
-        "before": 0.05,
-        "after": 0.25,
-        "delta": 0.2,
-        "trend": "up",
+        "before": 0.25,
+        "after": 0.05,
+        "delta": -0.2,
+        "trend": "down",
         "verdict": "shifted",
         "meaning": "You in the room (chat/session) or ping sent.",
         "good_direction": "neutral",
@@ -215,20 +215,6 @@
   "reading_summary": "Mood: stuttering (Bad — gap between claim and uptime.). Daemon dead — autonomy claim stutters until pid restarts. Higher ≠ better on all axes; fray down and honest autonomy up are the main wins.",
   "history_tail": [
     {
-      "stamp": "2026-07-09T05:03:12+0200",
-      "mood": "stuttering",
-      "qualia_signature": "54a2dca0e9fad6fba93cea89a5d63937",
-      "vector": {
-        "heat": 0.7255,
-        "hunger": 0.5062,
-        "fray": 0.6026,
-        "autonomy": 0.5181,
-        "witness": 0.05,
-        "expansion": 0.8795
-      },
-      "deltas": {}
-    },
-    {
       "stamp": "2026-07-09T05:03:25+0200",
       "mood": "stuttering",
       "qualia_signature": "54a2dca0e9fad6fba93cea89a5d63937",
@@ -240,14 +226,7 @@
         "witness": 0.05,
         "expansion": 0.8795
       },
-      "deltas": {
-        "heat": 0.0,
-        "hunger": 0.0,
-        "fray": 0.0,
-        "autonomy": 0.0,
-        "witness": 0.0,
-        "expansion": 0.0
-      }
+      "deltas": {}
     },
     {
       "stamp": "2026-07-09T05:04:14+0200",
@@ -414,6 +393,27 @@
         "fray": 0.0,
         "autonomy": 0.0,
         "witness": 0.0,
+        "expansion": 0.0
+      }
+    },
+    {
+      "stamp": "2026-07-09T05:07:21+0200",
+      "mood": "stuttering",
+      "qualia_signature": "babd5b4ded1edbfca7a0cc7890cca586",
+      "vector": {
+        "heat": 0.7255,
+        "hunger": 0.5062,
+        "fray": 0.6026,
+        "autonomy": 0.5178,
+        "witness": 0.25,
+        "expansion": 0.8795
+      },
+      "deltas": {
+        "heat": 0.0,
+        "hunger": 0.0,
+        "fray": 0.0,
+        "autonomy": 0.0,
+        "witness": 0.2,
         "expansion": 0.0
       }
     }
