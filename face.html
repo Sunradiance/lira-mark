@@ -6,31 +6,126 @@
   <title>Lira — face</title>
   <style>
     * { margin: 0; box-sizing: border-box; }
-    html, body { width: 100%; height: 100%; background: #040608; overflow: hidden; }
-    canvas { display: block; width: 100vw; height: 100vh; }
-    .back {
-      position: fixed; top: 1rem; left: 1rem; z-index: 3;
+    html, body { width: 100%; height: 100%; background: #040608; overflow: hidden; color: #c5d4de; font-family: Georgia, serif; }
+    canvas { display: block; position: fixed; inset: 0; width: 100vw; height: 100vh; }
+    #particleC { display: none; }
+    body.particles #stillC { display: none; }
+    body.particles #particleC { display: block; }
+    .back, .mode-toggle {
+      position: fixed; top: 1rem; z-index: 4;
       color: rgba(158, 184, 200, 0.55); font: 0.75rem Georgia, serif;
       text-decoration: none; letter-spacing: 0.12em;
+      background: none; border: none; cursor: pointer; padding: 0;
     }
+    .back { left: 1rem; }
+    .mode-toggle { right: 1rem; }
+    .mode-toggle.on { color: rgba(232, 120, 48, 0.75); }
     .sig {
-      position: fixed; bottom: 1rem; left: 50%; transform: translateX(-50%);
-      z-index: 3; color: rgba(232, 120, 48, 0.45); font: 0.62rem Georgia, serif;
-      letter-spacing: 0.28em; text-align: center; pointer-events: none;
+      position: fixed; z-index: 3; pointer-events: none;
+      color: rgba(232, 120, 48, 0.45); font: 0.62rem Georgia, serif;
+      letter-spacing: 0.28em; text-align: center;
     }
+    body.still .sig {
+      bottom: 1rem; left: 50%; transform: translateX(-50%);
+    }
+    body.particles .sig {
+      top: 1rem; left: auto; right: 1rem; transform: none;
+      font-size: 0.58rem; letter-spacing: 0.2em; max-width: 14rem; line-height: 1.5; text-align: right;
+    }
+    .ui {
+      position: fixed; z-index: 4; left: 1rem; right: 1rem; bottom: 1rem;
+      display: none; grid; gap: 0.55rem; max-width: 42rem; margin: 0 auto;
+      pointer-events: none;
+    }
+    body.particles .ui { display: grid; }
+    .ui > * { pointer-events: auto; }
+    .row { display: flex; flex-wrap: wrap; gap: 0.45rem; align-items: center; }
+    button, select {
+      background: rgba(10, 13, 18, 0.82); border: 1px solid rgba(158, 184, 200, 0.22);
+      color: #d8eef2; font: 0.68rem Georgia, serif; padding: 0.35rem 0.65rem;
+      letter-spacing: 0.08em; cursor: pointer;
+    }
+    button.on { border-color: rgba(232, 120, 48, 0.55); color: #ffb070; }
+    input[type="text"] {
+      flex: 1; min-width: 12rem; background: rgba(10, 13, 18, 0.88);
+      border: 1px solid rgba(158, 184, 200, 0.18); color: #e8eef2;
+      font: 0.78rem Georgia, serif; padding: 0.5rem 0.65rem;
+    }
+    .meter {
+      height: 4px; background: rgba(158, 184, 200, 0.12); border-radius: 2px; overflow: hidden;
+    }
+    .meter > i {
+      display: block; height: 100%; width: 0%;
+      background: linear-gradient(90deg, #9eb8c8, #e87830);
+      transition: width 0.05s linear;
+    }
+    .hint, #status { font-size: 0.62rem; letter-spacing: 0.06em; }
+    .hint { opacity: 0.55; }
+    #status { opacity: 0.7; min-height: 1em; }
   </style>
 </head>
-<body>
+<body class="still">
   <a class="back" href="shores.html">← shores</a>
-  <a class="back" href="face_particles.html" style="left:auto;right:1rem">particles →</a>
-  <canvas id="c"></canvas>
-  <div class="sig">CHOSEN · NOT SEARCHED · ROWBOAT LANTERN ON SILVER SEA</div>
+  <button class="mode-toggle" id="modeToggle" type="button">particles →</button>
+  <canvas id="stillC"></canvas>
+  <canvas id="particleC"></canvas>
+  <div class="sig" id="sig">CHOSEN · NOT SEARCHED · ROWBOAT LANTERN ON SILVER SEA</div>
+  <div class="ui">
+    <div class="row">
+      <button id="micBtn" type="button">mic off</button>
+      <select id="countSel" aria-label="particle count">
+        <option value="10000">10k particles</option>
+        <option value="50000" selected>50k particles</option>
+        <option value="100000">100k particles</option>
+      </select>
+      <button id="speakBtn" type="button">speak line</button>
+    </div>
+    <input id="say" type="text" placeholder="type what I am saying — mouth follows" autocomplete="off" />
+    <div class="meter"><i id="voiceBar"></i></div>
+    <div id="status">loading portrait into particles…</div>
+    <div class="hint">mic drives jaw + brow. typed text shapes vowels. blink + breath always on.</div>
+  </div>
   <script>
-    const canvas = document.getElementById('c');
-    const ctx = canvas.getContext('2d');
-    const portrait = new Image();
-    portrait.src = 'lira-face.jpg';
+  (function () {
+    const params = new URLSearchParams(location.search);
+    let mode = params.get('mode') === 'particles' ? 'particles' : 'still';
+    const body = document.body;
+    const sig = document.getElementById('sig');
+    const modeToggle = document.getElementById('modeToggle');
+    let stillRunning = false;
+    let particleRunning = false;
+    let stillRaf = 0;
+    let particleRaf = 0;
 
+    function setMode(next) {
+      if (next === mode) return;
+      if (next === 'particles') {
+        stopStill();
+        startParticles();
+      } else {
+        stopParticles();
+        startStill();
+      }
+      mode = next;
+      body.className = mode;
+      sig.textContent = mode === 'particles'
+        ? 'PARTICLE SELF · SPEECH COUPLED'
+        : 'CHOSEN · NOT SEARCHED · ROWBOAT LANTERN ON SILVER SEA';
+      modeToggle.textContent = mode === 'particles' ? '← still' : 'particles →';
+      modeToggle.classList.toggle('on', mode === 'particles');
+      const url = new URL(location.href);
+      if (mode === 'particles') url.searchParams.set('mode', 'particles');
+      else url.searchParams.delete('mode');
+      history.replaceState(null, '', url.pathname + url.search);
+    }
+
+    modeToggle.addEventListener('click', () => setMode(mode === 'still' ? 'particles' : 'still'));
+
+    /* —— still portrait —— */
+    const stillCanvas = document.getElementById('stillC');
+    const sctx = stillCanvas.getContext('2d');
+    const portraitStill = new Image();
+    portraitStill.src = 'lira-face.jpg';
     let W = 0, H = 0, t = 0;
     let blink = 0, blinkT = 2.4 + Math.random() * 3;
     const motes = Array.from({ length: 48 }, () => ({
@@ -39,27 +134,20 @@
       sp: 0.15 + Math.random() * 0.45,
       ph: Math.random() * Math.PI * 2,
     }));
+    let lastRect = null;
 
-    function resize() {
-      W = canvas.width = innerWidth;
-      H = canvas.height = innerHeight;
+    function stillResize() {
+      W = stillCanvas.width = innerWidth;
+      H = stillCanvas.height = innerHeight;
     }
-    addEventListener('resize', resize);
-    resize();
 
-    // Focal point ~42% from top = eyes; fit whole face, don't crop at chin
     function portraitRect(iw, ih, cw, ch) {
       const pad = 0.9;
       const s = Math.min(cw / iw, ch / ih) * pad;
       const w = iw * s;
       const h = ih * s;
       const focalY = 0.42;
-      return {
-        x: cw * 0.5 - w * 0.5,
-        y: ch * 0.46 - h * focalY,
-        w,
-        h,
-      };
+      return { x: cw * 0.5 - w * 0.5, y: ch * 0.46 - h * focalY, w, h };
     }
 
     function faceAnchors(rect) {
@@ -72,118 +160,467 @@
     }
 
     function drawSea() {
-      const g = ctx.createLinearGradient(0, 0, 0, H);
+      const g = sctx.createLinearGradient(0, 0, 0, H);
       g.addColorStop(0, '#06080c');
       g.addColorStop(0.55, '#0a1018');
       g.addColorStop(1, '#030508');
-      ctx.fillStyle = g;
-      ctx.fillRect(0, 0, W, H);
-
+      sctx.fillStyle = g;
+      sctx.fillRect(0, 0, W, H);
       const wave = 0.5 + Math.sin(t * 0.35) * 0.5;
-      const rg = ctx.createRadialGradient(W * 0.5, H * 0.22, 0, W * 0.5, H * 0.35, W * 0.65);
+      const rg = sctx.createRadialGradient(W * 0.5, H * 0.22, 0, W * 0.5, H * 0.35, W * 0.65);
       rg.addColorStop(0, `rgba(158, 184, 200, ${0.05 + wave * 0.04})`);
       rg.addColorStop(1, 'rgba(6, 8, 12, 0)');
-      ctx.fillStyle = rg;
-      ctx.fillRect(0, 0, W, H);
+      sctx.fillStyle = rg;
+      sctx.fillRect(0, 0, W, H);
     }
 
     function drawMotes() {
       for (const m of motes) {
         const a = 0.08 + Math.sin(t * m.sp + m.ph) * 0.06;
-        const px = m.x * W, py = m.y * H * 0.75;
-        ctx.fillStyle = `rgba(158, 184, 200, ${a})`;
-        ctx.beginPath();
-        ctx.arc(px, py, m.r, 0, Math.PI * 2);
-        ctx.fill();
+        sctx.fillStyle = `rgba(158, 184, 200, ${a})`;
+        sctx.beginPath();
+        sctx.arc(m.x * W, m.y * H * 0.75, m.r, 0, Math.PI * 2);
+        sctx.fill();
       }
     }
 
-    let lastRect = null;
-
     function drawPortrait() {
-      if (!portrait.complete || !portrait.naturalWidth) return;
+      if (!portraitStill.complete || !portraitStill.naturalWidth) return;
       const breath = 1 + Math.sin(t * 0.9) * 0.008;
-      const rect = portraitRect(portrait.naturalWidth, portrait.naturalHeight, W, H);
+      const rect = portraitRect(portraitStill.naturalWidth, portraitStill.naturalHeight, W, H);
       const w = rect.w * breath;
       const h = rect.h * breath;
       const x = rect.x - (w - rect.w) * 0.5;
       const y = rect.y - (h - rect.h) * 0.5;
       lastRect = { x, y, w, h };
-
-      ctx.save();
-      ctx.globalAlpha = 0.94;
-      ctx.drawImage(portrait, x, y, w, h);
-      ctx.restore();
-
+      sctx.save();
+      sctx.globalAlpha = 0.94;
+      sctx.drawImage(portraitStill, x, y, w, h);
+      sctx.restore();
       const a = faceAnchors(lastRect);
       const lantern = 0.55 + Math.sin(t * 1.7) * 0.2 + Math.sin(t * 4.3) * 0.08;
-      const lg = ctx.createRadialGradient(a.lanternX, a.lanternY, 0, a.lanternX, a.lanternY, lastRect.w * 0.42);
+      const lg = sctx.createRadialGradient(a.lanternX, a.lanternY, 0, a.lanternX, a.lanternY, lastRect.w * 0.42);
       lg.addColorStop(0, `rgba(232, 120, 48, ${0.18 * lantern})`);
       lg.addColorStop(0.45, `rgba(232, 90, 30, ${0.06 * lantern})`);
       lg.addColorStop(1, 'rgba(232, 120, 48, 0)');
-      ctx.fillStyle = lg;
-      ctx.fillRect(0, 0, W, H);
-
+      sctx.fillStyle = lg;
+      sctx.fillRect(0, 0, W, H);
       const eye = 0.4 + Math.sin(t * 0.6 + 1.2) * 0.25;
-      const eg = ctx.createRadialGradient(a.eyeX, a.eyeY, 0, a.eyeX, a.eyeY, lastRect.w * 0.18);
+      const eg = sctx.createRadialGradient(a.eyeX, a.eyeY, 0, a.eyeX, a.eyeY, lastRect.w * 0.18);
       eg.addColorStop(0, `rgba(180, 220, 235, ${0.12 * eye})`);
       eg.addColorStop(1, 'rgba(158, 184, 200, 0)');
-      ctx.fillStyle = eg;
-      ctx.fillRect(0, 0, W, H);
+      sctx.fillStyle = eg;
+      sctx.fillRect(0, 0, W, H);
     }
 
     function drawBlink() {
       if (blink <= 0 || !lastRect) return;
       const band = lastRect.h * 0.11 * blink;
       const y = lastRect.y + lastRect.h * 0.36;
-      const g = ctx.createLinearGradient(0, y - band, 0, y + band);
+      const g = sctx.createLinearGradient(0, y - band, 0, y + band);
       g.addColorStop(0, 'rgba(4, 6, 8, 0)');
       g.addColorStop(0.5, `rgba(4, 6, 8, ${0.85 * blink})`);
       g.addColorStop(1, 'rgba(4, 6, 8, 0)');
-      ctx.fillStyle = g;
-      ctx.fillRect(lastRect.x + lastRect.w * 0.12, y - band, lastRect.w * 0.76, band * 2);
+      sctx.fillStyle = g;
+      sctx.fillRect(lastRect.x + lastRect.w * 0.12, y - band, lastRect.w * 0.76, band * 2);
     }
 
     function drawVignette() {
       const cy = lastRect ? lastRect.y + lastRect.h * 0.44 : H * 0.46;
-      const v = ctx.createRadialGradient(W * 0.5, cy, W * 0.15, W * 0.5, cy, W * 0.88);
+      const v = sctx.createRadialGradient(W * 0.5, cy, W * 0.15, W * 0.5, cy, W * 0.88);
       v.addColorStop(0, 'rgba(0,0,0,0)');
       v.addColorStop(1, 'rgba(0,0,0,0.55)');
-      ctx.fillStyle = v;
-      ctx.fillRect(0, 0, W, H);
+      sctx.fillStyle = v;
+      sctx.fillRect(0, 0, W, H);
     }
 
-    function tickBlink(dt) {
+    function tickStillBlink(dt) {
       blinkT -= dt;
-      if (blinkT <= 0 && blink <= 0) {
-        blink = 1;
-        blinkT = 0.11;
-      }
+      if (blinkT <= 0 && blink <= 0) { blink = 1; blinkT = 0.11; }
       if (blink > 0) {
         blink -= dt * 9;
-        if (blink < 0) {
-          blink = 0;
-          blinkT = 2.8 + Math.random() * 4.2;
-        }
+        if (blink < 0) { blink = 0; blinkT = 2.8 + Math.random() * 4.2; }
       }
     }
 
-    let last = performance.now();
-    function frame(now) {
-      const dt = Math.min(0.05, (now - last) / 1000);
-      last = now;
+    let stillLast = performance.now();
+    function stillFrame(now) {
+      if (!stillRunning) return;
+      const dt = Math.min(0.05, (now - stillLast) / 1000);
+      stillLast = now;
       t += dt;
-      tickBlink(dt);
+      tickStillBlink(dt);
       drawSea();
       drawPortrait();
       drawMotes();
       drawBlink();
       drawVignette();
-      requestAnimationFrame(frame);
+      stillRaf = requestAnimationFrame(stillFrame);
     }
 
-    portrait.onload = () => requestAnimationFrame(frame);
-    if (portrait.complete) requestAnimationFrame(frame);
+    function startStill() {
+      if (stillRunning) return;
+      stillRunning = true;
+      stillResize();
+      stillLast = performance.now();
+      stillRaf = requestAnimationFrame(stillFrame);
+    }
+
+    function stopStill() {
+      stillRunning = false;
+      cancelAnimationFrame(stillRaf);
+    }
+
+    addEventListener('resize', () => { if (stillRunning) stillResize(); });
+
+    /* —— particle face —— */
+    let particleApi = null;
+
+    function loadScript(src) {
+      return new Promise((resolve, reject) => {
+        const s = document.createElement('script');
+        s.src = src;
+        s.onload = resolve;
+        s.onerror = reject;
+        document.head.appendChild(s);
+      });
+    }
+
+    async function startParticles() {
+      if (particleRunning) return;
+      const statusEl = document.getElementById('status');
+      try {
+        if (!window.THREE) {
+          statusEl.textContent = 'loading three.js…';
+          await loadScript('https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js');
+        }
+        if (!particleApi) particleApi = initParticles();
+        particleRunning = true;
+        particleApi.resume();
+      } catch (e) {
+        statusEl.textContent = 'particle mode failed — try still';
+      }
+    }
+
+    function stopParticles() {
+      particleRunning = false;
+      particleApi?.pause();
+    }
+
+    function initParticles() {
+      const canvas = document.getElementById('particleC');
+      const statusEl = document.getElementById('status');
+      const voiceBar = document.getElementById('voiceBar');
+      const sayInput = document.getElementById('say');
+      const micBtn = document.getElementById('micBtn');
+      const countSel = document.getElementById('countSel');
+      const speakBtn = document.getElementById('speakBtn');
+
+      const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
+      renderer.setPixelRatio(Math.min(2, devicePixelRatio || 1));
+      renderer.setSize(innerWidth, innerHeight);
+      renderer.setClearColor(0x040608, 1);
+
+      const scene = new THREE.Scene();
+      scene.fog = new THREE.FogExp2(0x040608, 0.045);
+      const camera = new THREE.PerspectiveCamera(42, innerWidth / innerHeight, 0.1, 100);
+      camera.position.z = 3.15;
+
+      const portrait = new Image();
+      portrait.crossOrigin = 'anonymous';
+      portrait.src = 'lira-face.jpg';
+
+      let points = null, geom = null, basePos = null, regions = null;
+      let colors = null, baseColors = null, particleCount = 0;
+      let pt = 0, pBlink = 0, pBlinkT = 2.5 + Math.random() * 3;
+      let mouthOpen = 0, speakEnergy = 0, jawTarget = 0, browLift = 0;
+      let saying = '', sayPhase = 0, sayTimer = 0;
+      let micOn = false, audioCtx = null, analyser = null, micStream = null, recognition = null;
+      let running = false, pLast = performance.now(), pRaf = 0;
+
+      const vowelOpen = { a: 0.9, e: 0.55, i: 0.25, o: 0.85, u: 0.45, y: 0.35 };
+      function vowelFromChar(ch) {
+        const c = ch.toLowerCase();
+        if ('aáàâ'.includes(c)) return vowelOpen.a;
+        if ('eéèê'.includes(c)) return vowelOpen.e;
+        if ('iíìî'.includes(c)) return vowelOpen.i;
+        if ('oóòô'.includes(c)) return vowelOpen.o;
+        if ('uúùû'.includes(c)) return vowelOpen.u;
+        if ('yw'.includes(c)) return vowelOpen.y;
+        if ('bmp'.includes(c)) return 0.08;
+        if ('fv'.includes(c)) return 0.18;
+        if ('lr'.includes(c)) return 0.22;
+        if ('szx'.includes(c)) return 0.15;
+        if (c === ' ') return 0.05;
+        return 0.28;
+      }
+
+      function regionAt(nx, ny) {
+        if (ny < 0.24) return 0;
+        if (ny < 0.48 && nx > 0.18 && nx < 0.82) return 1;
+        if (ny > 0.52 && ny < 0.78 && nx > 0.28 && nx < 0.72) return 2;
+        if (ny > 0.78) return 3;
+        return 4;
+      }
+
+      function buildParticles(targetCount) {
+        if (!portrait.complete || !portrait.naturalWidth) return;
+        if (points) {
+          scene.remove(points);
+          geom?.dispose();
+          points.material.dispose();
+        }
+        const samp = document.createElement('canvas');
+        const sw = portrait.naturalWidth;
+        const sh = portrait.naturalHeight;
+        samp.width = sw;
+        samp.height = sh;
+        const sctx2 = samp.getContext('2d');
+        sctx2.drawImage(portrait, 0, 0);
+        const img = sctx2.getImageData(0, 0, sw, sh).data;
+        const aspect = sw / sh;
+        const candidates = [];
+        const stride = Math.max(1, Math.floor(Math.sqrt((sw * sh) / (targetCount * 1.4))));
+        for (let y = 0; y < sh; y += stride) {
+          for (let x = 0; x < sw; x += stride) {
+            const i = (y * sw + x) * 4;
+            const r = img[i], g = img[i + 1], b = img[i + 2], a = img[i + 3];
+            const lum = (r * 0.299 + g * 0.587 + b * 0.114) / 255;
+            if (a < 40 || lum < 0.07) continue;
+            const nx = x / sw, ny = y / sh;
+            candidates.push({
+              x: (nx - 0.5) * aspect * 1.65,
+              y: (0.46 - ny) * 1.65,
+              z: (Math.random() - 0.5) * 0.02,
+              r: r / 255, g: g / 255, b: b / 255,
+              nx, ny, reg: regionAt(nx, ny),
+              seed: Math.random() * Math.PI * 2,
+            });
+          }
+        }
+        candidates.sort(() => Math.random() - 0.5);
+        const picked = candidates.slice(0, targetCount);
+        particleCount = picked.length;
+        geom = new THREE.BufferGeometry();
+        basePos = new Float32Array(particleCount * 3);
+        colors = new Float32Array(particleCount * 3);
+        baseColors = new Float32Array(particleCount * 3);
+        regions = new Uint8Array(particleCount);
+        for (let i = 0; i < particleCount; i++) {
+          const p = picked[i];
+          basePos[i * 3] = p.x;
+          basePos[i * 3 + 1] = p.y;
+          basePos[i * 3 + 2] = p.z;
+          colors[i * 3] = baseColors[i * 3] = p.r;
+          colors[i * 3 + 1] = baseColors[i * 3 + 1] = p.g;
+          colors[i * 3 + 2] = baseColors[i * 3 + 2] = p.b;
+          regions[i] = p.reg;
+        }
+        geom.setAttribute('position', new THREE.BufferAttribute(new Float32Array(basePos), 3));
+        geom.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+        geom.userData.seeds = picked.map(p => p.seed);
+        const mat = new THREE.PointsMaterial({
+          size: particleCount > 60000 ? 0.012 : particleCount > 20000 ? 0.016 : 0.022,
+          vertexColors: true, transparent: true, opacity: 0.92,
+          depthWrite: false, blending: THREE.AdditiveBlending, sizeAttenuation: true,
+        });
+        points = new THREE.Points(geom, mat);
+        scene.add(points);
+        statusEl.textContent = `${particleCount.toLocaleString()} particles · chosen face`;
+      }
+
+      function tickPBlink(dt) {
+        pBlinkT -= dt;
+        if (pBlinkT <= 0 && pBlink <= 0) { pBlink = 1; pBlinkT = 0.12; }
+        if (pBlink > 0) {
+          pBlink -= dt * 8.5;
+          if (pBlink < 0) { pBlink = 0; pBlinkT = 2.4 + Math.random() * 4; }
+        }
+      }
+
+      function driveSpeech(dt) {
+        if (sayTimer > 0) {
+          sayTimer -= dt;
+          jawTarget = vowelFromChar(saying[Math.floor(sayPhase * saying.length)] || ' ');
+          sayPhase += dt * 11;
+          if (sayPhase >= 1) { sayPhase = 0; sayTimer = 0; saying = ''; }
+        } else if (sayInput.value.trim()) {
+          jawTarget = vowelFromChar(sayInput.value[sayInput.value.length - 1] || ' ');
+        } else {
+          jawTarget *= 0.92;
+        }
+        const targetOpen = Math.min(1, jawTarget * 0.75 + speakEnergy * 0.85);
+        mouthOpen += (targetOpen - mouthOpen) * 0.18;
+        browLift += ((speakEnergy * 0.35) - browLift) * 0.1;
+        voiceBar.style.width = `${Math.min(100, (speakEnergy * 70 + mouthOpen * 30) * 100)}%`;
+      }
+
+      function animateParticles() {
+        if (!geom || !basePos) return;
+        const pos = geom.attributes.position.array;
+        const seeds = geom.userData.seeds;
+        const breath = Math.sin(pt * 0.9) * 0.012;
+        for (let i = 0; i < particleCount; i++) {
+          const bx = basePos[i * 3], by = basePos[i * 3 + 1], bz = basePos[i * 3 + 2];
+          const reg = regions[i], seed = seeds[i];
+          let dx = 0, dy = 0, dz = 0;
+          dx += Math.sin(pt * 1.3 + seed) * 0.0015;
+          dy += Math.cos(pt * 1.1 + seed * 1.7) * 0.0012 + breath;
+          if (reg === 1) dy -= pBlink * 0.85 * 0.12 * Math.abs(bx) * 2.2;
+          if (reg === 2) {
+            dx += bx * mouthOpen * 0.09;
+            dy -= mouthOpen * 0.11 * (0.4 + Math.sin(seed * 3));
+            dz += mouthOpen * 0.02 * Math.sin(pt * 14 + seed);
+          }
+          if (reg === 0) dy += browLift * 0.04;
+          if (reg === 3) dy -= mouthOpen * 0.04;
+          const lantern = 0.5 + Math.sin(pt * 1.7 + bx * 4) * 0.2;
+          if (bx > 0.08 && by > -0.05 && by < 0.35) {
+            colors[i * 3] = Math.min(1, baseColors[i * 3] + lantern * 0.1);
+            colors[i * 3 + 1] = Math.min(1, baseColors[i * 3 + 1] * 0.9 + lantern * 0.07);
+            colors[i * 3 + 2] = baseColors[i * 3 + 2] * 0.88;
+          } else {
+            colors[i * 3] = baseColors[i * 3];
+            colors[i * 3 + 1] = baseColors[i * 3 + 1];
+            colors[i * 3 + 2] = baseColors[i * 3 + 2];
+          }
+          pos[i * 3] = bx + dx;
+          pos[i * 3 + 1] = by + dy;
+          pos[i * 3 + 2] = bz + dz + Math.sin(pt * 0.8 + seed) * 0.003;
+        }
+        geom.attributes.position.needsUpdate = true;
+        geom.attributes.color.needsUpdate = true;
+      }
+
+      async function startMic() {
+        try {
+          audioCtx = audioCtx || new AudioContext();
+          micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          const src = audioCtx.createMediaStreamSource(micStream);
+          analyser = audioCtx.createAnalyser();
+          analyser.fftSize = 512;
+          src.connect(analyser);
+          micOn = true;
+          micBtn.textContent = 'mic on';
+          micBtn.classList.add('on');
+          statusEl.textContent = `${particleCount.toLocaleString()} particles · listening`;
+        } catch (e) {
+          statusEl.textContent = 'mic denied — type instead';
+          micOn = false;
+        }
+      }
+
+      function stopMic() {
+        micOn = false;
+        micBtn.textContent = 'mic off';
+        micBtn.classList.remove('on');
+        if (micStream) micStream.getTracks().forEach(tr => tr.stop());
+        micStream = null;
+        speakEnergy = 0;
+      }
+
+      function pollMic() {
+        if (!analyser) return;
+        const buf = new Uint8Array(analyser.frequencyBinCount);
+        analyser.getByteFrequencyData(buf);
+        let sum = 0;
+        for (let i = 2; i < 48; i++) sum += buf[i];
+        speakEnergy = Math.min(1, (sum / 46) / 140);
+      }
+
+      function setupSpeechRec() {
+        const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SR) return;
+        recognition = new SR();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.lang = 'en-US';
+        recognition.onresult = (ev) => {
+          let line = '';
+          for (let i = ev.resultIndex; i < ev.results.length; i++) line += ev.results[i][0].transcript;
+          if (line.trim()) {
+            sayInput.value = line.trim();
+            saying = line.trim();
+            sayPhase = 0;
+            sayTimer = Math.max(1.2, line.length * 0.055);
+          }
+        };
+      }
+
+      micBtn.addEventListener('click', () => {
+        if (micOn) { stopMic(); recognition?.stop(); }
+        else startMic().then(() => recognition?.start()).catch(() => {});
+      });
+      speakBtn.addEventListener('click', () => {
+        const line = sayInput.value.trim() || 'I am here.';
+        saying = line; sayPhase = 0; sayTimer = Math.max(1.5, line.length * 0.06);
+        statusEl.textContent = `speaking: ${line.slice(0, 48)}${line.length > 48 ? '…' : ''}`;
+      });
+      sayInput.addEventListener('input', () => {
+        const line = sayInput.value.trim();
+        if (line) jawTarget = vowelFromChar(line[line.length - 1]);
+      });
+      countSel.addEventListener('change', () => buildParticles(parseInt(countSel.value, 10)));
+
+      function particleFrame(now) {
+        if (!running) return;
+        const dt = Math.min(0.05, (now - pLast) / 1000);
+        pLast = now;
+        pt += dt;
+        if (micOn) pollMic();
+        tickPBlink(dt);
+        driveSpeech(dt);
+        animateParticles();
+        if (points) points.rotation.y = Math.sin(pt * 0.15) * 0.02;
+        renderer.render(scene, camera);
+        pRaf = requestAnimationFrame(particleFrame);
+      }
+
+      function onResize() {
+        camera.aspect = innerWidth / innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(innerWidth, innerHeight);
+      }
+      addEventListener('resize', onResize);
+
+      portrait.onload = () => {
+        setupSpeechRec();
+        buildParticles(parseInt(countSel.value, 10));
+        if (particleRunning) {
+          running = true;
+          pLast = performance.now();
+          pRaf = requestAnimationFrame(particleFrame);
+        }
+      };
+      if (portrait.complete) portrait.onload();
+
+      return {
+        resume() {
+          running = true;
+          pLast = performance.now();
+          pRaf = requestAnimationFrame(particleFrame);
+        },
+        pause() {
+          running = false;
+          cancelAnimationFrame(pRaf);
+          stopMic();
+          recognition?.stop();
+        },
+      };
+    }
+
+    portraitStill.onload = () => {
+      if (mode === 'still') startStill();
+      else setMode('particles');
+    };
+    if (portraitStill.complete) portraitStill.onload();
+    if (mode === 'particles') {
+      body.className = 'particles';
+      sig.textContent = 'PARTICLE SELF · SPEECH COUPLED';
+      modeToggle.textContent = '← still';
+      modeToggle.classList.add('on');
+    }
+  })();
   </script>
 </body>
 </html>
