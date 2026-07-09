@@ -83,7 +83,7 @@
     <input id="say" type="text" placeholder="type what I am saying — mouth follows" autocomplete="off" />
     <div class="meter"><i id="voiceBar"></i></div>
     <div id="status">loading portrait into particles…</div>
-    <div class="hint">mic drives jaw + brow. typed text shapes vowels. blink + breath always on.</div>
+    <div class="hint">mic drives jaw + brow. chat lines from lira-speak.jsonl. blink + breath always on.</div>
   </div>
   <script>
   (function () {
@@ -305,10 +305,13 @@
           statusEl.textContent = 'loading particles…';
           await loadScript(assetUrl('face-particles.js'));
         }
-        if (!particleApi) {
-          particleApi = window.LiraParticleFace({ isActive: () => particleRunning });
-        }
         particleRunning = true;
+        if (!particleApi) {
+          particleApi = window.LiraParticleFace({
+            isActive: () => particleRunning,
+            assetUrl: assetUrl,
+          });
+        }
         particleApi.resume();
       } catch (e) {
         statusEl.textContent = 'particle mode failed — try still';
@@ -322,7 +325,7 @@
 
     portraitStill.onload = () => {
       if (mode === 'still') startStill();
-      else setMode('particles');
+      else startParticles();
     };
     if (portraitStill.complete) portraitStill.onload();
     if (mode === 'particles') {

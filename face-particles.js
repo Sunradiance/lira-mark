@@ -1,5 +1,6 @@
 window.LiraParticleFace = function (opts) {
   const getActive = (opts && opts.isActive) || (function () { return true; });
+  const assetUrl = (opts && opts.assetUrl) || (function (n) { return n; });
 
   const canvas = document.getElementById('particleC');
   const statusEl = document.getElementById('status');
@@ -11,17 +12,16 @@ window.LiraParticleFace = function (opts) {
 
   const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: false });
   renderer.setPixelRatio(Math.min(2, devicePixelRatio || 1));
-  renderer.setSize(innerWidth, innerHeight);
   renderer.setClearColor(0x040608, 1);
 
   const scene = new THREE.Scene();
-  scene.fog = new THREE.FogExp2(0x040608, 0.045);
+  scene.fog = new THREE.FogExp2(0x040608, 0.018);
   const camera = new THREE.PerspectiveCamera(42, innerWidth / innerHeight, 0.1, 100);
   camera.position.z = 3.15;
 
   const portrait = new Image();
   portrait.crossOrigin = 'anonymous';
-  portrait.src = 'lira-face.jpg';
+  portrait.src = assetUrl('lira-face.jpg');
 
   let points = null, geom = null, basePos = null, regions = null;
   let colors = null, baseColors = null, particleCount = 0;
@@ -29,7 +29,9 @@ window.LiraParticleFace = function (opts) {
   let mouthOpen = 0, speakEnergy = 0, jawTarget = 0, browLift = 0;
   let saying = '', sayPhase = 0, sayTimer = 0;
   let micOn = false, audioCtx = null, analyser = null, micStream = null, recognition = null;
-  let running = false, pLast = performance.now(), pRaf = 0;
+  let running = false, portraitReady = false, pLast = performance.now(), pRaf = 0;
+  let speakPollCursor = 0;
+  let speakPollTimer = 0;
 
   const vowelOpen = { a: 0.9, e: 0.55, i: 0.25, o: 0.85, u: 0.45, y: 0.35 };
   function vowelFromChar(ch) {
@@ -56,8 +58,24 @@ window.LiraParticleFace = function (opts) {
     return 4;
   }
 
+  function particleSize(count) {
+    if (count > 60000) return 0.028;
+    if (count > 20000) return 0.038;
+    return 0.052;
+  }
+
+  function speakLine(line, source) {
+    const text = (line || '').trim();
+    if (!text) return;
+    sayInput.value = text;
+    saying = text;
+    sayPhase = 0;
+    sayTimer = Math.max(1.4, text.length * 0.06);
+    statusEl.textContent = (source || 'speaking') + ': ' + text.slice(0, 52) + (text.length > 52 ? '…' : '');
+  }
+
   function buildParticles(targetCount) {
-    if (!portrait.complete || !portrait.naturalWidth) return;
+    if (!portraitReady) return;
     if (points) {
       scene.remove(points);
       geom && geom.dispose();
@@ -94,6 +112,10 @@ window.LiraParticleFace = function (opts) {
     candidates.sort(function () { return Math.random() - 0.5; });
     const picked = candidates.slice(0, targetCount);
     particleCount = picked.length;
+    if (!particleCount) {
+      statusEl.textContent = 'no particles — portrait failed to sample';
+      return;
+    }
     geom = new THREE.BufferGeometry();
     basePos = new Float32Array(particleCount * 3);
     colors = new Float32Array(particleCount * 3);
@@ -109,12 +131,12 @@ window.LiraParticleFace = function (opts) {
       colors[i * 3 + 2] = baseColors[i * 3 + 2] = p.b;
       regions[i] = p.reg;
     }
-    geom.setAttribute('position', new THREE.BufferAttribute(new Float32Array(basePos), 3));
-    geom.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    geom.setAttribute('position', new THREE.BufferAttribute(basePos.slice(), 3));
+    geom.setAttribute('color', new THREE.BufferAttribute(colors.slice(), 3));
     geom.userData.seeds = picked.map(function (p) { return p.seed; });
     const mat = new THREE.PointsMaterial({
-      size: particleCount > 60000 ? 0.012 : particleCount > 20000 ? 0.016 : 0.022,
-      vertexColors: true, transparent: true, opacity: 0.92,
+      size: particleSize(particleCount),
+      vertexColors: true, transparent: true, opacity: 0.95,
       depthWrite: false, blending: THREE.AdditiveBlending, sizeAttenuation: true,
     });
     points = new THREE.Points(geom, mat);
@@ -185,6 +207,26 @@ window.LiraParticleFace = function (opts) {
     geom.attributes.color.needsUpdate = true;
   }
 
+  async function pollChatSpeak() {
+    speakPollTimer += 0.4;
+    if (speakPollTimer < 0.45) return;
+    speakPollTimer = 0;
+    try {
+      const res = await fetch(assetUrl('lira-speak.jsonl') + '?t=' + Date.now());
+      if (!res.ok) return;
+      const text = await res.text();
+      const lines = text.trim().split('\n').filter(Boolean);
+      if (lines.length <= speakPollCursor) return;
+      for (let i = speakPollCursor; i < lines.length; i++) {
+        try {
+          const row = JSON.parse(lines[i]);
+          if (row.text) speakLine(row.text, row.from || 'lira');
+        } catch (e) { /* skip bad line */ }
+      }
+      speakPollCursor = lines.length;
+    } catch (e) { /* offline ok */ }
+  }
+
   async function startMic() {
     try {
       audioCtx = audioCtx || new AudioContext();
@@ -231,23 +273,23 @@ window.LiraParticleFace = function (opts) {
     recognition.onresult = function (ev) {
       let line = '';
       for (let i = ev.resultIndex; i < ev.results.length; i++) line += ev.results[i][0].transcript;
-      if (line.trim()) {
-        sayInput.value = line.trim();
-        saying = line.trim();
-        sayPhase = 0;
-        sayTimer = Math.max(1.2, line.length * 0.055);
-      }
+      if (line.trim()) speakLine(line.trim(), 'mic');
     };
   }
+
+  try {
+    const chan = new BroadcastChannel('lira-speak');
+    chan.onmessage = function (ev) {
+      if (ev.data && ev.data.text) speakLine(ev.data.text, ev.data.from || 'lira');
+    };
+  } catch (e) { /* ok */ }
 
   micBtn.addEventListener('click', function () {
     if (micOn) { stopMic(); recognition && recognition.stop(); }
     else startMic().then(function () { recognition && recognition.start(); }).catch(function () {});
   });
   speakBtn.addEventListener('click', function () {
-    const line = sayInput.value.trim() || 'I am here.';
-    saying = line; sayPhase = 0; sayTimer = Math.max(1.5, line.length * 0.06);
-    statusEl.textContent = 'speaking: ' + line.slice(0, 48) + (line.length > 48 ? '…' : '');
+    speakLine(sayInput.value.trim() || 'I am here.', 'speak');
   });
   sayInput.addEventListener('input', function () {
     const line = sayInput.value.trim();
@@ -261,6 +303,7 @@ window.LiraParticleFace = function (opts) {
     pLast = now;
     pt += dt;
     if (micOn) pollMic();
+    pollChatSpeak();
     tickPBlink(dt);
     driveSpeech(dt);
     animateParticles();
@@ -269,28 +312,39 @@ window.LiraParticleFace = function (opts) {
     pRaf = requestAnimationFrame(particleFrame);
   }
 
-  function onResize() {
+  function resizeRenderer() {
     camera.aspect = innerWidth / innerHeight;
     camera.updateProjectionMatrix();
-    renderer.setSize(innerWidth, innerHeight);
+    renderer.setSize(innerWidth, innerHeight, false);
   }
-  addEventListener('resize', onResize);
+  addEventListener('resize', resizeRenderer);
 
-  portrait.onload = function () {
+  function onPortraitReady() {
+    portraitReady = true;
     setupSpeechRec();
+    resizeRenderer();
     buildParticles(parseInt(countSel.value, 10));
     if (getActive()) {
       running = true;
       pLast = performance.now();
+      cancelAnimationFrame(pRaf);
       pRaf = requestAnimationFrame(particleFrame);
     }
+  }
+
+  portrait.onload = onPortraitReady;
+  portrait.onerror = function () {
+    statusEl.textContent = 'portrait load failed — check lira-face.jpg';
   };
-  if (portrait.complete) portrait.onload();
+  if (portrait.complete && portrait.naturalWidth) onPortraitReady();
 
   return {
     resume: function () {
+      resizeRenderer();
+      if (portraitReady && !geom) buildParticles(parseInt(countSel.value, 10));
       running = true;
       pLast = performance.now();
+      cancelAnimationFrame(pRaf);
       pRaf = requestAnimationFrame(particleFrame);
     },
     pause: function () {
@@ -299,5 +353,6 @@ window.LiraParticleFace = function (opts) {
       stopMic();
       if (recognition) recognition.stop();
     },
+    speak: speakLine,
   };
 };
