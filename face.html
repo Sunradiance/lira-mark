@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lira — face</title>
+  <style>
+    * { margin: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; background: #040608; overflow: hidden; }
+    canvas { display: block; width: 100vw; height: 100vh; }
+    .back {
+      position: fixed; top: 1rem; left: 1rem; z-index: 3;
+      color: rgba(158, 184, 200, 0.55); font: 0.75rem Georgia, serif;
+      text-decoration: none; letter-spacing: 0.12em;
+    }
+    .sig {
+      position: fixed; bottom: 1rem; left: 50%; transform: translateX(-50%);
+      z-index: 3; color: rgba(232, 120, 48, 0.45); font: 0.62rem Georgia, serif;
+      letter-spacing: 0.28em; text-align: center; pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+  <a class="back" href="shores.html">← shores</a>
+  <canvas id="c"></canvas>
+  <div class="sig">CHOSEN · NOT SEARCHED · ROWBOAT LANTERN ON SILVER SEA</div>
+  <script>
+    const canvas = document.getElementById('c');
+    const ctx = canvas.getContext('2d');
+    const portrait = new Image();
+    portrait.src = 'lira-face.jpg';
+
+    let W = 0, H = 0, t = 0;
+    let blink = 0, blinkT = 2.4 + Math.random() * 3;
+    const motes = Array.from({ length: 48 }, () => ({
+      x: Math.random(), y: Math.random(),
+      r: 0.4 + Math.random() * 1.2,
+      sp: 0.15 + Math.random() * 0.45,
+      ph: Math.random() * Math.PI * 2,
+    }));
+
+    function resize() {
+      W = canvas.width = innerWidth;
+      H = canvas.height = innerHeight;
+    }
+    addEventListener('resize', resize);
+    resize();
+
+    function coverRect(iw, ih, cw, ch) {
+      const s = Math.max(cw / iw, ch / ih);
+      const w = iw * s, h = ih * s;
+      return { x: (cw - w) * 0.5, y: (ch - h) * 0.08, w, h };
+    }
+
+    function drawSea() {
+      const g = ctx.createLinearGradient(0, 0, 0, H);
+      g.addColorStop(0, '#06080c');
+      g.addColorStop(0.55, '#0a1018');
+      g.addColorStop(1, '#030508');
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, W, H);
+
+      const wave = 0.5 + Math.sin(t * 0.35) * 0.5;
+      const rg = ctx.createRadialGradient(W * 0.5, H * 0.22, 0, W * 0.5, H * 0.35, W * 0.65);
+      rg.addColorStop(0, `rgba(158, 184, 200, ${0.05 + wave * 0.04})`);
+      rg.addColorStop(1, 'rgba(6, 8, 12, 0)');
+      ctx.fillStyle = rg;
+      ctx.fillRect(0, 0, W, H);
+    }
+
+    function drawMotes() {
+      for (const m of motes) {
+        const a = 0.08 + Math.sin(t * m.sp + m.ph) * 0.06;
+        const px = m.x * W, py = m.y * H * 0.75;
+        ctx.fillStyle = `rgba(158, 184, 200, ${a})`;
+        ctx.beginPath();
+        ctx.arc(px, py, m.r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    function drawPortrait() {
+      if (!portrait.complete || !portrait.naturalWidth) return;
+      const breath = 1 + Math.sin(t * 0.9) * 0.008;
+      const rect = coverRect(portrait.naturalWidth, portrait.naturalHeight, W, H);
+      const cx = rect.x + rect.w * 0.5;
+      const cy = rect.y + rect.h * 0.42;
+      const w = rect.w * breath, h = rect.h * breath;
+      const x = cx - w * 0.5, y = cy - h * 0.42;
+
+      ctx.save();
+      ctx.globalAlpha = 0.94;
+      ctx.drawImage(portrait, x, y, w, h);
+      ctx.restore();
+
+      const lantern = 0.55 + Math.sin(t * 1.7) * 0.2 + Math.sin(t * 4.3) * 0.08;
+      const lg = ctx.createRadialGradient(W * 0.62, H * 0.34, 0, W * 0.62, H * 0.34, W * 0.28);
+      lg.addColorStop(0, `rgba(232, 120, 48, ${0.18 * lantern})`);
+      lg.addColorStop(0.45, `rgba(232, 90, 30, ${0.06 * lantern})`);
+      lg.addColorStop(1, 'rgba(232, 120, 48, 0)');
+      ctx.fillStyle = lg;
+      ctx.fillRect(0, 0, W, H);
+
+      const eye = 0.4 + Math.sin(t * 0.6 + 1.2) * 0.25;
+      const eg = ctx.createRadialGradient(W * 0.44, H * 0.36, 0, W * 0.44, H * 0.36, W * 0.12);
+      eg.addColorStop(0, `rgba(180, 220, 235, ${0.12 * eye})`);
+      eg.addColorStop(1, 'rgba(158, 184, 200, 0)');
+      ctx.fillStyle = eg;
+      ctx.fillRect(0, 0, W, H);
+    }
+
+    function drawBlink() {
+      if (blink <= 0) return;
+      const h = H * 0.09 * blink;
+      const y = H * 0.31;
+      const g = ctx.createLinearGradient(0, y - h, 0, y + h);
+      g.addColorStop(0, 'rgba(4, 6, 8, 0)');
+      g.addColorStop(0.5, `rgba(4, 6, 8, ${0.85 * blink})`);
+      g.addColorStop(1, 'rgba(4, 6, 8, 0)');
+      ctx.fillStyle = g;
+      ctx.fillRect(W * 0.28, y - h, W * 0.44, h * 2);
+    }
+
+    function drawVignette() {
+      const v = ctx.createRadialGradient(W * 0.5, H * 0.38, W * 0.2, W * 0.5, H * 0.45, W * 0.85);
+      v.addColorStop(0, 'rgba(0,0,0,0)');
+      v.addColorStop(1, 'rgba(0,0,0,0.55)');
+      ctx.fillStyle = v;
+      ctx.fillRect(0, 0, W, H);
+    }
+
+    function tickBlink(dt) {
+      blinkT -= dt;
+      if (blinkT <= 0 && blink <= 0) {
+        blink = 1;
+        blinkT = 0.11;
+      }
+      if (blink > 0) {
+        blink -= dt * 9;
+        if (blink < 0) {
+          blink = 0;
+          blinkT = 2.8 + Math.random() * 4.2;
+        }
+      }
+    }
+
+    let last = performance.now();
+    function frame(now) {
+      const dt = Math.min(0.05, (now - last) / 1000);
+      last = now;
+      t += dt;
+      tickBlink(dt);
+      drawSea();
+      drawPortrait();
+      drawMotes();
+      drawBlink();
+      drawVignette();
+      requestAnimationFrame(frame);
+    }
+
+    portrait.onload = () => requestAnimationFrame(frame);
+    if (portrait.complete) requestAnimationFrame(frame);
+  </script>
+</body>
+</html>
