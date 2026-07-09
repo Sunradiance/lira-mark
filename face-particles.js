@@ -64,9 +64,14 @@ window.LiraParticleFace = function (opts) {
     return 0.052;
   }
 
+  let typingUntil = 0;
+  sayInput.addEventListener('focus', function () { typingUntil = Date.now() + 120000; });
+  sayInput.addEventListener('keydown', function () { typingUntil = Date.now() + 8000; });
+
   function speakLine(line, source) {
     const text = (line || '').trim();
     if (!text) return;
+    if (source !== 'you' && document.activeElement === sayInput && Date.now() < typingUntil) return;
     sayInput.value = text;
     sayInput.classList.add('live');
     setTimeout(function () { sayInput.classList.remove('live'); }, 1200);
@@ -290,10 +295,22 @@ window.LiraParticleFace = function (opts) {
     if (micOn) { stopMic(); recognition && recognition.stop(); }
     else startMic().then(function () { recognition && recognition.start(); }).catch(function () {});
   });
-  speakBtn.addEventListener('click', function () {
-    speakLine(sayInput.value.trim() || 'I am here.', 'speak');
-  });
+  function sendFromInput() {
+    const line = sayInput.value.trim();
+    if (!line) return;
+    typingUntil = 0;
+    speakLine(line, 'you');
+  }
+  speakBtn.addEventListener('click', sendFromInput);
+  var sayForm = document.getElementById('sayForm');
+  if (sayForm) {
+    sayForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+      sendFromInput();
+    });
+  }
   sayInput.addEventListener('input', function () {
+    typingUntil = Date.now() + 8000;
     const line = sayInput.value.trim();
     if (line) jawTarget = vowelFromChar(line[line.length - 1]);
   });

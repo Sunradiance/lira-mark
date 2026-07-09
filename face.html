@@ -7,7 +7,7 @@
   <style>
     * { margin: 0; box-sizing: border-box; }
     html, body { width: 100%; height: 100%; background: #040608; overflow: hidden; color: #c5d4de; font-family: Georgia, serif; }
-    canvas { display: block; position: fixed; inset: 0; width: 100vw; height: 100vh; }
+    canvas { display: block; position: fixed; inset: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 1; }
     #particleC { display: none; }
     body.particles #stillC { display: none; }
     body.particles #particleC { display: block; }
@@ -33,13 +33,18 @@
       font-size: 0.58rem; letter-spacing: 0.2em; max-width: 14rem; line-height: 1.5; text-align: right;
     }
     .ui {
-      position: fixed; z-index: 4; left: 1rem; right: 1rem; bottom: 1rem;
+      position: fixed; z-index: 20; left: 1rem; right: 1rem; bottom: 1rem;
       display: none; grid; gap: 0.55rem; max-width: 42rem; margin: 0 auto;
-      pointer-events: none;
+      pointer-events: auto;
     }
     body.particles .ui { display: grid; }
-    .ui > * { pointer-events: auto; }
-    .row { display: flex; flex-wrap: wrap; gap: 0.45rem; align-items: center; }
+    .row, .say-row { display: flex; flex-wrap: wrap; gap: 0.45rem; align-items: center; }
+    .say-row { width: 100%; }
+    #sendBtn {
+      flex: 0 0 auto; min-width: 4.5rem;
+      background: rgba(232, 120, 48, 0.22); border-color: rgba(232, 120, 48, 0.45);
+      color: #ffb070;
+    }
     button, select {
       background: rgba(10, 13, 18, 0.82); border: 1px solid rgba(158, 184, 200, 0.22);
       color: #d8eef2; font: 0.68rem Georgia, serif; padding: 0.35rem 0.65rem;
@@ -85,10 +90,13 @@
       </select>
       <button id="speakBtn" type="button">speak line</button>
     </div>
-    <input id="say" type="text" placeholder="Lira chat appears here — type or wait for Composer" autocomplete="off" />
+    <form id="sayForm" class="say-row">
+      <input id="say" type="text" placeholder="type here — Enter to send" autocomplete="off" />
+      <button id="sendBtn" type="submit">send</button>
+    </form>
     <div class="meter"><i id="voiceBar"></i></div>
     <div id="status">loading portrait into particles…</div>
-    <div class="hint">mic drives jaw + brow. chat lines from lira-speak.jsonl. blink + breath always on.</div>
+    <div class="hint">click the box, type, Enter or send. canvas no longer blocks clicks.</div>
   </div>
   <script>
   (function () {
