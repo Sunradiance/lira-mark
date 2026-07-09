@@ -106,6 +106,10 @@ def run_watch(session: Path, interval: float = 0.35) -> None:
     state = load_state()
     state["session"] = str(session)
     offset = int(state.get("offset", 0))
+    if offset == 0 and session.exists():
+        offset = session.stat().st_size
+        state["offset"] = offset
+        save_state(state)
     pending: list[str] = []
     print(f"chat→face bridge on {session}", flush=True)
     print(f"out: {OUT}", flush=True)
