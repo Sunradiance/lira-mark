@@ -87,6 +87,13 @@
   </div>
   <script>
   (function () {
+    const REPO_BASE = 'https://cdn.jsdelivr.net/gh/Sunradiance/lira-mark@master/';
+    function assetUrl(name) {
+      if (location.protocol === 'file:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1') return name;
+      if (location.hostname.endsWith('github.io') && location.pathname.includes('lira-mark')) return name;
+      return REPO_BASE + name;
+    }
+
     const params = new URLSearchParams(location.search);
     let mode = params.get('mode') === 'particles' ? 'particles' : 'still';
     const body = document.body;
@@ -125,7 +132,7 @@
     const stillCanvas = document.getElementById('stillC');
     const sctx = stillCanvas.getContext('2d');
     const portraitStill = new Image();
-    portraitStill.src = 'lira-face.jpg';
+    portraitStill.src = assetUrl('lira-face.jpg');
     let W = 0, H = 0, t = 0;
     let blink = 0, blinkT = 2.4 + Math.random() * 3;
     const motes = Array.from({ length: 48 }, () => ({
@@ -296,7 +303,7 @@
         }
         if (!window.LiraParticleFace) {
           statusEl.textContent = 'loading particles…';
-          await loadScript('face-particles.js');
+          await loadScript(assetUrl('face-particles.js'));
         }
         if (!particleApi) {
           particleApi = window.LiraParticleFace({ isActive: () => particleRunning });
