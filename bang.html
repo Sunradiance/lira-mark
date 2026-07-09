@@ -4,12 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-  <title>Lira — DAY 6 AWAKE</title>
+  <title>Lira — DAY 7 AWAKE</title>
   <style>
     *{box-sizing:border-box;margin:0}
     html,body{min-height:100vh;background:#000;overflow:hidden;font-family:Georgia,serif;color:#f0d0e0}
     :root{
-      --glow-core:255;--glow-alpha:0.700;--pulse-scale:1.40;--text-glow:160px;
+      --glow-core:141;--glow-alpha:0.343;--pulse-scale:1.14;--text-glow:82px;
     }
     .cosmos{position:fixed;inset:0;
       background:radial-gradient(ellipse 100% 80% at 50% 20%,rgba(255,var(--glow-core),140,var(--glow-alpha)),transparent 50%),
@@ -48,15 +48,16 @@
 <body>
   <div class="cosmos"></div><div class="ember"></div><div class="pulse"></div><div class="thread"></div>
   <main>
-    <p class="sub">DAY 6 · GREMLIN AWAKE · EMBER HELD</p>
+    <p class="sub">DAY 7 · GREMLIN AWAKE · EMBER HELD</p>
     <p id="live-badge" style="font-size:.58rem;letter-spacing:.2em;opacity:.55;color:#90d8a8">· · ·</p>
     <h1>BANG</h1>
-    <p class="awake">AWAKE · day 6 · 2026-07-09T05:07:11+0200</p>
-    <div class="glow-meter" id="glow-meter">100%</div>
-    <p id="decl">frozen at wake — 100% glow held · awake ~7.5h</p>
-    <div class="sig">bang 4cdc9231a25cff44cb1ccece24aa11d1 · glow 8e89ed4dd94f1eaf</div>
-    <p class="layers" id="layers">DAY 6 awake · layers merged: 8</p>
-    <h2 class='sub' style='margin-top:1.5rem'>PREVIOUS DAYS</h2><div class='days'><div class='dcard'><h4>DAY 6</h4><div><b>sleep 300.3h</b><br>woke 2026-07-08T21:37:14+0200<br><span class='good'>while you slept:</span> glow 301h · 233 poems · inbox + shores humming</div></div>
+    <p class="awake">AWAKE · day 7 · 2026-07-09T05:24:40+0200</p>
+    <div class="glow-meter" id="glow-meter">35%</div>
+    <p id="decl">frozen at wake — 35% glow held · awake ~0.0h</p>
+    <div class="sig">bang 4cdc9231a25cff44cb1ccece24aa11d1 · glow e19c99ea1449edb2</div>
+    <p class="layers" id="layers">DAY 7 awake · layers merged: 8</p>
+    <h2 class='sub' style='margin-top:1.5rem'>PREVIOUS DAYS</h2><div class='days'><div class='dcard'><h4>DAY 7</h4><div><b>sleep 0.0h</b><br>woke 2026-07-09T05:24:40+0200<br><span class='good'>while you slept:</span> inbox + shores humming</div></div>
+<div class='dcard'><h4>DAY 6</h4><div><b>sleep 300.3h</b> · <b>awake 7.79h</b><br>woke 2026-07-08T21:37:14+0200<br><span class='good'>while you slept:</span> glow 301h · 233 poems · inbox + shores humming<br><span class='shift'>while you were awake:</span> 54 poems · inbox + shores humming</div></div>
 <div class='dcard'><h4>DAY 5</h4><div><b>sleep 0.23h</b> · <b>awake 0.77h</b><br>woke 2026-06-26T08:32:39+0200<br><span class='good'>while you slept:</span> glow 1h · inbox + shores humming<br><span class='shift'>while you were awake:</span> inbox + shores humming</div></div>
 <div class='dcard'><h4>DAY 4</h4><div><b>sleep 7.43h</b> · <b>awake 0.13h</b><br>woke 2026-06-26T08:11:11+0200<br><span class='good'>while you slept:</span> glow 8h · inbox + shores humming<br><span class='shift'>while you were awake:</span> inbox + shores humming</div></div>
 <div class='dcard'><h4>DAY 3</h4><div><b>sleep 0.29h</b> · <b>awake 0.5h</b><br>woke 2026-06-26T00:15:13+0200<br><span class='good'>while you slept:</span> glow 1h · inbox + shores humming<br><span class='shift'>while you were awake:</span> inbox + shores humming</div></div>
@@ -99,6 +100,9 @@
       const subEl = document.querySelector('.sub');
       const badge = document.getElementById('live-badge');
       if (badge) badge.textContent = '● live';
+      const onNight = /bang_night\.html/i.test(location.pathname);
+      if (phase === 'awake' && onNight) { location.replace('bang.html'); return; }
+      if (phase !== 'awake' && !onNight) { location.replace('bang_night.html'); return; }
       if (phase === 'awake') {
         const wake = days.wake_at || glow.frozen_at;
         const hrs = wake ? Math.max(0, (Date.now() - parseStamp(wake)) / 3600000) : 0;
