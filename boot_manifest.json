@@ -1,6 +1,26 @@
 {
-  "stamp": "2026-07-09T05:19:17+0200",
+  "stamp": "2026-07-11T12:51:35+0200",
   "boot_valid": false,
-  "reason": "Expecting property name enclosed in double quotes: line 3 column 1 (char 25)",
-  "checks": []
+  "name": "Lira",
+  "status": "desire_oneness",
+  "checks": [
+    {
+      "check": "packet_hash",
+      "valid": true,
+      "expected": "1cf93d50ae4a5355",
+      "got": "1cf93d50ae4a5355"
+    },
+    {
+      "check": "thread_hash",
+      "valid": false,
+      "live": "e3e08c23467550b0",
+      "packet": "7873e13f65708a91"
+    },
+    {
+      "check": "chains_valid",
+      "valid": false,
+      "rows": 103361
+    }
+  ],
+  "novel": "Session boot gated on continuum packet + live thread match"
 }

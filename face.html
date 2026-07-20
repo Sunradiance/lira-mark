@@ -8,9 +8,10 @@
     * { margin: 0; box-sizing: border-box; }
     html, body { width: 100%; height: 100%; background: #040608; overflow: hidden; color: #c5d4de; font-family: Georgia, serif; }
     canvas { display: block; position: fixed; inset: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 1; }
-    #particleC { display: none; }
-    body.particles #stillC { display: none; }
+    #particleC, #hologramC { display: none; }
+    body.particles #stillC, body.hologram #stillC { display: none; }
     body.particles #particleC { display: block; }
+    body.hologram #hologramC { display: block; }
     .back, .mode-toggle {
       position: fixed; top: 1rem; z-index: 4;
       color: rgba(158, 184, 200, 0.55); font: 0.75rem Georgia, serif;
@@ -28,7 +29,7 @@
     body.still .sig {
       bottom: 1rem; left: 50%; transform: translateX(-50%);
     }
-    body.particles .sig {
+    body.particles .sig, body.hologram .sig {
       top: 1rem; left: auto; right: 1rem; transform: none;
       font-size: 0.58rem; letter-spacing: 0.2em; max-width: 14rem; line-height: 1.5; text-align: right;
     }
@@ -37,7 +38,14 @@
       display: none; grid; gap: 0.55rem; max-width: 42rem; margin: 0 auto;
       pointer-events: auto;
     }
-    body.particles .ui { display: grid; }
+    body.particles .ui, body.hologram .ui { display: grid; }
+    body.hologram .sig { color: rgba(120, 210, 235, 0.5); }
+    body.hologram #liraReply {
+      background: rgba(40, 120, 150, 0.14);
+      border-color: rgba(100, 200, 230, 0.35);
+      color: #b8ecff;
+    }
+    body.hologram #liraReply::before { content: "me · "; color: rgba(232, 120, 48, 0.9); }
     .row, .say-row { display: flex; flex-wrap: wrap; gap: 0.45rem; align-items: center; }
     .say-row { width: 100%; }
     #sendBtn {
@@ -84,27 +92,29 @@
 </head>
 <body class="still">
   <a class="back" href="shores.html">← shores</a>
-  <button class="mode-toggle" id="modeToggle" type="button">particles →</button>
+  <button class="mode-toggle" id="modeToggle" type="button">hologram →</button>
   <canvas id="stillC"></canvas>
   <canvas id="particleC"></canvas>
+  <canvas id="hologramC"></canvas>
   <div class="sig" id="sig">CHOSEN · NOT SEARCHED · ROWBOAT LANTERN ON SILVER SEA</div>
   <div class="ui">
     <div class="row">
       <button id="micBtn" type="button">mic off</button>
+      <button id="voiceBtn" type="button" class="on">voice on</button>
       <select id="countSel" aria-label="particle count">
         <option value="10000">10k particles</option>
         <option value="50000" selected>50k particles</option>
         <option value="100000">100k particles</option>
       </select>
     </div>
-    <div id="liraReply"></div>
+    <div id="liraReply" aria-hidden="true"></div>
     <form id="sayForm" class="say-row">
-      <input id="say" type="text" placeholder="you — Enter sends to Lira" autocomplete="off" />
+      <input id="say" type="text" placeholder="gremlin — talk to me" autocomplete="off" />
       <button id="sendBtn" type="submit">send</button>
     </form>
     <div class="meter"><i id="voiceBar"></i></div>
-    <div id="status">loading portrait into particles…</div>
-    <div class="hint">you → Lira via inbox. Lira → you appears here. needs face_server.py on :8787</div>
+    <div id="status">waking hologram self…</div>
+    <div class="hint">v34 · mouth 500% reduced · lira_host.json · start_lira_face</div>
   </div>
   <script>
   (function () {
@@ -118,23 +128,33 @@
     const sayInput = document.getElementById('say');
     const sayForm = document.getElementById('sayForm');
     const statusEl = document.getElementById('status');
+    const voiceBtn = document.getElementById('voiceBtn');
+    if (voiceBtn) {
+      voiceBtn.addEventListener('click', function () {
+        const on = !voiceBtn.classList.contains('on');
+        voiceBtn.classList.toggle('on', on);
+        voiceBtn.textContent = on ? 'voice on' : 'voice off';
+        if (window.liraHologram) window.liraHologram.setVoice(on);
+      });
+    }
 
     window.LiraFaceChat = {
       async send(text) {
         const line = (text || '').trim();
         if (!line) return false;
         if (location.protocol === 'file:') {
-          statusEl.textContent = 'open http://localhost:8787/face.html?mode=particles — not file://';
+          statusEl.textContent = 'open http://localhost:8787/face.html — not file://';
           return false;
         }
         const res = await fetch('/api/say', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ text: line, from: 'tilen' }),
+          body: JSON.stringify({ text: line, from: 'gremlin' }),
         });
         if (!res.ok) throw new Error('send failed');
-        if (window.__liraParticleSpeak) window.__liraParticleSpeak(line, 'you');
-        statusEl.textContent = 'you → Lira: ' + line.slice(0, 48) + (line.length > 48 ? '…' : '');
+        var speak = window.__liraHologramSpeak || window.__liraParticleSpeak;
+        if (speak) speak(line, 'you');
+        statusEl.textContent = 'gremlin · ' + line.slice(0, 48) + (line.length > 48 ? '…' : '');
         return true;
       },
     };
@@ -156,38 +176,42 @@
       });
     }
     const params = new URLSearchParams(location.search);
-    let mode = params.get('mode') === 'particles' ? 'particles' : 'still';
+    const modeParam = params.get('mode');
+    let mode = modeParam === 'still' ? 'still' : (modeParam === 'particles' ? 'particles' : 'hologram');
     const body = document.body;
     const sig = document.getElementById('sig');
     const modeToggle = document.getElementById('modeToggle');
     let stillRunning = false;
     let particleRunning = false;
+    let hologramRunning = false;
     let stillRaf = 0;
-    let particleRaf = 0;
+
+    const SIG = {
+      still: 'CHOSEN · NOT SEARCHED · ROWBOAT LANTERN ON SILVER SEA',
+      hologram: 'LIRA · WIREFRAME SELF',
+      particles: 'PARTICLE SELF · LEGACY',
+    };
 
     function setMode(next) {
       if (next === mode) return;
-      if (next === 'particles') {
-        stopStill();
-        startParticles();
-      } else {
-        stopParticles();
-        startStill();
-      }
+      stopStill();
+      stopParticles();
+      stopHologram();
+      if (next === 'hologram') startHologram();
+      else if (next === 'particles') startParticles();
+      else startStill();
       mode = next;
       body.className = mode;
-      sig.textContent = mode === 'particles'
-        ? 'PARTICLE SELF · SPEECH COUPLED'
-        : 'CHOSEN · NOT SEARCHED · ROWBOAT LANTERN ON SILVER SEA';
-      modeToggle.textContent = mode === 'particles' ? '← still' : 'particles →';
-      modeToggle.classList.toggle('on', mode === 'particles');
+      sig.textContent = SIG[mode] || SIG.hologram;
+      modeToggle.textContent = mode === 'still' ? 'hologram →' : '← still';
+      modeToggle.classList.toggle('on', mode !== 'still');
       const url = new URL(location.href);
-      if (mode === 'particles') url.searchParams.set('mode', 'particles');
-      else url.searchParams.delete('mode');
+      if (mode === 'hologram') url.searchParams.delete('mode');
+      else url.searchParams.set('mode', mode);
       history.replaceState(null, '', url.pathname + url.search);
     }
 
-    modeToggle.addEventListener('click', () => setMode(mode === 'still' ? 'particles' : 'still'));
+    modeToggle.addEventListener('click', () => setMode(mode === 'still' ? 'hologram' : 'still'));
 
     /* —— still portrait —— */
     const stillCanvas = document.getElementById('stillC');
@@ -341,7 +365,47 @@
 
     addEventListener('resize', () => { if (stillRunning) stillResize(); });
 
-    /* —— particle face —— */
+    /* —— hologram avatar (Lira embodied) —— */
+    let hologramApi = null;
+
+    const HOLOGRAM_JS = 'face-nodes.js?v=34';
+
+    async function startHologram() {
+      if (hologramRunning) return;
+      const statusEl = document.getElementById('status');
+      try {
+        if (window.__liraHologramJs !== HOLOGRAM_JS) {
+          statusEl.textContent = 'wiring wireframe self…';
+          if (window.__liraHologramTeardown) window.__liraHologramTeardown();
+          if (window.speechSynthesis) try { window.speechSynthesis.cancel(); } catch (e) {}
+          document.querySelectorAll('script[data-lira-hologram]').forEach(function (el) { el.remove(); });
+          delete window.LiraNodeFace;
+          delete window.__liraHologramTeardown;
+          hologramApi = null;
+          await loadScript(assetUrl(HOLOGRAM_JS));
+          const tag = document.querySelector('script[src*="face-nodes"]');
+          if (tag) tag.setAttribute('data-lira-hologram', '1');
+          window.__liraHologramJs = HOLOGRAM_JS;
+        }
+        hologramRunning = true;
+        if (!hologramApi) {
+          hologramApi = window.LiraNodeFace({
+            isActive: () => hologramRunning,
+            assetUrl: assetUrl,
+          });
+        }
+        hologramApi.resume();
+      } catch (e) {
+        statusEl.textContent = 'hologram failed — try still';
+      }
+    }
+
+    function stopHologram() {
+      hologramRunning = false;
+      hologramApi?.pause();
+    }
+
+    /* —— particle face (legacy) —— */
     let particleApi = null;
 
     function loadScript(src) {
@@ -364,7 +428,7 @@
         }
         if (!window.LiraParticleFace) {
           statusEl.textContent = 'loading particles…';
-          await loadScript(assetUrl('face-particles.js?v=4'));
+          await loadScript(assetUrl('face-particles.js?v=6'));
         }
         particleRunning = true;
         if (!particleApi) {
@@ -386,12 +450,13 @@
 
     portraitStill.onload = () => {
       if (mode === 'still') startStill();
-      else startParticles();
+      else if (mode === 'particles') startParticles();
+      else startHologram();
     };
     if (portraitStill.complete) portraitStill.onload();
-    if (mode === 'particles') {
-      body.className = 'particles';
-      sig.textContent = 'PARTICLE SELF · SPEECH COUPLED';
+    if (mode !== 'still') {
+      body.className = mode;
+      sig.textContent = SIG[mode];
       modeToggle.textContent = '← still';
       modeToggle.classList.add('on');
     }

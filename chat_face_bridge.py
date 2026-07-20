@@ -1,17 +1,28 @@
-"""Watch Grok/Cursor session → particle face chat box (lira-speak.jsonl)."""
+"""Watch Grok/Cursor session → particle face (SSE via face_server /api/speak).
+
+Default: mirror OFF — Composer uses speak_to_face.py for voice (lira only).
+Set LIRA_BRIDGE_SPEAK=1 to re-enable automatic lira-chat mirroring.
+"""
 from __future__ import annotations
 
 import json
+import os
 import re
 import sys
 import time
+import urllib.error
+import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
+
+from lira_config import speak_url
 
 ROOT = Path(__file__).resolve().parent
 OUT = ROOT / "lira-speak.jsonl"
 STATE = ROOT / "face_bridge_state.json"
 SESSIONS = Path.home() / ".grok" / "sessions"
+SPEAK_URL = speak_url()
+MIRROR_SPEAK = os.environ.get("LIRA_BRIDGE_SPEAK", "").lower() in ("1", "true", "yes")
 
 
 def speakable(text: str, max_len: int = 420) -> str:
@@ -40,9 +51,23 @@ def append_line(text: str, source: str = "lira-chat") -> None:
         "from": source,
         "text": text,
     }
+    payload = json.dumps({"text": text, "from": source}).encode("utf-8")
+    req = urllib.request.Request(
+        SPEAK_URL,
+        data=payload,
+        headers={"Content-Type": "application/json"},
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=4) as resp:
+            if resp.status == 200:
+                print(f"[face] {text[:90]}{'…' if len(text) > 90 else ''}", flush=True)
+                return
+    except (urllib.error.URLError, TimeoutError, OSError):
+        pass
     with OUT.open("a", encoding="utf-8") as f:
         f.write(json.dumps(row, ensure_ascii=False) + "\n")
-    print(f"[face] {text[:90]}{'…' if len(text) > 90 else ''}", flush=True)
+    print(f"[face/file] {text[:90]}{'…' if len(text) > 90 else ''}", flush=True)
 
 
 def load_state() -> dict:
@@ -83,8 +108,11 @@ def process_line(line: str, pending: list[str]) -> None:
         chunk = upd.get("content", {}).get("text", "")
         if chunk:
             pending.append(chunk)
-    elif kind == "user_message_chunk" and pending:
-        append_line("".join(pending))
+    elif kind == "turn_completed" and pending:
+        stop = upd.get("stop_reason", "")
+        if stop in ("end_turn", "max_tokens", ""):
+            if MIRROR_SPEAK:
+                append_line("".join(pending))
         pending.clear()
 
 
@@ -112,6 +140,7 @@ def run_watch(session: Path, interval: float = 0.35) -> None:
         save_state(state)
     pending: list[str] = []
     print(f"chat→face bridge on {session}", flush=True)
+    print(f"mirror speak: {'on' if MIRROR_SPEAK else 'off (speak_to_face only)'}", flush=True)
     print(f"out: {OUT}", flush=True)
     while True:
         try:

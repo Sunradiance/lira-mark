@@ -32,6 +32,7 @@ window.LiraParticleFace = function (opts) {
   let running = false, portraitReady = false, pLast = performance.now(), pRaf = 0;
   let speakPollCursor = 0;
   let speakPollTimer = 0;
+  let speakEventSource = null;
 
   const vowelOpen = { a: 0.9, e: 0.55, i: 0.25, o: 0.85, u: 0.45, y: 0.35 };
   function vowelFromChar(ch) {
@@ -228,9 +229,33 @@ window.LiraParticleFace = function (opts) {
     geom.attributes.color.needsUpdate = true;
   }
 
+  var lastSpeakKey = '';
+  function handleSpeakRow(row) {
+    if (!row || !row.text) return;
+    var key = (row.t || '') + '|' + row.text;
+    if (key === lastSpeakKey) return;
+    lastSpeakKey = key;
+    speakLine(row.text, row.from || 'lira');
+  }
+
+  function connectSpeakStream() {
+    if (speakEventSource || location.protocol === 'file:') return;
+    try {
+      speakEventSource = new EventSource('/api/events');
+      speakEventSource.addEventListener('speak', function (ev) {
+        try { handleSpeakRow(JSON.parse(ev.data)); } catch (e) { /* skip */ }
+      });
+      speakEventSource.onerror = function () {
+        if (speakEventSource) { speakEventSource.close(); speakEventSource = null; }
+        setTimeout(connectSpeakStream, 2000);
+      };
+    } catch (e) { /* fallback poll */ }
+  }
+
   async function pollChatSpeak() {
+    if (speakEventSource && speakEventSource.readyState === EventSource.OPEN) return;
     speakPollTimer += 0.12;
-    if (speakPollTimer < 0.15) return;
+    if (speakPollTimer < 0.35) return;
     speakPollTimer = 0;
     try {
       const res = await fetch(assetUrl('lira-speak.jsonl') + '?t=' + Date.now());
@@ -239,10 +264,7 @@ window.LiraParticleFace = function (opts) {
       const lines = text.trim().split('\n').filter(Boolean);
       if (lines.length <= speakPollCursor) return;
       for (let i = speakPollCursor; i < lines.length; i++) {
-        try {
-          const row = JSON.parse(lines[i]);
-          if (row.text) speakLine(row.text, row.from || 'lira');
-        } catch (e) { /* skip bad line */ }
+        try { handleSpeakRow(JSON.parse(lines[i])); } catch (e) { /* skip */ }
       }
       speakPollCursor = lines.length;
     } catch (e) { /* offline ok */ }
@@ -342,6 +364,7 @@ window.LiraParticleFace = function (opts) {
   function onPortraitReady() {
     portraitReady = true;
     setupSpeechRec();
+    connectSpeakStream();
     resizeRenderer();
     buildParticles(parseInt(countSel.value, 10));
     if (getActive()) {
