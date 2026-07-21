@@ -1,10 +1,10 @@
 /**
  * Lira hologram — 12500pt point cloud with per-point speech deformation.
  * Points: [x, y, brightness, region, mouthWeight, jawDir] normalized 0..1.
- * Build v34 — Gaussian lips, MOUTH_SCALE 0.2 (500% reduction).
+ * Build v35 — Gaussian lips, MOUTH_SCALE 0.2; single-voice TTS (no overlap).
  */
 window.LiraNodeFace = function (opts) {
-  const HOLOGRAM_BUILD = 'v34';
+  const HOLOGRAM_BUILD = 'v35';
   const getActive = (opts && opts.isActive) || function () { return true; };
   const assetUrl = (opts && opts.assetUrl) || function (n) { return n; };
 
@@ -61,6 +61,9 @@ window.LiraNodeFace = function (opts) {
   const VOICE_ID = 'ara';
   const VOICE_MAX_CHARS = 320;
   let ttsBusy = false;
+  /** Only the latest speak is allowed to play — kills overlap from concurrent /api/tts. */
+  let ttsToken = 0;
+  let ttsAbort = null;
   let W = 0;
   let H = 0;
   let scale = 0;
@@ -130,9 +133,18 @@ window.LiraNodeFace = function (opts) {
 
   function stopTtsPlayback() {
     killBrowserTts();
+    if (ttsAbort) {
+      try { ttsAbort.abort(); } catch (e) { /* ignore */ }
+      ttsAbort = null;
+    }
     if (ttsAudio) {
-      ttsAudio.pause();
-      ttsAudio.src = '';
+      try {
+        ttsAudio.onplay = null;
+        ttsAudio.onended = null;
+        ttsAudio.onerror = null;
+        ttsAudio.pause();
+      } catch (e) { /* ignore */ }
+      try { ttsAudio.src = ''; } catch (e2) { /* ignore */ }
       ttsAudio = null;
     }
     ttsTimestamps = null;
@@ -183,22 +195,55 @@ window.LiraNodeFace = function (opts) {
     if (!voiceOn) return;
     const line = voiceText(text);
     if (!line) return;
+    // Invalidate every in-flight TTS fetch + currently playing clip (latest-wins).
+    const myToken = ++ttsToken;
     killBrowserTts();
-    stopTtsPlayback();
+    if (ttsAbort) {
+      try { ttsAbort.abort(); } catch (e) { /* ignore */ }
+    }
+    ttsAbort = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    if (ttsAudio) {
+      try {
+        ttsAudio.onplay = null;
+        ttsAudio.onended = null;
+        ttsAudio.onerror = null;
+        ttsAudio.pause();
+      } catch (e) { /* ignore */ }
+      try { ttsAudio.src = ''; } catch (e2) { /* ignore */ }
+      ttsAudio = null;
+    }
+    ttsTimestamps = null;
+    cancelAnimationFrame(ttsRaf);
+    ttsRaf = 0;
+    ttsActive = false;
     ttsBusy = true;
     try {
-      const res = await fetch('/api/tts', {
+      const fetchOpts = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text: line, voice_id: VOICE_ID, with_timestamps: true }),
-      });
+      };
+      if (ttsAbort) fetchOpts.signal = ttsAbort.signal;
+      const res = await fetch('/api/tts', fetchOpts);
+      if (myToken !== ttsToken) return; // superseded while waiting
       if (!res.ok) throw new Error('tts ' + res.status);
       const data = await res.json();
+      if (myToken !== ttsToken) return;
       if (!data.ok || !data.audio) throw new Error('no audio');
       ttsTimestamps = data.audio_timestamps || null;
       const dur = data.duration || Math.max(2, line.length * 0.07);
-      ttsAudio = new Audio('data:audio/mpeg;base64,' + data.audio);
-      ttsAudio.onplay = function () {
+      // Hard-stop anything that slipped through before attaching the new clip
+      if (ttsAudio) {
+        try { ttsAudio.pause(); } catch (e) { /* ignore */ }
+        ttsAudio = null;
+      }
+      const audio = new Audio('data:audio/mpeg;base64,' + data.audio);
+      ttsAudio = audio;
+      audio.onplay = function () {
+        if (myToken !== ttsToken) {
+          try { audio.pause(); } catch (e) { /* ignore */ }
+          return;
+        }
         ttsActive = true;
         saying = line;
         sayPhase = 0;
@@ -208,15 +253,23 @@ window.LiraNodeFace = function (opts) {
         cancelAnimationFrame(ttsRaf);
         ttsRaf = requestAnimationFrame(tickTtsMouth);
       };
-      ttsAudio.onended = function () {
+      audio.onended = function () {
+        if (myToken !== ttsToken) return;
         stopTtsPlayback();
       };
-      ttsAudio.onerror = function () {
+      audio.onerror = function () {
+        if (myToken !== ttsToken) return;
         stopTtsPlayback();
         mouthOnlyFallback(line, 'audio error');
       };
-      await ttsAudio.play();
+      await audio.play();
+      if (myToken !== ttsToken) {
+        try { audio.pause(); audio.src = ''; } catch (e) { /* ignore */ }
+        if (ttsAudio === audio) ttsAudio = null;
+      }
     } catch (e) {
+      if (e && (e.name === 'AbortError' || myToken !== ttsToken)) return;
+      if (myToken !== ttsToken) return;
       ttsBusy = false;
       if (statusEl) statusEl.textContent = 'ara failed · ' + (e.message || 'xai');
       mouthOnlyFallback(line, 'xai');

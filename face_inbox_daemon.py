@@ -82,6 +82,9 @@ def process_new_lines() -> int:
     lines = INBOX.read_text(encoding="utf-8").splitlines()
     new = lines[cursor:]
     handled = 0
+    # Collect valid human lines first — only auto-reply to the LAST in a burst
+    # so rapid typing doesn't stack overlapping Ara clips.
+    pending: list[tuple[str, str, str]] = []  # text, ts, who
     for line in new:
         if not line.strip():
             continue
@@ -100,22 +103,29 @@ def process_new_lines() -> int:
         if _is_duplicate(state, text):
             continue
         ts = row.get("t") or ""
-        if not PRIMARY_ONLY:
-            from lira_face_reply import reply_for_face
-
-            reply = reply_for_face(text)
-            if reply and post_speak(reply, source="lira"):
-                print(f"[speak/fast] {text[:50]} → {reply[:80]}", flush=True)
-            elif reply:
-                print(f"[speak fail] had reply but post failed: {reply[:60]}", flush=True)
-            else:
-                print(f"[speak empty] no reply for: {text[:60]}", flush=True)
-        else:
-            print(f"[queue→primary] {text[:80]}", flush=True)
+        pending.append((text, ts, who))
         state["last_text"] = text
         state["last_at"] = time.time()
         enqueue_for_composer(text, ts)
         handled += 1
+
+    if pending and not PRIMARY_ONLY:
+        from lira_face_reply import reply_for_face
+
+        text, _ts, _who = pending[-1]
+        if len(pending) > 1:
+            print(f"[coalesce] {len(pending)} lines → reply last only", flush=True)
+        reply = reply_for_face(text)
+        if reply and post_speak(reply, source="lira"):
+            print(f"[speak/fast] {text[:50]} → {reply[:80]}", flush=True)
+        elif reply:
+            print(f"[speak fail] had reply but post failed: {reply[:60]}", flush=True)
+        else:
+            print(f"[speak empty] no reply for: {text[:60]}", flush=True)
+    elif pending and PRIMARY_ONLY:
+        for text, _ts, _who in pending:
+            print(f"[queue→primary] {text[:80]}", flush=True)
+
     state["line"] = len(lines)
     save_state(state)
     return handled
