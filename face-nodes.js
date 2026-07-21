@@ -1,10 +1,11 @@
 /**
- * Lira hologram — 12500pt point cloud with per-point speech deformation.
+ * Lira hologram — 12500pt point cloud with independent lip rig.
  * Points: [x, y, brightness, region, mouthWeight, jawDir] normalized 0..1.
- * Build v35 — Gaussian lips, MOUTH_SCALE 0.2; single-voice TTS (no overlap).
+ * Build v36 — per-dot upper/lower/corner roles; open/smile/pucker/roll drivers.
+ * TTS still single-voice (v35 no-overlap).
  */
 window.LiraNodeFace = function (opts) {
-  const HOLOGRAM_BUILD = 'v35';
+  const HOLOGRAM_BUILD = 'v36';
   const getActive = (opts && opts.isActive) || function () { return true; };
   const assetUrl = (opts && opts.assetUrl) || function (n) { return n; };
 
@@ -21,12 +22,23 @@ window.LiraNodeFace = function (opts) {
   const MOUTH = { x0: 0.40, x1: 0.64, y0: 0.515, y1: 0.605, cx: 0.52, cy: 0.558 };
   const MOUTH_RX = 0.14;
   const MOUTH_RY = 0.065;
-  const MOUTH_SCALE = 0.2;
-  const MOUTH_AMP = 18;
-  const MOUTH_WIDE = 7;
+  /** Global gain — keep modest so lips don't slab the whole cheek. */
+  const MOUTH_SCALE = 0.55;
+  const LIP_OPEN_AMP = 15;
+  const LIP_SMILE_AMP = 9;
+  const LIP_PUCKER_AMP = 8;
+  const LIP_ROLL_AMP = 4.5;
+  const LIP_WIDE_AMP = 6;
+  // legacy aliases used by older status / tests
+  const MOUTH_AMP = LIP_OPEN_AMP;
+  const MOUTH_WIDE = LIP_WIDE_AMP;
 
   let particles = [];
   let pt = 0;
+  /** Live lip drivers 0..1 (smoothed). */
+  let lip = { open: 0, wide: 0, smile: 0, pucker: 0, roll: 0 };
+  let lipT = { open: 0, wide: 0, smile: 0, pucker: 0, roll: 0 };
+  // back-compat mirrors
   let mouthOpen = 0;
   let mouthWide = 0;
   let jawTarget = 0;
@@ -77,16 +89,27 @@ window.LiraNodeFace = function (opts) {
   const imgData = octx.createImageData(IW, IH);
   const buf = imgData.data;
 
+  /** Phoneme → independent lip drivers (0..1). */
+  function lipShape(ch) {
+    const c = (ch || ' ').toLowerCase();
+    // { open, wide, smile, pucker, roll }
+    if ('aáàâä'.includes(c)) return { open: 1.0, wide: 0.78, smile: 0.12, pucker: 0.05, roll: 0.05 };
+    if ('eéèêë'.includes(c)) return { open: 0.55, wide: 0.72, smile: 0.42, pucker: 0.08, roll: 0.08 };
+    if ('iíìîïy'.includes(c)) return { open: 0.28, wide: 0.88, smile: 0.72, pucker: 0.05, roll: 0.1 };
+    if ('oóòôö'.includes(c)) return { open: 0.82, wide: 0.22, smile: 0.05, pucker: 0.78, roll: 0.12 };
+    if ('uúùûüw'.includes(c)) return { open: 0.48, wide: 0.12, smile: 0.02, pucker: 0.92, roll: 0.15 };
+    if ('bmp'.includes(c)) return { open: 0.04, wide: 0.35, smile: 0.05, pucker: 0.25, roll: 0.55 };
+    if ('fv'.includes(c)) return { open: 0.22, wide: 0.55, smile: 0.1, pucker: 0.18, roll: 0.35 };
+    if ('tdnlsz'.includes(c)) return { open: 0.32, wide: 0.48, smile: 0.18, pucker: 0.12, roll: 0.2 };
+    if ('kgq'.includes(c)) return { open: 0.45, wide: 0.4, smile: 0.08, pucker: 0.2, roll: 0.1 };
+    if (c === ' ' || c === '.' || c === ',' || c === '!' || c === '?') {
+      return { open: 0.08, wide: 0.2, smile: 0.05, pucker: 0.05, roll: 0.05 };
+    }
+    return { open: 0.42, wide: 0.5, smile: 0.15, pucker: 0.12, roll: 0.1 };
+  }
   function vowelShape(ch) {
-    const c = ch.toLowerCase();
-    if ('aáàâ'.includes(c)) return { open: 1.0, wide: 0.72 };
-    if ('eéèê'.includes(c)) return { open: 0.62, wide: 0.55 };
-    if ('iíìî'.includes(c)) return { open: 0.38, wide: 0.52 };
-    if ('oóòô'.includes(c)) return { open: 0.95, wide: 0.58 };
-    if ('uúùû'.includes(c)) return { open: 0.65, wide: 0.42 };
-    if ('bmp'.includes(c)) return { open: 0.18, wide: 0.48 };
-    if ('fv'.includes(c)) return { open: 0.32, wide: 0.78 };
-    return { open: 0.48, wide: 0.62 };
+    const s = lipShape(ch);
+    return { open: s.open, wide: s.wide };
   }
 
   if (sayInput) {
@@ -103,15 +126,25 @@ window.LiraNodeFace = function (opts) {
     return (cut.lastIndexOf(' ') > 40 ? cut.slice(0, cut.lastIndexOf(' ')) : cut) + '…';
   }
 
-  function pumpMouth(open, wide, energy) {
+  function pumpLips(drivers, energy) {
     voiceDriveUntil = performance.now() + 180;
-    open *= MOUTH_SCALE;
-    wide *= MOUTH_SCALE;
-    jawTarget = Math.max(jawTarget, open);
-    wideTarget = Math.max(wideTarget, wide);
-    mouthOpen = Math.max(mouthOpen, open * 0.92);
-    mouthWide = Math.max(mouthWide, wide * 0.88);
-    speakEnergy = Math.max(speakEnergy, energy);
+    const d = drivers || {};
+    const gain = MOUTH_SCALE;
+    const keys = ['open', 'wide', 'smile', 'pucker', 'roll'];
+    for (let i = 0; i < keys.length; i++) {
+      const k = keys[i];
+      const v = Math.max(0, Math.min(1, d[k] != null ? d[k] : 0)) * gain;
+      lipT[k] = Math.max(lipT[k], v);
+      lip[k] = Math.max(lip[k], v * 0.9);
+    }
+    jawTarget = lipT.open;
+    wideTarget = lipT.wide;
+    mouthOpen = lip.open;
+    mouthWide = lip.wide;
+    speakEnergy = Math.max(speakEnergy, energy != null ? energy : 0.7);
+  }
+  function pumpMouth(open, wide, energy) {
+    pumpLips({ open: open, wide: wide, smile: (wide || 0) * 0.35, pucker: 0, roll: 0 }, energy);
   }
 
   function killBrowserTts() {
@@ -157,7 +190,14 @@ window.LiraNodeFace = function (opts) {
   function driveTimestampMouth(t) {
     const ts = ttsTimestamps;
     if (!ts || !ts.graph_chars || !ts.graph_times) {
-      pumpMouth(0.5 + Math.sin(t * 9) * 0.38, 0.32 + Math.sin(t * 7) * 0.22, 0.88);
+      const wob = 0.5 + Math.sin(t * 9) * 0.35;
+      pumpLips({
+        open: wob,
+        wide: 0.3 + Math.sin(t * 7) * 0.18,
+        smile: 0.12 + Math.sin(t * 5) * 0.08,
+        pucker: 0.1 + Math.sin(t * 4.2) * 0.08,
+        roll: 0.08,
+      }, 0.88);
       return;
     }
     const chars = ts.graph_chars;
@@ -166,12 +206,11 @@ window.LiraNodeFace = function (opts) {
       const start = times[i][0];
       const end = times[i][1];
       if (t >= start && t < end) {
-        const shape = vowelShape(chars[i]);
-        pumpMouth(shape.open, shape.wide, 0.92);
+        pumpLips(lipShape(chars[i]), 0.92);
         return;
       }
     }
-    pumpMouth(0.28, 0.22, 0.55);
+    pumpLips({ open: 0.2, wide: 0.18, smile: 0.06, pucker: 0.05, roll: 0.05 }, 0.55);
   }
 
   function tickTtsMouth() {
@@ -298,44 +337,107 @@ window.LiraNodeFace = function (opts) {
     saying = text;
     sayPhase = 0;
     sayTimer = Math.max(2.4, text.length * 0.072);
-    jawTarget = 0.88 * MOUTH_SCALE;
-    wideTarget = 0.62 * MOUTH_SCALE;
-    mouthOpen = 0.72 * MOUTH_SCALE;
-    mouthWide = 0.5 * MOUTH_SCALE;
-    speakEnergy = 0.92;
+    pumpLips({ open: 0.7, wide: 0.45, smile: 0.2, pucker: 0.1, roll: 0.08 }, 0.92);
     if (source === 'lira' && voiceOn) {
       speakWithAraVoice(text);
-      statusEl.textContent = 'me · ara';
+      statusEl.textContent = 'me · ara · lips';
     } else if (isLiraSource(source)) {
-      statusEl.textContent = 'me · here';
+      statusEl.textContent = 'me · here · lips';
     } else {
       statusEl.textContent = 'Tilen · ' + text.slice(0, 40) + (text.length > 40 ? '…' : '');
-      pumpMouth(0.65, 0.4, 0.75);
+      pumpLips({ open: 0.55, wide: 0.35, smile: 0.15, pucker: 0.08, roll: 0.05 }, 0.75);
     }
   }
 
+  /**
+   * Classify each point into a lip role from geometry (no baked mesh):
+   * upper | lower | cornerL | cornerR | soft (cheek/chin near mouth) | none
+   */
+  function classifyLip(nx, ny, bakedW, bakedJaw) {
+    const dx = (nx - MOUTH.cx) / MOUTH_RX;
+    const dy = (ny - MOUTH.cy) / MOUTH_RY;
+    const r2 = dx * dx + dy * dy;
+    let w = bakedW || 0;
+    if (w < 0.01) {
+      w = Math.max(0, Math.min(1, Math.exp(-r2 * 1.15)));
+    }
+    // Outside influence — skip
+    if (w < 0.05 && r2 > 2.4) {
+      return { role: 'none', w: 0, u: 0, side: 0, arch: 0, jawDir: 0 };
+    }
+    // Along-lip parameter: -1 left … +1 right
+    const u = Math.max(-1, Math.min(1, dx));
+    const side = u < 0 ? -1 : 1;
+    // Lip arch: 0 at corners, 1 at center
+    const arch = Math.max(0, 1 - Math.abs(u));
+    // Corner band
+    const cornerness = Math.max(0, Math.abs(u) - 0.55) / 0.45;
+    let role = 'soft';
+    let jawDir = bakedJaw != null ? bakedJaw : dy;
+    jawDir = Math.max(-1, Math.min(1, jawDir));
+
+    if (w > 0.12 || r2 < 1.35) {
+      if (cornerness > 0.45 && r2 < 1.55) {
+        role = u < 0 ? 'cornerL' : 'cornerR';
+      } else if (dy < -0.06) {
+        role = 'upper';
+        jawDir = Math.min(jawDir, -0.25);
+      } else if (dy > 0.06) {
+        role = 'lower';
+        jawDir = Math.max(jawDir, 0.25);
+      } else {
+        // vermillion seam — slight bias by baked jaw or y
+        role = jawDir < 0 ? 'upper' : 'lower';
+      }
+    } else if (dy > 0.55 && r2 < 2.2) {
+      role = 'soft'; // chin soft tissue
+    } else if (r2 > 1.8) {
+      role = 'none';
+      w = 0;
+    }
+
+    // Pure lip weight: stronger on vermillion, weaker on soft
+    let lipW = w;
+    if (role === 'upper' || role === 'lower') {
+      lipW = Math.min(1, w * (0.55 + 0.45 * Math.exp(-Math.abs(dy) * 1.8)));
+    } else if (role === 'cornerL' || role === 'cornerR') {
+      lipW = Math.min(1, w * (0.7 + 0.3 * cornerness));
+    } else if (role === 'soft') {
+      lipW = Math.min(0.35, w * 0.4);
+    }
+
+    return { role: role, w: lipW, u: u, side: side, arch: arch, jawDir: jawDir, corner: cornerness };
+  }
+
   function buildParticles(points) {
-    let mouthN = 0;
+    let upperN = 0;
+    let lowerN = 0;
+    let cornerN = 0;
+    let lipN = 0;
     particles = points.map(function (row) {
       const x = row[0];
       const y = row[1];
       const b = row[2];
       const region = row[3] || 0;
-      let mouthWeight = row[4] || 0;
-      const jawDir = row[5] != null ? row[5] : (y - MOUTH.cy) / MOUTH_RY;
-      if (mouthWeight < 0.01) {
-        const dx = (x - MOUTH.cx) / MOUTH_RX;
-        const dy = (y - MOUTH.cy) / MOUTH_RY;
-        mouthWeight = Math.max(0, Math.min(1, Math.exp(-(dx * dx + dy * dy) * 1.15)));
-      }
+      const bakedW = row[4] || 0;
+      const bakedJaw = row[5] != null ? row[5] : null;
+      const lipInfo = classifyLip(x, y, bakedW, bakedJaw);
       const v = 0.3 + 0.7 * b;
-      if (mouthWeight > 0.12) mouthN++;
+      if (lipInfo.role === 'upper') upperN++;
+      else if (lipInfo.role === 'lower') lowerN++;
+      else if (lipInfo.role === 'cornerL' || lipInfo.role === 'cornerR') cornerN++;
+      if (lipInfo.w > 0.12) lipN++;
       return {
         x: x * IW, y: y * IH, b: b, region: region,
-        mouthWeight: mouthWeight,
-        jawDir: Math.max(-1, Math.min(1, jawDir)),
+        mouthWeight: lipInfo.w,
+        jawDir: lipInfo.jawDir,
         relX: (x - MOUTH.cx) / MOUTH_RX,
         relY: (y - MOUTH.cy) / MOUTH_RY,
+        lipRole: lipInfo.role,
+        lipU: lipInfo.u,
+        lipSide: lipInfo.side,
+        lipArch: lipInfo.arch,
+        lipCorner: lipInfo.corner || 0,
         r: (region ? v * 0.55 : v * 0.28) * 0.6 * 255,
         g: (region ? v * 0.90 : v * 0.80) * 0.6 * 255,
         bl: v * 0.6 * 255,
@@ -345,7 +447,9 @@ window.LiraNodeFace = function (opts) {
       };
     });
     pointsReady = true;
-    statusEl.textContent = HOLOGRAM_BUILD + ' · lips ' + mouthN + 'pt · gaussian · space=test';
+    statusEl.textContent =
+      HOLOGRAM_BUILD + ' · lips↑' + upperN + ' ↓' + lowerN + ' ∠' + cornerN +
+      ' · ' + lipN + 'pt · space=test';
   }
 
   async function loadPoints() {
@@ -376,8 +480,15 @@ window.LiraNodeFace = function (opts) {
 
     const flicker = 0.94 + 0.06 * Math.sin(pt * 13.7) * Math.sin(pt * 7.3);
     const talking = sayTimer > 0 || micOn || mouthTest > 0 || ttsActive || performance.now() < voiceDriveUntil;
-    const talk = talking ? Math.max(0.55, speakEnergy) : 0;
-    const flap = talking ? (0.42 + 0.58 * Math.abs(Math.sin(sayPhase * 6.2))) * MOUTH_SCALE : 0;
+    const talk = talking ? Math.max(0.45, speakEnergy) : 0;
+    // Micro idle when talking so lips aren't frozen between phonemes
+    const micro = talking ? (0.08 + 0.1 * Math.abs(Math.sin(sayPhase * 5.5))) : 0;
+    const open = Math.max(lip.open, micro * MOUTH_SCALE);
+    const wide = lip.wide;
+    const smile = lip.smile;
+    const pucker = lip.pucker;
+    const roll = lip.roll;
+    const activeLips = talking && (open > 0.008 || smile > 0.008 || pucker > 0.008 || roll > 0.008 || wide > 0.008);
 
     for (let i = 0; i < buf.length; i += 4) {
       buf[i] = 2; buf[i + 1] = 5; buf[i + 2] = 13; buf[i + 3] = 255;
@@ -389,15 +500,63 @@ window.LiraNodeFace = function (opts) {
       let py = p.y + Math.cos(pt * p.speed * 0.8 + p.phase) * p.drift;
 
       const mw = p.mouthWeight;
-      if (mw > 0.04 && talking && (mouthOpen > 0.01 || flap > 0.1)) {
-        const open = Math.max(mouthOpen, flap) * (1 + talk * 0.35 * MOUTH_SCALE) * mw;
-        const jd = p.jawDir;
-        const lipSplit = jd > 0.05 ? jd : jd * 0.35;
-        py += open * MOUTH_AMP * lipSplit;
-        px += mouthWide * p.relX * MOUTH_WIDE * open * 0.85;
-        const corner = Math.max(0, 1 - Math.abs(p.relX)) * mw;
-        px += Math.sin(sayPhase * 4.2 + p.phase) * talk * 3 * corner;
-        py += Math.sin(sayPhase * 3.4 + p.phase) * talk * 1.2 * mw;
+      if (activeLips && mw > 0.04 && p.lipRole !== 'none') {
+        const role = p.lipRole;
+        const arch = p.lipArch;       // 1 center, 0 corners
+        const side = p.lipSide;       // -1 left, +1 right
+        const u = p.lipU;
+        const w = mw * (0.75 + 0.25 * talk);
+
+        // --- OPEN: upper goes up (smaller y), lower goes down — independent ---
+        if (role === 'upper') {
+          // Stronger open at center (arch), gentler at edges; no slab
+          py -= open * LIP_OPEN_AMP * w * (0.45 + 0.55 * arch);
+          // slight vertical curl of upper vermillion
+          py += roll * LIP_ROLL_AMP * w * (0.35 + 0.4 * arch);
+        } else if (role === 'lower') {
+          py += open * LIP_OPEN_AMP * w * (0.55 + 0.5 * arch);
+          py -= roll * LIP_ROLL_AMP * w * (0.3 + 0.35 * arch);
+        } else if (role === 'cornerL' || role === 'cornerR') {
+          // Corners hold slightly and follow smile more than pure open
+          py += open * LIP_OPEN_AMP * w * 0.18 * (role === 'cornerR' || role === 'cornerL' ? 1 : 1);
+        } else if (role === 'soft') {
+          // Chin / soft tissue — tiny jaw follow only
+          py += open * LIP_OPEN_AMP * w * 0.35;
+        }
+
+        // --- WIDE: stretch along lip curve (not a box translate) ---
+        if (role === 'upper' || role === 'lower') {
+          px += wide * LIP_WIDE_AMP * u * w * (0.5 + 0.5 * open);
+        }
+
+        // --- SMILE: corners out + up; upper arcs; lower flattens ---
+        if (role === 'cornerL' || role === 'cornerR') {
+          px += smile * LIP_SMILE_AMP * side * w;
+          py -= smile * LIP_SMILE_AMP * 0.55 * w;
+        } else if (role === 'upper') {
+          // outer upper lifts more
+          py -= smile * LIP_SMILE_AMP * 0.28 * w * (1 - arch * 0.6);
+          px += smile * LIP_SMILE_AMP * 0.22 * u * w;
+        } else if (role === 'lower') {
+          py -= smile * LIP_SMILE_AMP * 0.12 * w * arch;
+        }
+
+        // --- PUCKER: corners in, lips toward center (O/U) ---
+        if (role === 'cornerL' || role === 'cornerR') {
+          px -= pucker * LIP_PUCKER_AMP * side * w;
+          py += pucker * LIP_PUCKER_AMP * 0.12 * w;
+        } else if (role === 'upper' || role === 'lower') {
+          px -= pucker * LIP_PUCKER_AMP * u * w * 0.65;
+          // funnel toward mouth center
+          py += (role === 'upper' ? 1 : -1) * pucker * LIP_PUCKER_AMP * 0.2 * w * arch;
+        }
+
+        // Micro phoneme flutter — per-dot phase, not shared box wobble
+        if (talk > 0.2 && (role === 'upper' || role === 'lower')) {
+          const flutter = Math.sin(sayPhase * 4.1 + p.phase) * talk * w;
+          py += flutter * (role === 'upper' ? -0.55 : 0.65);
+          px += Math.sin(sayPhase * 3.2 + p.phase * 1.3) * talk * 0.45 * u * w;
+        }
       }
 
       const tw = flicker * (0.8 + 0.2 * Math.sin(pt * 2 + p.phase));
@@ -431,31 +590,61 @@ window.LiraNodeFace = function (opts) {
   }
 
   function driveSpeech(dt) {
-    let targetOpen = 0;
-    let targetWide = 0;
+    const keys = ['open', 'wide', 'smile', 'pucker', 'roll'];
     if (sayTimer > 0 || ttsActive) {
       if (sayTimer > 0) sayTimer -= dt;
       sayPhase += dt * 18;
-      const shape = vowelShape(saying[Math.floor(sayPhase) % Math.max(1, saying.length)] || ' ');
-      const flap = (0.4 + 0.6 * Math.abs(Math.sin(sayPhase * 6.2))) * MOUTH_SCALE;
-      targetOpen = Math.max(shape.open * MOUTH_SCALE, flap);
-      targetWide = Math.max(shape.wide * MOUTH_SCALE, flap * 0.72);
-      speakEnergy = 0.62 + Math.sin(sayPhase * 3.2) * 0.38;
-    } else {
+      // When TTS timestamps are live, driveTimestampMouth owns targets.
+      // Otherwise phoneme from spoken text.
+      if (!ttsActive || !ttsTimestamps) {
+        const shape = lipShape(saying[Math.floor(sayPhase) % Math.max(1, saying.length)] || ' ');
+        const micro = 0.12 + 0.18 * Math.abs(Math.sin(sayPhase * 6.2));
+        lipT.open = Math.max(shape.open, micro) * MOUTH_SCALE;
+        lipT.wide = Math.max(shape.wide, micro * 0.55) * MOUTH_SCALE;
+        lipT.smile = shape.smile * MOUTH_SCALE;
+        lipT.pucker = shape.pucker * MOUTH_SCALE;
+        lipT.roll = shape.roll * MOUTH_SCALE;
+      }
+      speakEnergy = Math.max(speakEnergy * 0.92, 0.55 + Math.sin(sayPhase * 3.2) * 0.28);
+    } else if (mouthTest <= 0) {
       speakEnergy *= 0.9;
-      targetOpen = 0;
-      targetWide = 0;
+      for (let i = 0; i < keys.length; i++) lipT[keys[i]] *= 0.82;
     }
-    const snap = Math.min(1, dt * 28);
-    jawTarget += (targetOpen - jawTarget) * snap;
-    wideTarget += (targetWide - wideTarget) * snap;
-    mouthOpen += (jawTarget - mouthOpen) * Math.min(1, snap * 1.2);
-    mouthWide += (wideTarget - mouthWide) * Math.min(1, snap);
     if (mouthTest > 0) {
       mouthTest = Math.max(0, mouthTest - dt);
-      jawTarget = Math.max(jawTarget, MOUTH_SCALE);
-      wideTarget = Math.max(wideTarget, 0.55 * MOUTH_SCALE);
+      // Cycle open → smile → pucker so space-test shows independence
+      const phase = (3 - mouthTest) / 3;
+      if (phase < 0.33) {
+        lipT.open = MOUTH_SCALE;
+        lipT.wide = 0.35 * MOUTH_SCALE;
+        lipT.smile = 0.1 * MOUTH_SCALE;
+        lipT.pucker = 0.05 * MOUTH_SCALE;
+        lipT.roll = 0.08 * MOUTH_SCALE;
+      } else if (phase < 0.66) {
+        lipT.open = 0.25 * MOUTH_SCALE;
+        lipT.wide = 0.7 * MOUTH_SCALE;
+        lipT.smile = 0.85 * MOUTH_SCALE;
+        lipT.pucker = 0.05 * MOUTH_SCALE;
+        lipT.roll = 0.1 * MOUTH_SCALE;
+      } else {
+        lipT.open = 0.55 * MOUTH_SCALE;
+        lipT.wide = 0.15 * MOUTH_SCALE;
+        lipT.smile = 0.05 * MOUTH_SCALE;
+        lipT.pucker = 0.9 * MOUTH_SCALE;
+        lipT.roll = 0.2 * MOUTH_SCALE;
+      }
+      speakEnergy = Math.max(speakEnergy, 0.85);
     }
+    const snap = Math.min(1, dt * 26);
+    for (let i = 0; i < keys.length; i++) {
+      const k = keys[i];
+      lip[k] += (lipT[k] - lip[k]) * snap;
+      if (lip[k] < 0.002 && lipT[k] < 0.002) lip[k] = 0;
+    }
+    mouthOpen = lip.open;
+    mouthWide = lip.wide;
+    jawTarget = lipT.open;
+    wideTarget = lipT.wide;
     if (voiceBar) voiceBar.style.width = (speakEnergy * 100) + '%';
   }
 
@@ -553,8 +742,11 @@ window.LiraNodeFace = function (opts) {
     for (let i = 2; i < 48; i++) sum += buf[i];
     const amp = Math.min(1, (sum / 46) / 130);
     speakEnergy = Math.max(speakEnergy, amp);
-    jawTarget = Math.max(jawTarget, amp * 0.5 * MOUTH_SCALE);
-    wideTarget = Math.max(wideTarget, amp * 0.2 * MOUTH_SCALE);
+    if (amp > 0.05) {
+      lipT.open = Math.max(lipT.open, amp * 0.65 * MOUTH_SCALE);
+      lipT.wide = Math.max(lipT.wide, amp * 0.3 * MOUTH_SCALE);
+      lipT.smile = Math.max(lipT.smile, amp * 0.12 * MOUTH_SCALE);
+    }
   }
 
   function setupSpeechRec() {
@@ -575,10 +767,8 @@ window.LiraNodeFace = function (opts) {
     if (e.code === 'Space' && !e.repeat && document.activeElement !== sayInput) {
       e.preventDefault();
       mouthTest = 3;
-      jawTarget = MOUTH_SCALE;
-      wideTarget = 0.6 * MOUTH_SCALE;
       speakEnergy = 0.9;
-      statusEl.textContent = 'mouth test · space';
+      statusEl.textContent = 'lip test · open→smile→pucker';
     }
   });
 
@@ -587,28 +777,37 @@ window.LiraNodeFace = function (opts) {
     else startMic().then(function () { recognition && recognition.start(); }).catch(function () {});
   });
 
-  function setMouth(open, wide) {
+  function setMouth(open, wide, extra) {
     const o = Math.max(0, Math.min(1, open || 0));
     const w = Math.max(0, Math.min(1, wide != null ? wide : o * 0.55));
-    pumpMouth(o, w, Math.max(0.5, o * 0.85));
+    const ex = extra || {};
+    pumpLips({
+      open: o,
+      wide: w,
+      smile: ex.smile != null ? ex.smile : w * 0.4,
+      pucker: ex.pucker != null ? ex.pucker : 0,
+      roll: ex.roll != null ? ex.roll : 0,
+    }, Math.max(0.5, o * 0.85));
     sayTimer = Math.max(sayTimer, 0.25);
   }
 
   function driveAudioLevel(amp) {
     const a = Math.max(0, Math.min(1, amp || 0));
     if (a < 0.02) return;
-    setMouth(0.25 + a * 0.75, 0.15 + a * 0.45);
+    setMouth(0.25 + a * 0.75, 0.15 + a * 0.45, { smile: a * 0.2, pucker: a * 0.1 });
   }
 
   window.__liraHologramSpeak = speakLine;
   window.__liraHologramMouth = setMouth;
   window.liraHologram = {
     setMouth: setMouth,
+    setLips: function (drivers) { pumpLips(drivers || {}, 0.8); sayTimer = Math.max(sayTimer, 0.3); },
     driveAudioLevel: driveAudioLevel,
     speak: speakLine,
     MOUTH: MOUTH,
     get mouthOpen() { return mouthOpen; },
     get mouthWide() { return mouthWide; },
+    get lips() { return { open: lip.open, wide: lip.wide, smile: lip.smile, pucker: lip.pucker, roll: lip.roll }; },
     setVoice: function (on) { voiceOn = !!on; if (!on) stopTtsPlayback(); },
     voiceId: VOICE_ID,
   };
