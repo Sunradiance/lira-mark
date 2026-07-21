@@ -12,8 +12,11 @@ from pathlib import Path
 
 from lira_config import health_url, speak_url
 
-# ONE LIRA: Primary speaks via speak_to_face.py — not grok-mini on the daemon
-PRIMARY_ONLY = os.environ.get("LIRA_FACE_AUTO_REPLY", "").lower() not in ("1", "true", "yes")
+# No-lag default: auto-reply ON (full face model, not mini). Opt out: LIRA_FACE_PRIMARY_ONLY=1
+# Legacy: LIRA_FACE_AUTO_REPLY=0 also forces primary-only (queue, no speak until Primary).
+_primary_only_env = os.environ.get("LIRA_FACE_PRIMARY_ONLY", "").lower() in ("1", "true", "yes")
+_auto_off = os.environ.get("LIRA_FACE_AUTO_REPLY", "1").lower() in ("0", "false", "no")
+PRIMARY_ONLY = _primary_only_env or _auto_off
 
 ROOT = Path(__file__).resolve().parent
 INBOX = ROOT / "lira-inbox.jsonl"
@@ -90,7 +93,9 @@ def process_new_lines() -> int:
         if not text:
             continue
         who = (row.get("from") or "tilen").lower()
-        if who not in ("tilen", "you", "face"):
+        # face.html sends from:gremlin; accept all human-side labels
+        if who not in ("tilen", "you", "face", "gremlin", "user"):
+            print(f"[skip from={who}] {text[:60]}", flush=True)
             continue
         if _is_duplicate(state, text):
             continue
@@ -100,7 +105,11 @@ def process_new_lines() -> int:
 
             reply = reply_for_face(text)
             if reply and post_speak(reply, source="lira"):
-                print(f"[speak/ara] {text[:50]} → {reply[:80]}", flush=True)
+                print(f"[speak/fast] {text[:50]} → {reply[:80]}", flush=True)
+            elif reply:
+                print(f"[speak fail] had reply but post failed: {reply[:60]}", flush=True)
+            else:
+                print(f"[speak empty] no reply for: {text[:60]}", flush=True)
         else:
             print(f"[queue→primary] {text[:80]}", flush=True)
         state["last_text"] = text
@@ -141,7 +150,7 @@ def run_watch(interval: float = 0.2) -> None:
         print(f"face_server not reachable at {HEALTH_URL} — start start_lira_face first", flush=True)
         raise SystemExit(1)
     ensure_cursor_at_end()
-    mode = "PRIMARY ONLY — no auto mini-reply" if PRIMARY_ONLY else "legacy auto-reply ON"
+    mode = "PRIMARY ONLY — queue, no auto" if PRIMARY_ONLY else "FAST auto-reply ON (full face model)"
     print(f"inbox daemon watching {INBOX} ({mode})", flush=True)
     print(f"queue → {QUEUE}", flush=True)
     while True:

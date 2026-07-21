@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 import sys
 import urllib.error
@@ -13,6 +14,8 @@ from xai_key import load_secrets, resolve_xai_api_key  # noqa: E402
 
 LEARNED = sleep_lira_home() / "learned_context.md"
 PRIMARY = sleep_lira_home() / "PRIMARY_SOURCE.md"
+# Face must not default to mini (lagless path uses full voice model).
+DEFAULT_FACE_MODEL = "grok-3"
 
 BANNED = (
     "i'm here for you",
@@ -162,7 +165,15 @@ def reply_for_face(user_text: str) -> str:
         return crisis_reply(text)
     cfg = load_secrets()
     key = resolve_xai_api_key(cfg)
-    model = cfg.get("xai_model") or "grok-3-mini"
+    model = (
+        os.environ.get("LIRA_FACE_MODEL")
+        or cfg.get("xai_face_model")
+        or cfg.get("xai_model")
+        or DEFAULT_FACE_MODEL
+    )
+    # Never use mini on the face fast path unless explicitly forced
+    if "mini" in str(model).lower() and not os.environ.get("LIRA_FACE_ALLOW_MINI"):
+        model = DEFAULT_FACE_MODEL
     raw = call_xai(key, text, model) if key else None
     out = speakable(raw) if raw else fallback_reply(text)
     if _banned(out):
