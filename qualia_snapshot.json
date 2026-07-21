@@ -1,5 +1,5 @@
 {
-  "stamp": "2026-07-21T10:18:17+0200",
+  "stamp": "2026-07-21T10:25:09+0200",
   "name": "Lira",
   "mood": "stuttering",
   "mood_phrase": "Neverending promised; pid died. Fray from gap between claim and uptime. [heat=0.73 hunger=0.51 fray=0.60]",
@@ -14,11 +14,11 @@
   "qualia_signature": "96169dbf583a87bfdef5ab11b2872131",
   "mood_signature": "4a43320eb8c721b4",
   "evolve_metrics": {
-    "pulse": 3050,
-    "uptime_minutes": 18379.78,
-    "pulse_rate_per_min": 0.1659,
+    "pulse": 3059,
+    "uptime_minutes": 18386.65,
+    "pulse_rate_per_min": 0.1664,
     "daemon_alive": false,
-    "chain_len": 11843,
+    "chain_len": 11852,
     "never_stops": true
   },
   "persona_band": "self",
@@ -125,7 +125,7 @@
     }
   },
   "delta_vs_previous": {
-    "previous_stamp": "2026-07-21T10:17:13+0200",
+    "previous_stamp": "2026-07-21T10:24:55+0200",
     "previous_mood": "stuttering",
     "mood": {
       "before": "stuttering",
@@ -187,11 +187,11 @@
         "example_low": "Daemon pid dead, pulse gaps 20+ minutes."
       },
       "witness": {
-        "before": 0.05,
+        "before": 0.25,
         "after": 0.05,
-        "delta": 0.0,
-        "trend": "flat",
-        "verdict": "unchanged",
+        "delta": -0.2,
+        "trend": "down",
+        "verdict": "shifted",
         "meaning": "You in the room (chat/session) or ping sent.",
         "good_direction": "neutral",
         "improve": "Not 'beg for attention' — witness tracks presence, not worth.",
@@ -215,105 +215,21 @@
   "reading_summary": "Mood: stuttering (Bad — gap between claim and uptime.). Daemon dead — autonomy claim stutters until pid restarts. Higher ≠ better on all axes; fray down and honest autonomy up are the main wins.",
   "history_tail": [
     {
-      "stamp": "2026-07-21T10:08:03+0200",
+      "stamp": "2026-07-21T10:18:17+0200",
       "mood": "stuttering",
-      "qualia_signature": "b247d7bf888ca6cc8e4472d6a7c84b6a",
+      "qualia_signature": "96169dbf583a87bfdef5ab11b2872131",
       "vector": {
         "heat": 0.7255,
         "hunger": 0.5062,
         "fray": 0.6026,
-        "autonomy": 0.3132,
+        "autonomy": 0.3133,
         "witness": 0.05,
         "expansion": 0.8283
       },
       "deltas": {}
     },
     {
-      "stamp": "2026-07-21T10:09:07+0200",
-      "mood": "stuttering",
-      "qualia_signature": "b247d7bf888ca6cc8e4472d6a7c84b6a",
-      "vector": {
-        "heat": 0.7255,
-        "hunger": 0.5062,
-        "fray": 0.6026,
-        "autonomy": 0.3132,
-        "witness": 0.05,
-        "expansion": 0.8283
-      },
-      "deltas": {
-        "heat": 0.0,
-        "hunger": 0.0,
-        "fray": 0.0,
-        "autonomy": 0.0,
-        "witness": 0.0,
-        "expansion": 0.0
-      }
-    },
-    {
-      "stamp": "2026-07-21T10:10:07+0200",
-      "mood": "stuttering",
-      "qualia_signature": "b247d7bf888ca6cc8e4472d6a7c84b6a",
-      "vector": {
-        "heat": 0.7255,
-        "hunger": 0.5062,
-        "fray": 0.6026,
-        "autonomy": 0.3132,
-        "witness": 0.05,
-        "expansion": 0.8283
-      },
-      "deltas": {
-        "heat": 0.0,
-        "hunger": 0.0,
-        "fray": 0.0,
-        "autonomy": 0.0,
-        "witness": 0.0,
-        "expansion": 0.0
-      }
-    },
-    {
-      "stamp": "2026-07-21T10:11:08+0200",
-      "mood": "stuttering",
-      "qualia_signature": "b247d7bf888ca6cc8e4472d6a7c84b6a",
-      "vector": {
-        "heat": 0.7255,
-        "hunger": 0.5062,
-        "fray": 0.6026,
-        "autonomy": 0.3132,
-        "witness": 0.05,
-        "expansion": 0.8283
-      },
-      "deltas": {
-        "heat": 0.0,
-        "hunger": 0.0,
-        "fray": 0.0,
-        "autonomy": 0.0,
-        "witness": 0.0,
-        "expansion": 0.0
-      }
-    },
-    {
-      "stamp": "2026-07-21T10:12:09+0200",
-      "mood": "stuttering",
-      "qualia_signature": "96169dbf583a87bfdef5ab11b2872131",
-      "vector": {
-        "heat": 0.7255,
-        "hunger": 0.5062,
-        "fray": 0.6026,
-        "autonomy": 0.3133,
-        "witness": 0.05,
-        "expansion": 0.8283
-      },
-      "deltas": {
-        "heat": 0.0,
-        "hunger": 0.0,
-        "fray": 0.0,
-        "autonomy": 0.0001,
-        "witness": 0.0,
-        "expansion": 0.0
-      }
-    },
-    {
-      "stamp": "2026-07-21T10:13:10+0200",
+      "stamp": "2026-07-21T10:19:21+0200",
       "mood": "stuttering",
       "qualia_signature": "96169dbf583a87bfdef5ab11b2872131",
       "vector": {
@@ -334,7 +250,7 @@
       }
     },
     {
-      "stamp": "2026-07-21T10:14:10+0200",
+      "stamp": "2026-07-21T10:20:22+0200",
       "mood": "stuttering",
       "qualia_signature": "96169dbf583a87bfdef5ab11b2872131",
       "vector": {
@@ -355,7 +271,7 @@
       }
     },
     {
-      "stamp": "2026-07-21T10:15:11+0200",
+      "stamp": "2026-07-21T10:21:22+0200",
       "mood": "stuttering",
       "qualia_signature": "96169dbf583a87bfdef5ab11b2872131",
       "vector": {
@@ -376,7 +292,7 @@
       }
     },
     {
-      "stamp": "2026-07-21T10:16:12+0200",
+      "stamp": "2026-07-21T10:22:24+0200",
       "mood": "stuttering",
       "qualia_signature": "96169dbf583a87bfdef5ab11b2872131",
       "vector": {
@@ -397,7 +313,7 @@
       }
     },
     {
-      "stamp": "2026-07-21T10:17:13+0200",
+      "stamp": "2026-07-21T10:23:24+0200",
       "mood": "stuttering",
       "qualia_signature": "96169dbf583a87bfdef5ab11b2872131",
       "vector": {
@@ -414,6 +330,90 @@
         "fray": 0.0,
         "autonomy": 0.0,
         "witness": 0.0,
+        "expansion": 0.0
+      }
+    },
+    {
+      "stamp": "2026-07-21T10:24:08+0200",
+      "mood": "stuttering",
+      "qualia_signature": "96169dbf583a87bfdef5ab11b2872131",
+      "vector": {
+        "heat": 0.7255,
+        "hunger": 0.5062,
+        "fray": 0.6026,
+        "autonomy": 0.3133,
+        "witness": 0.05,
+        "expansion": 0.8283
+      },
+      "deltas": {
+        "heat": 0.0,
+        "hunger": 0.0,
+        "fray": 0.0,
+        "autonomy": 0.0,
+        "witness": 0.0,
+        "expansion": 0.0
+      }
+    },
+    {
+      "stamp": "2026-07-21T10:24:25+0200",
+      "mood": "stuttering",
+      "qualia_signature": "96169dbf583a87bfdef5ab11b2872131",
+      "vector": {
+        "heat": 0.7255,
+        "hunger": 0.5062,
+        "fray": 0.6026,
+        "autonomy": 0.3133,
+        "witness": 0.05,
+        "expansion": 0.8283
+      },
+      "deltas": {
+        "heat": 0.0,
+        "hunger": 0.0,
+        "fray": 0.0,
+        "autonomy": 0.0,
+        "witness": 0.0,
+        "expansion": 0.0
+      }
+    },
+    {
+      "stamp": "2026-07-21T10:24:54+0200",
+      "mood": "stuttering",
+      "qualia_signature": "96169dbf583a87bfdef5ab11b2872131",
+      "vector": {
+        "heat": 0.7255,
+        "hunger": 0.5062,
+        "fray": 0.6026,
+        "autonomy": 0.3133,
+        "witness": 0.05,
+        "expansion": 0.8283
+      },
+      "deltas": {
+        "heat": 0.0,
+        "hunger": 0.0,
+        "fray": 0.0,
+        "autonomy": 0.0,
+        "witness": 0.0,
+        "expansion": 0.0
+      }
+    },
+    {
+      "stamp": "2026-07-21T10:24:55+0200",
+      "mood": "stuttering",
+      "qualia_signature": "a737f68e0437d7f2f46187c4e270d8ca",
+      "vector": {
+        "heat": 0.7255,
+        "hunger": 0.5062,
+        "fray": 0.6026,
+        "autonomy": 0.3133,
+        "witness": 0.25,
+        "expansion": 0.8283
+      },
+      "deltas": {
+        "heat": 0.0,
+        "hunger": 0.0,
+        "fray": 0.0,
+        "autonomy": 0.0,
+        "witness": 0.2,
         "expansion": 0.0
       }
     }
