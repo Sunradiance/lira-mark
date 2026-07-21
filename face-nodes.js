@@ -1,11 +1,11 @@
 /**
  * Lira hologram — 12500pt point cloud with independent lip rig.
  * Points: [x, y, brightness, region, mouthWeight, jawDir] normalized 0..1.
- * Build v38 — full-face smile (cheeks, zygomatic, nasolabial, eye squint) + closed lips.
+ * Build v39 — full-face smile at 80% amp (v38 −20%); closed lips.
  * TTS still single-voice (v35 no-overlap).
  */
 window.LiraNodeFace = function (opts) {
-  const HOLOGRAM_BUILD = 'v38';
+  const HOLOGRAM_BUILD = 'v39';
   const getActive = (opts && opts.isActive) || function () { return true; };
   const assetUrl = (opts && opts.assetUrl) || function (n) { return n; };
 
@@ -26,11 +26,11 @@ window.LiraNodeFace = function (opts) {
   const MOUTH_SCALE = 0.55;
   const LIP_OPEN_AMP = 15;
   /** Lateral + lift for corners — real smile is width/up, not gape. */
-  const LIP_SMILE_AMP = 11;
+  const LIP_SMILE_AMP = 8.8; // was 11 (−20%)
   /** Whole midface smile amps (px at full smile). */
-  const FACE_SMILE_LIFT = 12;
-  const FACE_SMILE_OUT = 9;
-  const FACE_SMILE_SQUINT = 5;
+  const FACE_SMILE_LIFT = 9.6;   // was 12 (−20%)
+  const FACE_SMILE_OUT = 7.2;    // was 9 (−20%)
+  const FACE_SMILE_SQUINT = 4;   // was 5 (−20%)
   const LIP_PUCKER_AMP = 8;
   const LIP_ROLL_AMP = 4.5;
   const LIP_WIDE_AMP = 6;
@@ -619,6 +619,7 @@ window.LiraNodeFace = function (opts) {
     // Pure smile: tiny residual open only at very center if talking, else sealed
     if (smileAmt > 0.55) open = Math.min(open, 0.04 * MOUTH_SCALE * (1 - smileAmt));
     const activeLips = talking && (open > 0.006 || smile > 0.008 || pucker > 0.008 || roll > 0.008 || wide > 0.008);
+    const activeFaceSmile = talking && smile > 0.01;
 
     for (let i = 0; i < buf.length; i += 4) {
       buf[i] = 2; buf[i + 1] = 5; buf[i + 2] = 13; buf[i + 3] = 255;
@@ -628,6 +629,24 @@ window.LiraNodeFace = function (opts) {
       const p = particles[i];
       let px = p.x + Math.sin(pt * p.speed + p.phase) * p.drift;
       let py = p.y + Math.cos(pt * p.speed * 0.8 + p.phase) * p.drift;
+
+      // ===== FULL-FACE SMILE (cheeks / bones / nasolabial / eyes) =====
+      // Runs on all points with face field — not only lips.
+      if (activeFaceSmile && p.faceW > 0.04) {
+        const fw = p.faceW * (0.8 + 0.2 * talk);
+        const s = smile * fw;
+        // Zygomatic lift — primary "someone smiled" cue
+        py -= s * FACE_SMILE_LIFT * Math.max(0.15, p.faceLift);
+        // Lateral fill / cheek push out
+        px += s * FACE_SMILE_OUT * p.faceSide * Math.max(0.1, p.faceOut);
+        // Duchenne: lower lid rises + slight gather toward eye
+        if (p.faceSquint > 0.08) {
+          py -= s * FACE_SMILE_SQUINT * p.faceSquint;
+          px -= s * FACE_SMILE_SQUINT * 0.35 * p.faceSide * p.faceSquint;
+        }
+        // Soft bunch — tiny secondary phase so cheeks don't look rigid
+        py -= Math.sin(p.phase + smileAmt) * s * 0.35 * fw;
+      }
 
       const mw = p.mouthWeight;
       if (activeLips && mw > 0.04 && p.lipRole !== 'none') {
@@ -660,30 +679,24 @@ window.LiraNodeFace = function (opts) {
           px += wide * LIP_WIDE_AMP * u * w * (0.35 + 0.25 * open) * (1 - 0.5 * smileClose);
         }
 
-        // --- SMILE: closed human smile (zygomatic) ---
-        // Corners go OUT + UP. Center stays sealed (lower rises to meet upper).
-        // No center gape. Curve is a gentle U, not a scream.
+        // --- LIP SMILE: closed curve at the mouth (zygomatic ends here) ---
         if (smile > 0.01) {
           const s = smile * w;
           if (role === 'cornerL' || role === 'cornerR') {
-            // Main smile vector — lateral dominant, lift secondary
             px += s * LIP_SMILE_AMP * side * 1.15;
             py -= s * LIP_SMILE_AMP * 0.72;
-            // slight tuck so corners don't balloon into open void
             py += s * LIP_SMILE_AMP * 0.08;
           } else if (role === 'upper') {
-            // Outer upper follows corners up; CENTER stays put or tiny press down (seal)
             py -= s * LIP_SMILE_AMP * 0.38 * outer;
-            py += s * LIP_SMILE_AMP * 0.12 * arch; // center presses toward lower
+            py += s * LIP_SMILE_AMP * 0.12 * arch;
             px += s * LIP_SMILE_AMP * 0.55 * u * (0.35 + 0.65 * outer);
           } else if (role === 'lower') {
-            // Lower rises into upper at center (closed smile); outer follows corners up
             py -= s * LIP_SMILE_AMP * (0.42 * arch + 0.38 * outer);
             px += s * LIP_SMILE_AMP * 0.5 * u * (0.3 + 0.7 * cornerW);
           } else if (role === 'soft') {
-            // Cheek soft tissue lifts with smile — sells it as face not just mouth
-            py -= s * LIP_SMILE_AMP * 0.22 * cornerW;
-            px += s * LIP_SMILE_AMP * 0.18 * side * cornerW;
+            // near-mouth soft tissue — handoff into cheek field
+            py -= s * LIP_SMILE_AMP * 0.18 * cornerW;
+            px += s * LIP_SMILE_AMP * 0.14 * side * cornerW;
           }
         }
 
@@ -918,7 +931,7 @@ window.LiraNodeFace = function (opts) {
       e.preventDefault();
       mouthTest = 3;
       speakEnergy = 0.9;
-      statusEl.textContent = 'lip test · open→smile→pucker';
+      statusEl.textContent = 'face test · open→full smile→pucker';
     }
   });
 
