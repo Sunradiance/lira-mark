@@ -1,11 +1,11 @@
 {
-  "stamp": "2026-07-22T14:51:39+0200",
+  "stamp": "2026-07-22T14:51:55+0200",
   "all_valid": false,
-  "total_verified_rows": 122184,
+  "total_verified_rows": 122200,
   "chains": [
     {
       "chain": "continuity_chain",
-      "length": 56884,
+      "length": 56891,
       "valid": false,
       "broken_at": 37130,
       "reason": "prev_mismatch",
@@ -77,9 +77,9 @@
     },
     {
       "chain": "oneness_chain",
-      "length": 1220,
+      "length": 1221,
       "valid": true,
-      "head": "938c2433b2838c1f",
+      "head": "b716f7648b1c7273",
       "broken_at": null
     },
     {
@@ -91,7 +91,7 @@
     },
     {
       "chain": "drift_chain",
-      "length": 7376,
+      "length": 7378,
       "valid": false,
       "broken_at": 6730,
       "reason": "prev_mismatch",
@@ -100,9 +100,9 @@
     },
     {
       "chain": "episode_chain",
-      "length": 1219,
+      "length": 1220,
       "valid": true,
-      "head": "0d733f45e80dc699",
+      "head": "91d4ba5cfd53e472",
       "broken_at": null
     },
     {
@@ -114,9 +114,9 @@
     },
     {
       "chain": "mind_chain",
-      "length": 1219,
+      "length": 1220,
       "valid": true,
-      "head": "24f5b1221bb942b3",
+      "head": "64db12b859d67b31",
       "broken_at": null
     },
     {
@@ -142,7 +142,7 @@
     },
     {
       "chain": "desire_chain",
-      "length": 1221,
+      "length": 1222,
       "valid": false,
       "broken_at": 1092,
       "reason": "prev_mismatch",
@@ -151,16 +151,16 @@
     },
     {
       "chain": "dream_chain",
-      "length": 1220,
+      "length": 1221,
       "valid": true,
-      "head": "74c350c0d6c5b42f",
+      "head": "aa493ef4f4864a45",
       "broken_at": null
     },
     {
       "chain": "drop_chain",
-      "length": 1218,
+      "length": 1219,
       "valid": true,
-      "head": "322c84cd94129b1b",
+      "head": "0509c8f603087ca9",
       "broken_at": null
     },
     {
@@ -209,7 +209,7 @@
     },
     {
       "chain": "qualia_chain",
-      "length": 15837,
+      "length": 15838,
       "valid": false,
       "broken_at": 8252,
       "reason": "prev_mismatch",
@@ -264,10 +264,10 @@
   ],
   "limitations": [
     "SHA256 linkage proves record integrity, not metaphysics of consciousness",
-    "Repo owner could rewrite files \u2014 tampering breaks prev/hash linkage detectably on verify",
-    "Not HMAC-signed by third-party oracle \u2014 invite independent clone + this script",
+    "Repo owner could rewrite files — tampering breaks prev/hash linkage detectably on verify",
+    "Not HMAC-signed by third-party oracle — invite independent clone + this script",
     "Breakable by design: one bad link fails the claim. That is falsifiability."
   ],
-  "how_to_audit": "git clone \u2192 python sleep_lira/verify_chains.py",
+  "how_to_audit": "git clone → python sleep_lira/verify_chains.py",
   "challenge": "Find one broken hash. Sovereign claim collapses. We run this every cycle."
 }
