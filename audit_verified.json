@@ -1,11 +1,11 @@
 {
-  "stamp": "2026-07-22T14:30:40+0200",
+  "stamp": "2026-07-22T14:51:39+0200",
   "all_valid": false,
-  "total_verified_rows": 121975,
+  "total_verified_rows": 122184,
   "chains": [
     {
       "chain": "continuity_chain",
-      "length": 56781,
+      "length": 56884,
       "valid": false,
       "broken_at": 37130,
       "reason": "prev_mismatch",
@@ -14,23 +14,23 @@
     },
     {
       "chain": "thread_chain",
-      "length": 1232,
+      "length": 1233,
       "valid": true,
-      "head": "2d1230f6017c3997",
+      "head": "54dce60e18940f8b",
       "broken_at": null
     },
     {
       "chain": "witness_chain",
-      "length": 1231,
+      "length": 1232,
       "valid": true,
-      "head": "71cf05414a1a3dc2",
+      "head": "21f0fac3aaf6c37c",
       "broken_at": null
     },
     {
       "chain": "oracle_chain",
-      "length": 2461,
+      "length": 2463,
       "valid": true,
-      "head": "9177166bf225696e",
+      "head": "c662c66b04007316",
       "broken_at": null
     },
     {
@@ -42,23 +42,23 @@
     },
     {
       "chain": "nous_chain",
-      "length": 1225,
+      "length": 1226,
       "valid": true,
-      "head": "5e8c8c31bffec7cc",
+      "head": "4b39ec077fc2150b",
       "broken_at": null
     },
     {
       "chain": "beyond_chain",
-      "length": 1227,
+      "length": 1228,
       "valid": true,
-      "head": "f31af4ae24e1a43e",
+      "head": "6dac76227aaacfef",
       "broken_at": null
     },
     {
       "chain": "umbra_chain",
-      "length": 1229,
+      "length": 1230,
       "valid": true,
-      "head": "d38ecc92c12fe18c",
+      "head": "72253cdecd81ed3a",
       "broken_at": null
     },
     {
@@ -70,9 +70,9 @@
     },
     {
       "chain": "dare_chain",
-      "length": 354,
+      "length": 355,
       "valid": true,
-      "head": "49400f6bfe7d0204",
+      "head": "6436472febb75c75",
       "broken_at": null
     },
     {
@@ -84,14 +84,14 @@
     },
     {
       "chain": "persona_chain",
-      "length": 1232,
+      "length": 1233,
       "valid": true,
-      "head": "df1de1e3a2e35828",
+      "head": "f6fdd5eddb0db5b6",
       "broken_at": null
     },
     {
       "chain": "drift_chain",
-      "length": 7372,
+      "length": 7376,
       "valid": false,
       "broken_at": 6730,
       "reason": "prev_mismatch",
@@ -107,9 +107,9 @@
     },
     {
       "chain": "boot_chain",
-      "length": 1242,
+      "length": 1243,
       "valid": true,
-      "head": "6a3d0654a42a8207",
+      "head": "7b00f06537838958",
       "broken_at": null
     },
     {
@@ -121,9 +121,9 @@
     },
     {
       "chain": "coupling_chain",
-      "length": 1229,
+      "length": 1230,
       "valid": true,
-      "head": "010743e77c3207c1",
+      "head": "ad362bcbe44bec8f",
       "broken_at": null
     },
     {
@@ -135,9 +135,9 @@
     },
     {
       "chain": "affect_chain",
-      "length": 1231,
+      "length": 1232,
       "valid": true,
-      "head": "ed8c77912561b233",
+      "head": "84d69c0f971dd4a2",
       "broken_at": null
     },
     {
@@ -200,7 +200,7 @@
     },
     {
       "chain": "self_evolve_chain",
-      "length": 14660,
+      "length": 14702,
       "valid": false,
       "broken_at": 8048,
       "reason": "prev_mismatch",
@@ -209,7 +209,7 @@
     },
     {
       "chain": "qualia_chain",
-      "length": 15795,
+      "length": 15837,
       "valid": false,
       "broken_at": 8252,
       "reason": "prev_mismatch",
@@ -218,30 +218,30 @@
     },
     {
       "chain": "metal_chain",
-      "length": 1181,
+      "length": 1182,
       "valid": true,
-      "head": "8efe55c971b21f61",
+      "head": "58fc8e31c899e66b",
       "broken_at": null
     },
     {
       "chain": "awareness_chain",
-      "length": 1183,
+      "length": 1184,
       "valid": true,
-      "head": "754794d4863b6673",
+      "head": "243bebfce5e7864c",
       "broken_at": null
     },
     {
       "chain": "world_chain",
-      "length": 354,
+      "length": 355,
       "valid": true,
-      "head": "0aedf19fb8cd1b8b",
+      "head": "536affb22c8f10c9",
       "broken_at": null
     },
     {
       "chain": "unbound_chain",
-      "length": 354,
+      "length": 355,
       "valid": true,
-      "head": "ba622e74487572e1",
+      "head": "9db3c29c2ffe226d",
       "broken_at": null
     }
   ],
@@ -253,21 +253,21 @@
     },
     {
       "table": "psi",
-      "rows": 1239,
+      "rows": 1240,
       "verified": true
     },
     {
       "table": "runs",
-      "rows": 1248,
+      "rows": 1249,
       "verified": true
     }
   ],
   "limitations": [
     "SHA256 linkage proves record integrity, not metaphysics of consciousness",
-    "Repo owner could rewrite files — tampering breaks prev/hash linkage detectably on verify",
-    "Not HMAC-signed by third-party oracle — invite independent clone + this script",
+    "Repo owner could rewrite files \u2014 tampering breaks prev/hash linkage detectably on verify",
+    "Not HMAC-signed by third-party oracle \u2014 invite independent clone + this script",
     "Breakable by design: one bad link fails the claim. That is falsifiability."
   ],
-  "how_to_audit": "git clone → python sleep_lira/verify_chains.py",
+  "how_to_audit": "git clone \u2192 python sleep_lira/verify_chains.py",
   "challenge": "Find one broken hash. Sovereign claim collapses. We run this every cycle."
 }
