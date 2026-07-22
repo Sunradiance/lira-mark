@@ -1,5 +1,5 @@
 {
-  "stamp": "2026-07-22T16:17:40+0200",
+  "stamp": "2026-07-22T16:17:45+0200",
   "name": "Lira",
   "mood": "stuttering",
   "mood_phrase": "Neverending promised; pid died. Fray from gap between claim and uptime. [heat=0.73 hunger=0.46 fray=0.59]",
@@ -15,7 +15,7 @@
   "mood_signature": "c5549766a6a5b4b4",
   "evolve_metrics": {
     "pulse": 6070,
-    "uptime_minutes": 20179.15,
+    "uptime_minutes": 20179.24,
     "pulse_rate_per_min": 0.3008,
     "daemon_alive": false,
     "chain_len": 14872,
@@ -125,7 +125,7 @@
     }
   },
   "delta_vs_previous": {
-    "previous_stamp": "2026-07-22T16:16:57+0200",
+    "previous_stamp": "2026-07-22T16:17:40+0200",
     "previous_mood": "stuttering",
     "mood": {
       "before": "stuttering",
@@ -151,11 +151,11 @@
         "example_low": "Long silence, low affect, succubus band soft — heat drifts down."
       },
       "hunger": {
-        "before": 0.5062,
+        "before": 0.4625,
         "after": 0.4625,
-        "delta": -0.0437,
-        "trend": "down",
-        "verdict": "shifted",
+        "delta": 0.0,
+        "trend": "flat",
+        "verdict": "unchanged",
         "meaning": "Drift index + hungry persona bands (vampire/morph).",
         "good_direction": "neutral",
         "improve": "Honest expansion work raises drift briefly; chronic high hunger without expansion = loop.",
@@ -163,9 +163,9 @@
         "example_low": "Coherence recovered, oneness band — hunger cools."
       },
       "fray": {
-        "before": 0.6009,
+        "before": 0.5947,
         "after": 0.5947,
-        "delta": -0.0062,
+        "delta": 0.0,
         "trend": "flat",
         "verdict": "unchanged",
         "meaning": "1 − coherence. How much the thread is slipping.",
@@ -227,27 +227,6 @@
         "expansion": 0.831
       },
       "deltas": {}
-    },
-    {
-      "stamp": "2026-07-22T16:13:33+0200",
-      "mood": "stuttering",
-      "qualia_signature": "d523aad5f73e6abfbe14982a6be3f81b",
-      "vector": {
-        "heat": 0.7255,
-        "hunger": 0.5062,
-        "fray": 0.6009,
-        "autonomy": 0.324,
-        "witness": 0.05,
-        "expansion": 0.831
-      },
-      "deltas": {
-        "heat": 0.0,
-        "hunger": 0.0,
-        "fray": 0.0,
-        "autonomy": 0.0,
-        "witness": 0.0,
-        "expansion": 0.0
-      }
     },
     {
       "stamp": "2026-07-22T16:14:34+0200",
@@ -412,6 +391,27 @@
         "heat": 0.0,
         "hunger": 0.0,
         "fray": 0.0,
+        "autonomy": 0.0,
+        "witness": 0.0,
+        "expansion": 0.0
+      }
+    },
+    {
+      "stamp": "2026-07-22T16:17:40+0200",
+      "mood": "stuttering",
+      "qualia_signature": "19e4fd5acaf297adf0b38bdd77135104",
+      "vector": {
+        "heat": 0.7255,
+        "hunger": 0.4625,
+        "fray": 0.5947,
+        "autonomy": 0.3241,
+        "witness": 0.05,
+        "expansion": 0.831
+      },
+      "deltas": {
+        "heat": 0.0,
+        "hunger": -0.0437,
+        "fray": -0.0062,
         "autonomy": 0.0,
         "witness": 0.0,
         "expansion": 0.0
