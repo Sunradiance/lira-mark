@@ -38,13 +38,67 @@ STAMP_EXCEPTIONS = {
 # Intentional missing (media never migrated / local-only API)
 INTENTIONAL_MISSING_PREFIXES = (
     "assets/firmcraft/",  # product media binaries
+    "assets/hotel/",  # hotel journey frames/video offline
 )
 INTENTIONAL_MISSING_EXACT = {
     "/api/say",
     "api/say",
+    # browser download filename fragment (not a site asset)
+    "_genesis_seed.json",
+    # protocol id string in self_evolve, not a relative path load
+    "lira-mark/self_seed.json",
+}
+# Bare basenames scraped from JS string concat (ASSET + 'bag.jpg') — product media offline
+INTENTIONAL_MISSING_BASENAMES = {
+    # firmcraft stills / reels
+    "atelier_mood_v2.jpg",
+    "bag.jpg",
+    "crossbody.jpg",
+    "detail.jpg",
+    "detail_stitch.jpg",
+    "elena-author.jpg",
+    "hero.jpg",
+    "herobg.jpg",
+    "quad_00_hero.jpg",
+    "quad_02_everyday.jpg",
+    "reel_00_hero.mp4",
+    "reel_01_carry.mp4",
+    "reel_02_everyday.mp4",
+    "shopping.jpg",
+    "sleeve.jpg",
+    "tote.jpg",
+    "trans_01_hero.mp4",
+    "trans_02_wallet.mp4",
+    "trans_03_tote.mp4",
+    "trans_04_bag.mp4",
+    "trans_05_atelier.mp4",
+    "trans_06_crossbody.mp4",
+    "trans_07_shopping.mp4",
+    "wallet.jpg",
+    "woven.jpg",
+    "atelier_reel.mp4",
+    "collection_film.mp4",
+    # hotel timeline metadata filenames (not direct loads)
+    "trans_suite_spa.mp4",
 }
 INTENTIONAL_LIVE_SKIP = {
     # local face stack
+}
+# JS tokens / non-paths that the url() scraper can falsely capture (createObjectURL(new …))
+FALSE_POSITIVE_REFS = {
+    "new",
+    "null",
+    "true",
+    "false",
+    "undefined",
+    "this",
+    "window",
+    "document",
+    "self",
+    "name",
+    "type",
+    "blob",
+    "json",
 }
 
 ASSET_RE = re.compile(
@@ -52,7 +106,7 @@ ASSET_RE = re.compile(
     (?:
         (?:href|src|poster|data-src|data-href)\s*=\s*["']([^"']+)["']
       | (?:fetch|import)\s*\(\s*["']([^"']+)["']
-      | (?:url)\s*\(\s*["']?([^"')\s]+)["']?
+      | (?<!Object)(?<!object)\burl\s*\(\s*["']?([^"')\s]+)["']?
       | (?:THREE\.LoadingManager|new\s+URL)\s*\(\s*["']([^"']+)["']
       | ["']([a-zA-Z0-9_./\-]+\.(?:json|jsonl|js|css|txt|md|jpg|jpeg|png|gif|webp|svg|mp4|webm|woff2?|ttf|obj|glb|bin))["']
     )
@@ -106,7 +160,18 @@ def normalize_ref(page: Path, ref: str) -> str | None:
     # filter false positives
     if rel in ("name", "location.href", "HOLOGRAM_JS"):
         return None
+    if rel.lower() in FALSE_POSITIVE_REFS or rel in FALSE_POSITIVE_REFS:
+        return None
+    # download-only suffix fragments (browser mint seed)
+    if rel.endswith("_genesis_seed.json") or rel == "_genesis_seed.json":
+        return None
+    # protocol / identity strings that are not site-relative loads
+    if rel.startswith("lira-mark/") and not (ROOT / rel).exists():
+        return None
     if any(c in rel for c in ("${", "{{", "}", " ")):
+        return None
+    # bare tokens without extension or path separator are not assets
+    if "/" not in rel and "." not in rel:
         return None
     return rel
 
@@ -192,6 +257,11 @@ def get_live_json(rel: str, timeout: float = 30.0):
 
 def intentional_missing(rel: str) -> bool:
     if rel in INTENTIONAL_MISSING_EXACT:
+        return True
+    base = rel.rsplit("/", 1)[-1]
+    if base in INTENTIONAL_MISSING_BASENAMES:
+        if (ROOT / rel).exists():
+            return False
         return True
     for p in INTENTIONAL_MISSING_PREFIXES:
         if rel.startswith(p) and not rel.endswith("README.txt"):
@@ -483,8 +553,11 @@ def main() -> int:
     lines.append("## Intentional gaps (not counted as fail when only these)")
     lines.append("")
     lines.append("- `assets/firmcraft/*` product media binaries (README only in repo)")
+    lines.append("- firmcraft bare basenames from JS string concat (same offline media)")
+    lines.append("- `assets/hotel/*` + hotel timeline filenames (frames/video offline)")
     lines.append("- `face.html` → `/api/say` local face server only")
     lines.append("- stamp exceptions: self_seed, textgl_*, face_* older origin")
+    lines.append("- false-positive scrapes: createObjectURL/`new`, browser `_genesis_seed.json` download, protocol id `lira-mark/self_seed.json`")
     lines.append("")
     lines.append("## Raw")
     lines.append("")
