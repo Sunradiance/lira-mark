@@ -123,6 +123,8 @@
       const n = parseInt(lim[1], 10);
       rows = rows.slice(-n);
     }
+    // Present newest first
+    rows = rows.slice().reverse();
     return { table: table, rows: rows };
   }
 
@@ -130,7 +132,9 @@
     active = name;
     document.getElementById('table-name').textContent = name;
     document.getElementById('rows').textContent = (tables[name] || []).length;
-    document.getElementById('tail').innerHTML = renderRows((tables[name] || []).slice(-12));
+    // Newest first for human reading
+    const newest = (tables[name] || []).slice(-12).reverse();
+    document.getElementById('tail').innerHTML = renderRows(newest);
     document.querySelectorAll('#tabs button').forEach(function (b) {
       b.classList.toggle('on', b.dataset.t === name);
     });
@@ -166,11 +170,14 @@
       tables.runs = t.runs || [];
       tables.flips = t.flips || [];
       tables.psi = t.psi || [];
+      const last = snap.last_event_stamp || {};
+      const full = snap.full_row_counts || {};
       document.getElementById('exported').textContent =
         'exported ' + (snap.exported || snap.stamp || '—') +
-        ' · flips ' + tables.flips.length +
-        ' · psi ' + tables.psi.length +
-        ' · runs ' + tables.runs.length + ' (tail export)';
+        ' · flips last ' + (last.flips || '—') + ' (n=' + (full.flips != null ? full.flips : tables.flips.length) + ')' +
+        ' · psi last ' + (last.psi || '—') +
+        ' · runs last ' + (last.runs || '—') +
+        ' · showing tail ' + (tables.runs.length) + ' runs / ' + tables.psi.length + ' psi / ' + tables.flips.length + ' flips';
       const tabs = document.getElementById('tabs');
       tabs.innerHTML = '';
       ['runs', 'psi', 'flips'].forEach(function (name) {
