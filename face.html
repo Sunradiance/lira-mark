@@ -426,7 +426,11 @@
       try {
         if (!window.THREE) {
           statusEl.textContent = 'loading three.js…';
-          await loadScript('https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js');
+          try {
+            await loadScript(assetUrl('vendor/three.min.js'));
+          } catch (_) {
+            await loadScript('https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js');
+          }
         }
         if (!window.LiraParticleFace) {
           statusEl.textContent = 'loading particles…';
