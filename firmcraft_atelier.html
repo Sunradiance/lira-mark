@@ -286,9 +286,23 @@
       .journal-mini { grid-template-columns: repeat(3, 1fr); }
       .progress-rail { display: none; }
     }
+    .media-offline-banner {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 10000;
+      background: #1a1208; color: #e8c8a0; text-align: center;
+      padding: 0.55rem 1rem; font-size: 0.72rem; letter-spacing: 0.12em;
+      border-bottom: 1px solid rgba(200, 160, 100, 0.35);
+      font-family: Georgia, serif;
+    }
+    .media-offline-banner a { color: #ffc080; text-decoration: none; }
+    body.has-offline-banner .nav { top: 2.2rem; }
+    body.has-offline-banner .loader { top: 2.2rem; }
   </style>
 </head>
-<body>
+<body class="has-offline-banner">
+  <div class="media-offline-banner" id="media-offline">
+    MEDIA OFFLINE AFTER MIGRATION · product images/video not in this tree · shell layout still loads ·
+    <a href="shores.html">← shores</a> · <a href="assets/firmcraft/README.txt">readme</a>
+  </div>
   <div class="loader" id="loader">
     <div>
       <div class="loader-mark">Firmcraft</div>
@@ -677,6 +691,27 @@
   });
   syncBrief();
   sendBrief.addEventListener('click', e => { e.preventDefault(); location.href = sendBrief.href; });
+
+  // Media offline after migration — soft placeholders, keep layout
+  const ph = "data:image/svg+xml," + encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" width="640" height="480">' +
+    '<rect fill="#2a2218" width="100%" height="100%"/>' +
+    '<text x="50%" y="48%" fill="#c4a574" font-family="Georgia,serif" font-size="22" text-anchor="middle">media offline</text>' +
+    '<text x="50%" y="56%" fill="#7a746a" font-family="sans-serif" font-size="14" text-anchor="middle">assets/firmcraft not in repo</text></svg>'
+  );
+  document.querySelectorAll('img').forEach(img => {
+    img.addEventListener('error', function onE() {
+      img.removeEventListener('error', onE);
+      img.src = ph;
+      img.style.objectFit = 'cover';
+    });
+    if (img.complete && img.naturalWidth === 0) img.dispatchEvent(new Event('error'));
+  });
+  document.querySelectorAll('video').forEach(v => {
+    v.addEventListener('error', () => {
+      v.style.opacity = '0.15';
+    });
+  });
 
   ScrollTrigger.refresh();
 })();

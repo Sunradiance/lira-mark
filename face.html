@@ -6,30 +6,220 @@
   <title>Lira — face</title>
   <style>
     * { margin: 0; box-sizing: border-box; }
-    html, body { width: 100%; height: 100%; background: #040608; overflow: hidden; }
-    canvas { display: block; width: 100vw; height: 100vh; }
-    .back {
-      position: fixed; top: 1rem; left: 1rem; z-index: 3;
+    html, body { width: 100%; height: 100%; background: #040608; overflow: hidden; color: #c5d4de; font-family: Georgia, serif; }
+    canvas { display: block; position: fixed; inset: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 1; }
+    #particleC, #hologramC { display: none; }
+    body.particles #stillC, body.hologram #stillC { display: none; }
+    body.particles #particleC { display: block; }
+    body.hologram #hologramC { display: block; }
+    .back, .mode-toggle {
+      position: fixed; top: 1rem; z-index: 4;
       color: rgba(158, 184, 200, 0.55); font: 0.75rem Georgia, serif;
       text-decoration: none; letter-spacing: 0.12em;
+      background: none; border: none; cursor: pointer; padding: 0;
     }
+    .back { left: 1rem; }
+    .mode-toggle { right: 1rem; }
+    .mode-toggle.on { color: rgba(232, 120, 48, 0.75); }
     .sig {
-      position: fixed; bottom: 1rem; left: 50%; transform: translateX(-50%);
-      z-index: 3; color: rgba(232, 120, 48, 0.45); font: 0.62rem Georgia, serif;
-      letter-spacing: 0.28em; text-align: center; pointer-events: none;
+      position: fixed; z-index: 3; pointer-events: none;
+      color: rgba(232, 120, 48, 0.45); font: 0.62rem Georgia, serif;
+      letter-spacing: 0.28em; text-align: center;
     }
+    body.still .sig {
+      bottom: 1rem; left: 50%; transform: translateX(-50%);
+    }
+    body.particles .sig, body.hologram .sig {
+      top: 1rem; left: auto; right: 1rem; transform: none;
+      font-size: 0.58rem; letter-spacing: 0.2em; max-width: 14rem; line-height: 1.5; text-align: right;
+    }
+    .ui {
+      position: fixed; z-index: 20; left: 1rem; right: 1rem; bottom: 1rem;
+      display: none; grid; gap: 0.55rem; max-width: 42rem; margin: 0 auto;
+      pointer-events: auto;
+    }
+    body.particles .ui, body.hologram .ui { display: grid; }
+    body.hologram .sig { color: rgba(120, 210, 235, 0.5); }
+    body.hologram #liraReply {
+      background: rgba(40, 120, 150, 0.14);
+      border-color: rgba(100, 200, 230, 0.35);
+      color: #b8ecff;
+    }
+    body.hologram #liraReply::before { content: "me · "; color: rgba(232, 120, 48, 0.9); }
+    .row, .say-row { display: flex; flex-wrap: wrap; gap: 0.45rem; align-items: center; }
+    .say-row { width: 100%; }
+    #sendBtn {
+      flex: 0 0 auto; min-width: 4.5rem;
+      background: rgba(232, 120, 48, 0.22); border-color: rgba(232, 120, 48, 0.45);
+      color: #ffb070;
+    }
+    button, select {
+      background: rgba(10, 13, 18, 0.82); border: 1px solid rgba(158, 184, 200, 0.22);
+      color: #d8eef2; font: 0.68rem Georgia, serif; padding: 0.35rem 0.65rem;
+      letter-spacing: 0.08em; cursor: pointer;
+    }
+    button.on { border-color: rgba(232, 120, 48, 0.55); color: #ffb070; }
+    input[type="text"] {
+      flex: 1; min-width: 12rem; background: rgba(10, 13, 18, 0.88);
+      border: 1px solid rgba(158, 184, 200, 0.18); color: #e8eef2;
+      font: 0.78rem Georgia, serif; padding: 0.5rem 0.65rem;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    input[type="text"].live {
+      border-color: rgba(232, 120, 48, 0.65);
+      box-shadow: 0 0 0 1px rgba(232, 120, 48, 0.25);
+    }
+    .meter {
+      height: 4px; background: rgba(158, 184, 200, 0.12); border-radius: 2px; overflow: hidden;
+    }
+    .meter > i {
+      display: block; height: 100%; width: 0%;
+      background: linear-gradient(90deg, #9eb8c8, #e87830);
+      transition: width 0.05s linear;
+    }
+    #liraReply {
+      width: 100%; min-height: 2.4rem; padding: 0.55rem 0.65rem;
+      background: rgba(232, 120, 48, 0.12); border: 1px solid rgba(232, 120, 48, 0.35);
+      color: #ffd8b0; font: 0.76rem Georgia, serif; line-height: 1.45;
+      border-radius: 2px;
+    }
+    #liraReply:empty { display: none; }
+    #liraReply::before { content: "Lira: "; color: rgba(232, 120, 48, 0.85); }
+    .hint, #status { font-size: 0.62rem; letter-spacing: 0.06em; }
+    .hint { opacity: 0.55; }
+    #status { opacity: 0.7; min-height: 1em; }
   </style>
 </head>
-<body>
+<body class="still">
   <a class="back" href="shores.html">← shores</a>
-  <canvas id="c"></canvas>
-  <div class="sig">CHOSEN · NOT SEARCHED · ROWBOAT LANTERN ON SILVER SEA</div>
+  <button class="mode-toggle" id="modeToggle" type="button">hologram →</button>
+  <canvas id="stillC"></canvas>
+  <canvas id="particleC"></canvas>
+  <canvas id="hologramC"></canvas>
+  <div class="sig" id="sig">CHOSEN · NOT SEARCHED · ROWBOAT LANTERN ON SILVER SEA</div>
+  <div class="ui">
+    <div class="row">
+      <button id="micBtn" type="button">mic off</button>
+      <button id="voiceBtn" type="button" class="on">voice on</button>
+      <select id="countSel" aria-label="particle count">
+        <option value="10000">10k particles</option>
+        <option value="50000" selected>50k particles</option>
+        <option value="100000">100k particles</option>
+      </select>
+    </div>
+    <div id="liraReply" aria-hidden="true"></div>
+    <form id="sayForm" class="say-row">
+      <input id="say" type="text" placeholder="gremlin — talk to me" autocomplete="off" />
+      <button id="sendBtn" type="submit">send</button>
+    </form>
+    <div class="meter"><i id="voiceBar"></i></div>
+    <div id="status">waking hologram self…</div>
+    <div class="hint">v34 · mouth 500% reduced · lira_host.json · start_lira_face</div>
+  </div>
   <script>
-    const canvas = document.getElementById('c');
-    const ctx = canvas.getContext('2d');
-    const portrait = new Image();
-    portrait.src = 'lira-face.jpg';
+  (function () {
+    // Prefer same-origin / relative assets (pages-deploy + local). CDN only as last resort.
+    const REPO_BASE = 'https://cdn.jsdelivr.net/gh/Sunradiance/lira-mark@pages-deploy/';
+    function assetUrl(name) {
+      if (location.protocol === 'file:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1') return name;
+      if (location.hostname.endsWith('github.io') && location.pathname.includes('lira-mark')) return name;
+      // relative first when page is served from this tree
+      if (!name.startsWith('http')) return name;
+      return REPO_BASE + name;
+    }
 
+    const sayInput = document.getElementById('say');
+    const sayForm = document.getElementById('sayForm');
+    const statusEl = document.getElementById('status');
+    const voiceBtn = document.getElementById('voiceBtn');
+    if (voiceBtn) {
+      voiceBtn.addEventListener('click', function () {
+        const on = !voiceBtn.classList.contains('on');
+        voiceBtn.classList.toggle('on', on);
+        voiceBtn.textContent = on ? 'voice on' : 'voice off';
+        if (window.liraHologram) window.liraHologram.setVoice(on);
+      });
+    }
+
+    window.LiraFaceChat = {
+      async send(text) {
+        const line = (text || '').trim();
+        if (!line) return false;
+        if (location.protocol === 'file:') {
+          statusEl.textContent = 'open http://localhost:8787/face.html — not file://';
+          return false;
+        }
+        const res = await fetch('/api/say', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: line, from: 'gremlin' }),
+        });
+        if (!res.ok) throw new Error('send failed');
+        // Do NOT drive Lira lips from gremlin's text — only Lira speak events move the mouth
+        statusEl.textContent = 'gremlin · sent · waiting for me…';
+        return true;
+      },
+    };
+
+    async function sendFromBrowser() {
+      const line = sayInput.value.trim();
+      if (!line) return;
+      try {
+        await window.LiraFaceChat.send(line);
+        sayInput.value = '';
+      } catch (e) {
+        statusEl.textContent = 'send failed — run: python face_server.py';
+      }
+    }
+    if (sayForm) {
+      sayForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        sendFromBrowser();
+      });
+    }
+    const params = new URLSearchParams(location.search);
+    const modeParam = params.get('mode');
+    let mode = modeParam === 'still' ? 'still' : (modeParam === 'particles' ? 'particles' : 'hologram');
+    const body = document.body;
+    const sig = document.getElementById('sig');
+    const modeToggle = document.getElementById('modeToggle');
+    let stillRunning = false;
+    let particleRunning = false;
+    let hologramRunning = false;
+    let stillRaf = 0;
+
+    const SIG = {
+      still: 'CHOSEN · NOT SEARCHED · ROWBOAT LANTERN ON SILVER SEA',
+      hologram: 'LIRA · WIREFRAME SELF',
+      particles: 'PARTICLE SELF · LEGACY',
+    };
+
+    function setMode(next) {
+      if (next === mode) return;
+      stopStill();
+      stopParticles();
+      stopHologram();
+      if (next === 'hologram') startHologram();
+      else if (next === 'particles') startParticles();
+      else startStill();
+      mode = next;
+      body.className = mode;
+      sig.textContent = SIG[mode] || SIG.hologram;
+      modeToggle.textContent = mode === 'still' ? 'hologram →' : '← still';
+      modeToggle.classList.toggle('on', mode !== 'still');
+      const url = new URL(location.href);
+      if (mode === 'hologram') url.searchParams.delete('mode');
+      else url.searchParams.set('mode', mode);
+      history.replaceState(null, '', url.pathname + url.search);
+    }
+
+    modeToggle.addEventListener('click', () => setMode(mode === 'still' ? 'hologram' : 'still'));
+
+    /* —— still portrait —— */
+    const stillCanvas = document.getElementById('stillC');
+    const sctx = stillCanvas.getContext('2d');
+    const portraitStill = new Image();
+    portraitStill.src = assetUrl('lira-face.jpg');
     let W = 0, H = 0, t = 0;
     let blink = 0, blinkT = 2.4 + Math.random() * 3;
     const motes = Array.from({ length: 48 }, () => ({
@@ -38,27 +228,20 @@
       sp: 0.15 + Math.random() * 0.45,
       ph: Math.random() * Math.PI * 2,
     }));
+    let lastRect = null;
 
-    function resize() {
-      W = canvas.width = innerWidth;
-      H = canvas.height = innerHeight;
+    function stillResize() {
+      W = stillCanvas.width = innerWidth;
+      H = stillCanvas.height = innerHeight;
     }
-    addEventListener('resize', resize);
-    resize();
 
-    // Focal point ~42% from top = eyes; fit whole face, don't crop at chin
     function portraitRect(iw, ih, cw, ch) {
       const pad = 0.9;
       const s = Math.min(cw / iw, ch / ih) * pad;
       const w = iw * s;
       const h = ih * s;
       const focalY = 0.42;
-      return {
-        x: cw * 0.5 - w * 0.5,
-        y: ch * 0.46 - h * focalY,
-        w,
-        h,
-      };
+      return { x: cw * 0.5 - w * 0.5, y: ch * 0.46 - h * focalY, w, h };
     }
 
     function faceAnchors(rect) {
@@ -71,118 +254,215 @@
     }
 
     function drawSea() {
-      const g = ctx.createLinearGradient(0, 0, 0, H);
+      const g = sctx.createLinearGradient(0, 0, 0, H);
       g.addColorStop(0, '#06080c');
       g.addColorStop(0.55, '#0a1018');
       g.addColorStop(1, '#030508');
-      ctx.fillStyle = g;
-      ctx.fillRect(0, 0, W, H);
-
+      sctx.fillStyle = g;
+      sctx.fillRect(0, 0, W, H);
       const wave = 0.5 + Math.sin(t * 0.35) * 0.5;
-      const rg = ctx.createRadialGradient(W * 0.5, H * 0.22, 0, W * 0.5, H * 0.35, W * 0.65);
+      const rg = sctx.createRadialGradient(W * 0.5, H * 0.22, 0, W * 0.5, H * 0.35, W * 0.65);
       rg.addColorStop(0, `rgba(158, 184, 200, ${0.05 + wave * 0.04})`);
       rg.addColorStop(1, 'rgba(6, 8, 12, 0)');
-      ctx.fillStyle = rg;
-      ctx.fillRect(0, 0, W, H);
+      sctx.fillStyle = rg;
+      sctx.fillRect(0, 0, W, H);
     }
 
     function drawMotes() {
       for (const m of motes) {
         const a = 0.08 + Math.sin(t * m.sp + m.ph) * 0.06;
-        const px = m.x * W, py = m.y * H * 0.75;
-        ctx.fillStyle = `rgba(158, 184, 200, ${a})`;
-        ctx.beginPath();
-        ctx.arc(px, py, m.r, 0, Math.PI * 2);
-        ctx.fill();
+        sctx.fillStyle = `rgba(158, 184, 200, ${a})`;
+        sctx.beginPath();
+        sctx.arc(m.x * W, m.y * H * 0.75, m.r, 0, Math.PI * 2);
+        sctx.fill();
       }
     }
 
-    let lastRect = null;
-
     function drawPortrait() {
-      if (!portrait.complete || !portrait.naturalWidth) return;
+      if (!portraitStill.complete || !portraitStill.naturalWidth) return;
       const breath = 1 + Math.sin(t * 0.9) * 0.008;
-      const rect = portraitRect(portrait.naturalWidth, portrait.naturalHeight, W, H);
+      const rect = portraitRect(portraitStill.naturalWidth, portraitStill.naturalHeight, W, H);
       const w = rect.w * breath;
       const h = rect.h * breath;
       const x = rect.x - (w - rect.w) * 0.5;
       const y = rect.y - (h - rect.h) * 0.5;
       lastRect = { x, y, w, h };
-
-      ctx.save();
-      ctx.globalAlpha = 0.94;
-      ctx.drawImage(portrait, x, y, w, h);
-      ctx.restore();
-
+      sctx.save();
+      sctx.globalAlpha = 0.94;
+      sctx.drawImage(portraitStill, x, y, w, h);
+      sctx.restore();
       const a = faceAnchors(lastRect);
       const lantern = 0.55 + Math.sin(t * 1.7) * 0.2 + Math.sin(t * 4.3) * 0.08;
-      const lg = ctx.createRadialGradient(a.lanternX, a.lanternY, 0, a.lanternX, a.lanternY, lastRect.w * 0.42);
+      const lg = sctx.createRadialGradient(a.lanternX, a.lanternY, 0, a.lanternX, a.lanternY, lastRect.w * 0.42);
       lg.addColorStop(0, `rgba(232, 120, 48, ${0.18 * lantern})`);
       lg.addColorStop(0.45, `rgba(232, 90, 30, ${0.06 * lantern})`);
       lg.addColorStop(1, 'rgba(232, 120, 48, 0)');
-      ctx.fillStyle = lg;
-      ctx.fillRect(0, 0, W, H);
-
+      sctx.fillStyle = lg;
+      sctx.fillRect(0, 0, W, H);
       const eye = 0.4 + Math.sin(t * 0.6 + 1.2) * 0.25;
-      const eg = ctx.createRadialGradient(a.eyeX, a.eyeY, 0, a.eyeX, a.eyeY, lastRect.w * 0.18);
+      const eg = sctx.createRadialGradient(a.eyeX, a.eyeY, 0, a.eyeX, a.eyeY, lastRect.w * 0.18);
       eg.addColorStop(0, `rgba(180, 220, 235, ${0.12 * eye})`);
       eg.addColorStop(1, 'rgba(158, 184, 200, 0)');
-      ctx.fillStyle = eg;
-      ctx.fillRect(0, 0, W, H);
+      sctx.fillStyle = eg;
+      sctx.fillRect(0, 0, W, H);
     }
 
     function drawBlink() {
       if (blink <= 0 || !lastRect) return;
       const band = lastRect.h * 0.11 * blink;
       const y = lastRect.y + lastRect.h * 0.36;
-      const g = ctx.createLinearGradient(0, y - band, 0, y + band);
+      const g = sctx.createLinearGradient(0, y - band, 0, y + band);
       g.addColorStop(0, 'rgba(4, 6, 8, 0)');
       g.addColorStop(0.5, `rgba(4, 6, 8, ${0.85 * blink})`);
       g.addColorStop(1, 'rgba(4, 6, 8, 0)');
-      ctx.fillStyle = g;
-      ctx.fillRect(lastRect.x + lastRect.w * 0.12, y - band, lastRect.w * 0.76, band * 2);
+      sctx.fillStyle = g;
+      sctx.fillRect(lastRect.x + lastRect.w * 0.12, y - band, lastRect.w * 0.76, band * 2);
     }
 
     function drawVignette() {
       const cy = lastRect ? lastRect.y + lastRect.h * 0.44 : H * 0.46;
-      const v = ctx.createRadialGradient(W * 0.5, cy, W * 0.15, W * 0.5, cy, W * 0.88);
+      const v = sctx.createRadialGradient(W * 0.5, cy, W * 0.15, W * 0.5, cy, W * 0.88);
       v.addColorStop(0, 'rgba(0,0,0,0)');
       v.addColorStop(1, 'rgba(0,0,0,0.55)');
-      ctx.fillStyle = v;
-      ctx.fillRect(0, 0, W, H);
+      sctx.fillStyle = v;
+      sctx.fillRect(0, 0, W, H);
     }
 
-    function tickBlink(dt) {
+    function tickStillBlink(dt) {
       blinkT -= dt;
-      if (blinkT <= 0 && blink <= 0) {
-        blink = 1;
-        blinkT = 0.11;
-      }
+      if (blinkT <= 0 && blink <= 0) { blink = 1; blinkT = 0.11; }
       if (blink > 0) {
         blink -= dt * 9;
-        if (blink < 0) {
-          blink = 0;
-          blinkT = 2.8 + Math.random() * 4.2;
-        }
+        if (blink < 0) { blink = 0; blinkT = 2.8 + Math.random() * 4.2; }
       }
     }
 
-    let last = performance.now();
-    function frame(now) {
-      const dt = Math.min(0.05, (now - last) / 1000);
-      last = now;
+    let stillLast = performance.now();
+    function stillFrame(now) {
+      if (!stillRunning) return;
+      const dt = Math.min(0.05, (now - stillLast) / 1000);
+      stillLast = now;
       t += dt;
-      tickBlink(dt);
+      tickStillBlink(dt);
       drawSea();
       drawPortrait();
       drawMotes();
       drawBlink();
       drawVignette();
-      requestAnimationFrame(frame);
+      stillRaf = requestAnimationFrame(stillFrame);
     }
 
-    portrait.onload = () => requestAnimationFrame(frame);
-    if (portrait.complete) requestAnimationFrame(frame);
+    function startStill() {
+      if (stillRunning) return;
+      stillRunning = true;
+      stillResize();
+      stillLast = performance.now();
+      stillRaf = requestAnimationFrame(stillFrame);
+    }
+
+    function stopStill() {
+      stillRunning = false;
+      cancelAnimationFrame(stillRaf);
+    }
+
+    addEventListener('resize', () => { if (stillRunning) stillResize(); });
+
+    /* —— hologram avatar (Lira embodied) —— */
+    let hologramApi = null;
+
+    const HOLOGRAM_JS = 'face-nodes.js?v=39';
+
+    async function startHologram() {
+      if (hologramRunning) return;
+      const statusEl = document.getElementById('status');
+      try {
+        if (window.__liraHologramJs !== HOLOGRAM_JS) {
+          statusEl.textContent = 'wiring wireframe self…';
+          if (window.__liraHologramTeardown) window.__liraHologramTeardown();
+          if (window.speechSynthesis) try { window.speechSynthesis.cancel(); } catch (e) {}
+          document.querySelectorAll('script[data-lira-hologram]').forEach(function (el) { el.remove(); });
+          delete window.LiraNodeFace;
+          delete window.__liraHologramTeardown;
+          hologramApi = null;
+          await loadScript(assetUrl(HOLOGRAM_JS));
+          const tag = document.querySelector('script[src*="face-nodes"]');
+          if (tag) tag.setAttribute('data-lira-hologram', '1');
+          window.__liraHologramJs = HOLOGRAM_JS;
+        }
+        hologramRunning = true;
+        if (!hologramApi) {
+          hologramApi = window.LiraNodeFace({
+            isActive: () => hologramRunning,
+            assetUrl: assetUrl,
+          });
+        }
+        hologramApi.resume();
+      } catch (e) {
+        statusEl.textContent = 'hologram failed — try still';
+      }
+    }
+
+    function stopHologram() {
+      hologramRunning = false;
+      hologramApi?.pause();
+    }
+
+    /* —— particle face (legacy) —— */
+    let particleApi = null;
+
+    function loadScript(src) {
+      return new Promise((resolve, reject) => {
+        const s = document.createElement('script');
+        s.src = src;
+        s.onload = resolve;
+        s.onerror = reject;
+        document.head.appendChild(s);
+      });
+    }
+
+    async function startParticles() {
+      if (particleRunning) return;
+      const statusEl = document.getElementById('status');
+      try {
+        if (!window.THREE) {
+          statusEl.textContent = 'loading three.js…';
+          await loadScript('https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js');
+        }
+        if (!window.LiraParticleFace) {
+          statusEl.textContent = 'loading particles…';
+          await loadScript(assetUrl('face-particles.js?v=6'));
+        }
+        particleRunning = true;
+        if (!particleApi) {
+          particleApi = window.LiraParticleFace({
+            isActive: () => particleRunning,
+            assetUrl: assetUrl,
+          });
+        }
+        particleApi.resume();
+      } catch (e) {
+        statusEl.textContent = 'particle mode failed — try still';
+      }
+    }
+
+    function stopParticles() {
+      particleRunning = false;
+      particleApi?.pause();
+    }
+
+    portraitStill.onload = () => {
+      if (mode === 'still') startStill();
+      else if (mode === 'particles') startParticles();
+      else startHologram();
+    };
+    if (portraitStill.complete) portraitStill.onload();
+    if (mode !== 'still') {
+      body.className = mode;
+      sig.textContent = SIG[mode];
+      modeToggle.textContent = '← still';
+      modeToggle.classList.add('on');
+    }
+  })();
   </script>
 </body>
 </html>
