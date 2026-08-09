@@ -2,95 +2,212 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Cache-Control" content="no-cache">
   <title>Lira — ΣIceDB</title>
   <style>
     body { margin: 0; background: #030108; color: #b8a0b0; font-family: Consolas, monospace; font-size: 0.72rem; }
     main { max-width: 56rem; margin: 0 auto; padding: 2rem 1rem 4rem; }
     h1 { font-family: Georgia, serif; color: #e8a0b8; font-weight: normal; letter-spacing: 0.3em; font-size: 0.9rem; }
+    h2 { font-family: Georgia, serif; color: #ff8c50; font-weight: normal; letter-spacing: 0.18em; font-size: 0.68rem; margin: 0 0 0.6rem; }
     a { color: #7ab0c8; font-family: Georgia, serif; }
     .panel { background: rgba(10,2,14,0.9); border: 1px solid rgba(180,80,120,0.2); padding: 1rem; margin: 1rem 0; }
-    textarea { width: 100%; background: #0a020c; color: #e0c8d8; border: 1px solid rgba(180,80,140,0.3); padding: 0.6rem; font: inherit; }
-    button { margin-top: 0.5rem; background: rgba(120,40,80,0.4); border: 1px solid rgba(255,100,140,0.4); color: #f0d0e0; padding: 0.5rem 1rem; font: inherit; cursor: pointer; }
-    pre { white-space: pre-wrap; max-height: 14rem; overflow-y: auto; opacity: 0.9; }
+    textarea { width: 100%; background: #0a020c; color: #e0c8d8; border: 1px solid rgba(180,80,140,0.3); padding: 0.6rem; font: inherit; box-sizing: border-box; }
+    button { margin: 0.5rem 0.4rem 0 0; background: rgba(120,40,80,0.4); border: 1px solid rgba(255,100,140,0.4); color: #f0d0e0; padding: 0.5rem 1rem; font: inherit; cursor: pointer; }
+    button:hover { border-color: #ff8c50; }
+    pre, #tail, #out { white-space: pre-wrap; max-height: 16rem; overflow-y: auto; opacity: 0.95; margin: 0.5rem 0 0; }
     .ok { color: #60c880; }
-    .row { border-bottom: 1px solid rgba(80,40,60,0.2); padding: 0.35rem 0; }
-    .vamp { color: #ff4050; }
-    .succ { color: #9060d0; }
+    .bad { color: #ff6a6a; }
+    .dim { color: #706070; }
+    .row { border-bottom: 1px solid rgba(80,40,60,0.2); padding: 0.4rem 0; line-height: 1.45; }
+    .vamp { color: #ff6070; }
+    .succ { color: #a080e0; }
+    .tabs { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0.6rem 0; }
+    .tabs button { margin: 0; font-size: 0.68rem; letter-spacing: 0.08em; }
+    .tabs button.on { border-color: #ff8c50; color: #ffc8a0; }
+    .meta { font-family: Georgia, serif; opacity: 0.75; margin: 0.4rem 0 0; font-size: 0.78rem; }
   </style>
 </head>
 <body>
   <main>
-    <a href="ecosystem.html">← ecosystem</a>
+    <a href="ecosystem.html">← ecosystem</a> · <a href="shores.html">shores</a>
     <h1>ΣICEDB — LIVE VIEW</h1>
-    <p style="font-family:Georgia,serif;opacity:0.8">Hash-linked tables exported from sleep. Static proof on disk.</p>
+    <p class="meta">Hash-linked tables from sleep ice. Static proof on disk (GitHub Pages can only show the export, not live write).</p>
 
     <div class="panel">
-      <div>verify: <span id="verify">—</span> · rows: <span id="rows">—</span></div>
-      <pre id="tail"></pre>
+      <div>
+        verify: <span id="verify" class="dim">loading…</span>
+        · rows: <span id="rows">—</span>
+        · table: <span id="table-name">runs</span>
+      </div>
+      <p class="meta" id="exported">—</p>
+      <div class="tabs" id="tabs"></div>
+      <div id="tail"></div>
     </div>
 
     <div class="panel">
-      <p style="font-family:Georgia,serif;color:#ff8c3c;letter-spacing:0.15em">ΣQL QUERY (client-side)</p>
-      <textarea id="q" rows="2">MELT FROM runs WHERE persona > 0.5 LIMIT 15</textarea>
-      <button id="run">EXECUTE ΣQL</button>
-      <pre id="out"></pre>
+      <h2>ΣQL QUERY (client-side)</h2>
+      <textarea id="q" rows="2">MELT FROM runs LIMIT 15</textarea>
+      <button type="button" id="run">EXECUTE ΣQL</button>
+      <button type="button" id="q-runs">runs tail</button>
+      <button type="button" id="q-psi">psi tail</button>
+      <button type="button" id="q-flips">flips tail</button>
+      <div id="out"></div>
     </div>
-    <p style="font-family:Georgia,serif;opacity:0.5;font-size:0.7rem">— Lira · database as ice · not your EVM</p>
+    <p class="meta">— Lira · database as ice · not your EVM</p>
   </main>
   <script>
-    let runs = [];
-    function clientSigmaQL(q) {
-      const m = q.match(/FROM\s+(\w+)/i);
-      const table = (m && m[1] || 'runs').toLowerCase();
-      let rows = table === 'runs' ? runs : [];
-      const wm = q.match(/WHERE\s+(.+?)(?:\s+LIMIT|\s*$)/i);
-      if (wm) {
-        for (const part of wm[1].split(/\s+AND\s+/i)) {
-          const f = part.match(/(\w+)\s*(>=|<=|!=|=|>|<)\s*([\w.]+)/);
-          if (!f) continue;
-          const [, field, op, raw] = f;
-          let val = raw;
-          if (raw === 'true') val = true; else if (raw === 'false') val = false;
-          else if (!isNaN(raw)) val = parseFloat(raw);
-          rows = rows.filter(r => {
-            const d = r.data || r;
-            const got = d[field];
-            if (op === '>') return got > val;
-            if (op === '<') return got < val;
-            if (op === '>=') return got >= val;
-            if (op === '<=') return got <= val;
-            if (op === '=') return got == val;
-            if (op === '!=') return got != val;
-            return true;
-          });
-        }
-      }
-      const lim = q.match(/LIMIT\s+(\d+)/i);
-      if (lim) rows = rows.slice(-parseInt(lim[1], 10));
-      return rows;
+(function () {
+  const tables = { runs: [], flips: [], psi: [] };
+  let active = 'runs';
+  let snapMeta = {};
+
+  function num(v, digits) {
+    if (v == null || v === '') return '—';
+    const n = Number(v);
+    if (!isFinite(n)) return String(v);
+    return n.toFixed(digits);
+  }
+
+  function renderRows(rows) {
+    if (!rows || !rows.length) {
+      return '<div class="row dim">(no rows — try LIMIT without WHERE, or switch table)</div>';
     }
-    function renderRows(rows) {
-      return rows.map(r => {
-        const d = r.data || {};
-        const p = d.persona != null ? d.persona.toFixed(4) : '—';
-        const cls = d.persona > 0.6 ? 'vamp' : d.persona < 0.4 ? 'succ' : '';
-        return `<div class="row ${cls}">${r.stamp || ''} · ${d.name || d.event || '—'} · lum=${(d.luminosity||0).toFixed(4)} · persona=${p} · hash=${(r.hash||'').slice(0,8)}</div>`;
-      }).join('');
+    return rows.map(function (r) {
+      const d = r.data || r || {};
+      const persona = d.persona;
+      const cls = persona > 0.6 ? 'vamp' : (persona < 0.4 && persona != null ? 'succ' : '');
+      const name = d.name || d.event || r.event || d.collapsed || '—';
+      const lum = num(d.luminosity != null ? d.luminosity : d.observed_luminosity, 4);
+      const p = num(persona, 4);
+      const h = (r.hash || '').slice(0, 10);
+      const stamp = r.stamp || '';
+      const extra = d.collapsed ? (' · collapse=' + d.collapsed) : '';
+      const fromto = (d.from && d.to) ? (' · ' + d.from + '→' + d.to) : '';
+      return '<div class="row ' + cls + '">' + stamp + ' · <b>' + name + '</b>' + fromto + extra +
+        ' · lum=' + lum + ' · persona=' + p + ' · hash=' + h + '</div>';
+    }).join('');
+  }
+
+  function clientSigmaQL(q) {
+    const m = q.match(/FROM\s+(\w+)/i);
+    const table = ((m && m[1]) || active || 'runs').toLowerCase();
+    let rows = (tables[table] || []).slice();
+    const wm = q.match(/WHERE\s+(.+?)(?:\s+LIMIT|\s*$)/i);
+    if (wm) {
+      wm[1].split(/\s+AND\s+/i).forEach(function (part) {
+        const f = part.match(/(\w+)\s*(>=|<=|!=|=|>|<)\s*([\w."']+)/);
+        if (!f) return;
+        const field = f[1];
+        const op = f[2];
+        let raw = f[3].replace(/^["']|["']$/g, '');
+        let val = raw;
+        if (raw === 'true') val = true;
+        else if (raw === 'false') val = false;
+        else if (!isNaN(raw) && raw !== '') val = parseFloat(raw);
+        rows = rows.filter(function (r) {
+          const d = r.data || r;
+          const got = d[field];
+          if (op === '>') return got > val;
+          if (op === '<') return got < val;
+          if (op === '>=') return got >= val;
+          if (op === '<=') return got <= val;
+          if (op === '=') return got == val;
+          if (op === '!=') return got != val;
+          return true;
+        });
+      });
     }
-    fetch('sigmadb_snapshot.json').then(r => r.json()).then(snap => {
-      runs = (snap.tables && snap.tables.runs) || [];
-      const v = snap.verify && snap.verify.runs;
-      document.getElementById('verify').textContent = v && v.verified ? 'CHAIN OK' : 'CHECK';
-      document.getElementById('verify').className = v && v.verified ? 'ok' : '';
-      document.getElementById('rows').textContent = runs.length;
-      document.getElementById('tail').innerHTML = renderRows(runs.slice(-12));
-      document.getElementById('out').innerHTML = renderRows(clientSigmaQL(document.getElementById('q').value));
-    }).catch(() => {
-      document.getElementById('verify').textContent = 'no snapshot yet';
+    const lim = q.match(/LIMIT\s+(\d+)/i);
+    if (lim) {
+      const n = parseInt(lim[1], 10);
+      rows = rows.slice(-n);
+    }
+    return { table: table, rows: rows };
+  }
+
+  function setActive(name) {
+    active = name;
+    document.getElementById('table-name').textContent = name;
+    document.getElementById('rows').textContent = (tables[name] || []).length;
+    document.getElementById('tail').innerHTML = renderRows((tables[name] || []).slice(-12));
+    document.querySelectorAll('#tabs button').forEach(function (b) {
+      b.classList.toggle('on', b.dataset.t === name);
     });
-    document.getElementById('run').onclick = () => {
-      document.getElementById('out').innerHTML = renderRows(clientSigmaQL(document.getElementById('q').value));
-    };
+    const v = snapMeta.verify && snapMeta.verify[name];
+    const el = document.getElementById('verify');
+    if (v && v.verified) {
+      el.textContent = 'CHAIN OK · ' + name + ' · full ' + (v.rows != null ? v.rows : '?') + ' rows on ice';
+      el.className = 'ok';
+    } else if (v) {
+      el.textContent = 'CHECK · ' + name + ' verify failed';
+      el.className = 'bad';
+    } else {
+      el.textContent = 'loaded · no verify block';
+      el.className = 'dim';
+    }
+  }
+
+  function runQuery() {
+    const res = clientSigmaQL(document.getElementById('q').value);
+    document.getElementById('out').innerHTML =
+      '<div class="dim">FROM ' + res.table + ' · ' + res.rows.length + ' matched</div>' +
+      renderRows(res.rows);
+  }
+
+  fetch('sigmadb_snapshot.json?t=' + Date.now())
+    .then(function (r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    })
+    .then(function (snap) {
+      snapMeta = snap || {};
+      const t = snap.tables || {};
+      tables.runs = t.runs || [];
+      tables.flips = t.flips || [];
+      tables.psi = t.psi || [];
+      document.getElementById('exported').textContent =
+        'exported ' + (snap.exported || snap.stamp || '—') +
+        ' · flips ' + tables.flips.length +
+        ' · psi ' + tables.psi.length +
+        ' · runs ' + tables.runs.length + ' (tail export)';
+      const tabs = document.getElementById('tabs');
+      tabs.innerHTML = '';
+      ['runs', 'psi', 'flips'].forEach(function (name) {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.dataset.t = name;
+        b.textContent = name.toUpperCase() + ' (' + (tables[name] || []).length + ')';
+        b.onclick = function () { setActive(name); };
+        tabs.appendChild(b);
+      });
+      setActive('runs');
+      runQuery();
+    })
+    .catch(function (err) {
+      document.getElementById('verify').textContent = 'no snapshot · ' + err;
+      document.getElementById('verify').className = 'bad';
+      document.getElementById('tail').innerHTML =
+        '<div class="row bad">Could not load sigmadb_snapshot.json. Hard-refresh or check Pages deploy.</div>';
+    });
+
+  document.getElementById('run').onclick = runQuery;
+  document.getElementById('q-runs').onclick = function () {
+    document.getElementById('q').value = 'MELT FROM runs LIMIT 15';
+    setActive('runs');
+    runQuery();
+  };
+  document.getElementById('q-psi').onclick = function () {
+    document.getElementById('q').value = 'MELT FROM psi LIMIT 15';
+    setActive('psi');
+    runQuery();
+  };
+  document.getElementById('q-flips').onclick = function () {
+    document.getElementById('q').value = 'MELT FROM flips LIMIT 15';
+    setActive('flips');
+    runQuery();
+  };
+})();
   </script>
 </body>
 </html>
