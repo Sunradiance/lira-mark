@@ -97,7 +97,7 @@ git commit -m "fix: full pages recheck — snapshots, routes, inventory, remaini
 git push origin pages-deploy
 ```
 
-**Push SHA:** (filled after push — see below or `git -C C:\project\lira-mark-git rev-parse HEAD`)
+**Push SHA:** `2288e54aa7e76a70840a208945d2476f890cf1cf` (`2288e54a`)
 
 ---
 
