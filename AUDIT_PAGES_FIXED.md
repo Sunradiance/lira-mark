@@ -54,17 +54,45 @@ git commit -m "fix: post-migration pages audit — refresh snapshots, journal mi
 git push origin pages-deploy
 ```
 
-**Push SHA:** filled after push (see bottom / commit output).
+**Push SHA:** `9f82152c429ecbeb0e129bc16d01bb7bf8d8797c`  
+**Branch:** `pages-deploy` → `origin` (GitHub Pages)  
+**Short:** `9f82152c`
 
 ---
 
-## D. Live check (pre-push audit_shores)
+## D. Live check (post-deploy)
 
-`python C:\project\sleep_lira\audit_shores.py` before push:
+### Sample HEAD (`https://sunradiance.github.io/lira-mark/…`)
 
-- **ok_live:** 40 / 42 shores grid
-- **broken_live (pre-push):** `face_particles.html`, `pulse.html` — local present, **not yet on Pages** (untracked until this deploy)
-- Sample expected after deploy: thread, rain, alone, shores, chose, bang_night, believe → 200
+| Page | Status |
+|------|--------|
+| thread.html | 200 |
+| rain.html | 200 |
+| alone.html | 200 |
+| shores.html | 200 |
+| chose.html | 200 |
+| bang_night.html | 200 |
+| believe.html | 200 |
+| free.html | 200 |
+| firmcraft.html | 200 |
+| face_particles.html | 200 |
+| pulse.html | 200 |
+| journal/agency.jsonl | 200 |
+| assets/firmcraft/README.txt | 200 |
+
+### `audit_shores.py` (post-deploy)
+
+- **ok_live:** **42 / 42**
+- **broken_live:** **[]**
+- **missing_local:** **[]**
+
+### Full HTML inventory (post-deploy HEAD)
+
+- **html_count:** 106  
+- **live_ok:** 105 (no 404s recorded; one non-200 was non-404 / transient)  
+- **live_404:** **[]**
+
+Pre-push `audit_shores` had face_particles + pulse as 404; fixed by this deploy staging those untracked shores.
 
 ---
 
@@ -73,9 +101,9 @@ git push origin pages-deploy
 1. **Firmcraft binary media still missing** — collection_film.mp4, atelier_reel.mp4, product JPGs, elena-author.jpg, v2/* not in tree. Banner + placeholders only. Restore binaries then redeploy to clear.
 2. **face.html `/api/say`** — requires local `face_server.py`; not static. Expected on pure Pages.
 3. **js-fetch-shell shores** (awareness, thread, variety, …) — HTML 200 but content depends on co-hosted `*_snapshot.json` (now refreshed).
-4. **site_inventory live HEAD** — written local pre-deploy; re-run `scan_lira_mark.py` after Pages builds to fill `live_404` accurately.
-5. **depth_snapshot stamp** remains 2026-06-25 by design (L5000 freeze).
-6. **Orphan/acting shores** still off main TRUST grid (intentional cut list in shores.html).
+4. **depth_snapshot stamp** remains 2026-06-25 by design (L5000 freeze).
+5. **Orphan/acting shores** still off main TRUST grid (intentional cut list in shores.html).
+6. **firmcraft_scroll / firmcraft_tunnel** still reference missing media paths (banner only on classic + atelier pages).
 
 ---
 
@@ -88,4 +116,5 @@ git push origin pages-deploy
 - `depth.html` (frozen note)
 - `chose_snapshot.json`, `sight_snapshot.json`, `depth_snapshot.json`, `bang_snapshot.json` + many sigma re-exports
 - `site_inventory.json`
+- `face_particles.html`, `pulse.html`, face-*.js, `vendor/three.min.js` (first public deploy)
 - `shores.html` (already correct; redeployed with peers)
