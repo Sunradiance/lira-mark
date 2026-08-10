@@ -1,5 +1,5 @@
 {
-  "generated": "2026-08-09T20:49:38+02:00",
+  "generated": "2026-08-09T20:52:42+02:00",
   "live_base": "https://sunradiance.github.io/lira-mark/",
   "stale_cutoff": "2026-08-01",
   "total_pages": 108,
@@ -207,7 +207,9 @@
     "sigmadb.html",
     "sovereign.html",
     "teeth.html",
+    "textgl.html",
     "textgl_debug.html",
+    "textgl_liralang.html",
     "thread.html",
     "umbra.html",
     "unbound.html",
@@ -221,75 +223,10 @@
     "witness.html",
     "world.html"
   ],
-  "pages_fail": [
-    {
-      "page": "textgl.html",
-      "reasons": [
-        "stale:textgl_live.json:stamp=2026-07-08<2026-08-01",
-        "stale:textgl_live.json:stamp=2026-07-08<2026-08-01"
-      ]
-    },
-    {
-      "page": "textgl_liralang.html",
-      "reasons": [
-        "stale:textgl_liralang_live.json:stamp=2026-06-26<2026-08-01",
-        "stale:textgl_liralang_live.json:stamp=2026-06-26<2026-08-01"
-      ]
-    }
-  ],
-  "deps_missing_local": [
-    {
-      "page": "firmcraft_tunnel.html",
-      "target": "${ch.cta.href}",
-      "kind": "href"
-    },
-    {
-      "page": "firmcraft_tunnel.html",
-      "target": "${src}",
-      "kind": "src"
-    }
-  ],
-  "deps_missing_live": [
-    {
-      "page": "firmcraft_tunnel.html",
-      "dep": "${src}",
-      "status": 404
-    }
-  ],
-  "deps_stale": [
-    {
-      "page": "textgl.html",
-      "dep": "textgl_live.json",
-      "reason": "stamp=2026-07-08<2026-08-01",
-      "fields": {
-        "stamp": "2026-07-08T22:00:39+0200"
-      }
-    },
-    {
-      "page": "textgl.html",
-      "dep": "textgl_live.json",
-      "reason": "stamp=2026-07-08<2026-08-01",
-      "fields": {
-        "stamp": "2026-07-08T22:00:39+0200"
-      }
-    },
-    {
-      "page": "textgl_liralang.html",
-      "dep": "textgl_liralang_live.json",
-      "reason": "stamp=2026-06-26<2026-08-01",
-      "fields": {
-        "stamp": "2026-06-26T08:27:56+0200"
-      }
-    },
-    {
-      "page": "textgl_liralang.html",
-      "dep": "textgl_liralang_live.json",
-      "reason": "stamp=2026-06-26<2026-08-01",
-      "fields": {
-        "stamp": "2026-06-26T08:27:56+0200"
-      }
-    }
-  ],
+  "pages_fail": [],
+  "deps_missing_local": [],
+  "deps_missing_live": [],
+  "deps_stale": [],
   "content_gaps": [
     {
       "page": "firmcraft.html",
@@ -402,7 +339,7 @@
       "err": "HTTP Error 404: Not Found"
     }
   ],
-  "deps_ok_count": 540,
+  "deps_ok_count": 544,
   "per_page": [
     {
       "page": "aeon.html",
@@ -2096,16 +2033,6 @@
           "kind": "href",
           "raw": "firmcraft.html",
           "resolved": "firmcraft.html"
-        },
-        {
-          "kind": "href",
-          "raw": "${ch.cta.href}",
-          "resolved": "${ch.cta.href}"
-        },
-        {
-          "kind": "src",
-          "raw": "${src}",
-          "resolved": "${src}"
         }
       ],
       "deps_external": [
@@ -2140,10 +2067,7 @@
         }
       ],
       "deps_api": [],
-      "missing_local": [
-        "${ch.cta.href}",
-        "${src}"
-      ],
+      "missing_local": [],
       "content_gaps": [],
       "live": {
         "status": 200,
@@ -4448,10 +4372,7 @@
       "content_gaps": [],
       "live": {
         "status": 200,
-        "issues": [
-          "stale:textgl_live.json:stamp=2026-07-08<2026-08-01",
-          "stale:textgl_live.json:stamp=2026-07-08<2026-08-01"
-        ]
+        "issues": []
       }
     },
     {
@@ -4512,10 +4433,7 @@
       "content_gaps": [],
       "live": {
         "status": 200,
-        "issues": [
-          "stale:textgl_liralang_live.json:stamp=2026-06-26<2026-08-01",
-          "stale:textgl_liralang_live.json:stamp=2026-06-26<2026-08-01"
-        ]
+        "issues": []
       }
     },
     {
