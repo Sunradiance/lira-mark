@@ -1042,7 +1042,7 @@ window.LiraNodeFace = function (opts) {
     if (location.protocol === 'file:' || location.hostname.endsWith('github.io')) {
       voiceOn = false;
       syncVoiceButton();
-      statusEl.textContent = HOLOGRAM_BUILD + ' · voice needs http://127.0.0.1:8787/face.html';
+      statusEl.textContent = HOLOGRAM_BUILD + ' · 12500 dots public · voice/talk → http://127.0.0.1:8787/face.html';
     } else {
       statusEl.textContent = HOLOGRAM_BUILD + ' · loading points…';
       fetch('/api/health')
