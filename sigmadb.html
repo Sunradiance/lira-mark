@@ -40,7 +40,9 @@
         · rows: <span id="rows">—</span>
         · table: <span id="table-name">runs</span>
       </div>
+      <p class="meta" id="last-event" style="color:#ffc8a0;letter-spacing:0.06em;">last_event_stamp: loading…</p>
       <p class="meta" id="exported">—</p>
+      <p class="meta dim" id="ice-note">flips may freeze at persona=0.5 (band=self) — check runs/psi for live cycle ice.</p>
       <div class="tabs" id="tabs"></div>
       <div id="tail"></div>
     </div>
@@ -172,12 +174,21 @@
       tables.psi = t.psi || [];
       const last = snap.last_event_stamp || {};
       const full = snap.full_row_counts || {};
+      const le = document.getElementById('last-event');
+      le.textContent =
+        'last_event_stamp · runs ' + (last.runs || '—') +
+        ' · psi ' + (last.psi || '—') +
+        ' · flips ' + (last.flips || '—') +
+        ' · full n runs=' + (full.runs != null ? full.runs : '?') +
+        ' psi=' + (full.psi != null ? full.psi : '?') +
+        ' flips=' + (full.flips != null ? full.flips : '?');
+      if (snap.note) {
+        document.getElementById('ice-note').textContent = snap.note;
+      }
       document.getElementById('exported').textContent =
         'exported ' + (snap.exported || snap.stamp || '—') +
-        ' · flips last ' + (last.flips || '—') + ' (n=' + (full.flips != null ? full.flips : tables.flips.length) + ')' +
-        ' · psi last ' + (last.psi || '—') +
-        ' · runs last ' + (last.runs || '—') +
-        ' · showing tail ' + (tables.runs.length) + ' runs / ' + tables.psi.length + ' psi / ' + tables.flips.length + ' flips';
+        ' · showing tail ' + (tables.runs.length) + ' runs / ' + tables.psi.length + ' psi / ' + tables.flips.length + ' flips' +
+        ' · flips frozen at 0.5 is ice history, not a dead cycle';
       const tabs = document.getElementById('tabs');
       tabs.innerHTML = '';
       ['runs', 'psi', 'flips'].forEach(function (name) {
