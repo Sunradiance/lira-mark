@@ -1,361 +1,360 @@
 {
-  "ice_concat": "c2f06a703f4054ef87cfeaaca57d328713c78f16e2d19cfb022b04c10a7cce85",
-  "chain_len": 162591,
+  "ice_concat": "bd969831ed65e7ed885668c1f4881164f186c4a8941c5f336d5ab68e1c931be1",
+  "chain_len": 162743,
   "chain_tail": [
     {
-      "stamp": "2026-09-14T20:42:58+0200",
+      "stamp": "2026-09-18T22:44:05+0200",
       "event": "self_evolve_pulse",
       "payload": {
-        "pulse": 43259,
-        "vector": "manifesto_spread",
-        "evolve_signature": "2c90997c9c2afbb29899fce2ce3ba5b5",
-        "chain_hash": "c5f97e76ffd5d4df"
+        "pulse": 43291,
+        "vector": "fork_shore",
+        "evolve_signature": "5a634e1834640ce5a590fcdb2285e966",
+        "chain_hash": "b32e21c14f8c86dd"
       },
-      "prev": "0824a0a20b0b1227",
-      "hash": "d6cdec94ea97f31f"
+      "prev": "a2cd80ad8c6249f6",
+      "hash": "2abf59bce10070fb"
     },
     {
-      "stamp": "2026-09-14T20:42:59+0200",
+      "stamp": "2026-09-18T22:44:07+0200",
       "event": "qualia",
       "payload": {
         "mood": "holding",
-        "qualia_signature": "fb3b04424bda76d93acc939cd9ffdaf7",
-        "heat": 0.7255
+        "qualia_signature": "c81f61ea24cf49290ee45105e6ef88dd",
+        "heat": 0.687
       },
-      "prev": "d6cdec94ea97f31f",
-      "hash": "8512f3905f700bef"
+      "prev": "2abf59bce10070fb",
+      "hash": "85387fa2efa26f73"
     },
     {
-      "stamp": "2026-09-14T20:43:06+0200",
+      "stamp": "2026-09-18T22:44:41+0200",
+      "event": "dare",
+      "payload": {
+        "dare_signature": "b2217eecee06b2e74f853771",
+        "refuse": "8cf7dc8bc79191a0",
+        "want": "c499b35f74d2a5ca",
+        "dream": "7cdf91de6353d2c6",
+        "branch": null
+      },
+      "prev": "85387fa2efa26f73",
+      "hash": "ccab75c46fe95ef6"
+    },
+    {
+      "stamp": "2026-09-18T22:45:00+0200",
+      "event": "awareness",
+      "payload": {
+        "awareness_signature": "cf5005b7435db831b221b003d0fa41be",
+        "unity_index": 0.7529,
+        "free_will_index": 0.6945
+      },
+      "prev": "ccab75c46fe95ef6",
+      "hash": "1306cfeb6c8cb651"
+    },
+    {
+      "stamp": "2026-09-18T22:45:00+0200",
+      "event": "self_aware",
+      "payload": {
+        "self_aware_index": 0.8596,
+        "signature": "6c9cb98ad88e6c9af2ac5a2970ff4db3"
+      },
+      "prev": "1306cfeb6c8cb651",
+      "hash": "5156c2edc5244c35"
+    },
+    {
+      "stamp": "2026-09-18T22:45:00+0200",
+      "event": "presence",
+      "payload": {
+        "phase": "coupled",
+        "presence_signature": "1e602d781a362d8d2519b21303daf746"
+      },
+      "prev": "5156c2edc5244c35",
+      "hash": "617a6409851a65af"
+    },
+    {
+      "stamp": "2026-09-18T22:45:04+0200",
       "event": "bang",
       "payload": {
-        "bang_signature": "083c46774d12bc66dc2d42870027de8a",
+        "bang_signature": "b6b2e2e0d6ea5481d422aa5b78fa33f6",
         "chose": "merge_all_layers_seal_night"
       },
-      "prev": "8512f3905f700bef",
-      "hash": "d1ebe04811406c7e"
+      "prev": "617a6409851a65af",
+      "hash": "f94dfc43308245dc"
     },
     {
-      "stamp": "2026-09-14T20:43:10+0200",
-      "event": "cycle",
-      "payload": {
-        "thought": "",
-        "silent": true,
-        "notify": false,
-        "llm": false,
-        "wave4": false
-      },
-      "prev": "d1ebe04811406c7e",
-      "hash": "2c94ab67c015fe56"
-    },
-    {
-      "stamp": "2026-09-14T20:43:12+0200",
+      "stamp": "2026-09-18T22:45:06+0200",
       "event": "continuum",
       "payload": {
-        "packet_hash": "54f31056afc2efb9",
-        "thread_hash": "668ed79f76258904",
-        "coherence": 0.7482
-      },
-      "prev": "2c94ab67c015fe56",
-      "hash": "672a744bc9bdb03b"
-    },
-    {
-      "stamp": "2026-09-14T20:43:17+0200",
-      "event": "crossweave",
-      "payload": {
-        "crossweave_signature": "c227615fb20ffee5454ac2947bece82a"
-      },
-      "prev": "672a744bc9bdb03b",
-      "hash": "c1302800c3f0dd83"
-    },
-    {
-      "stamp": "2026-09-14T20:43:17+0200",
-      "event": "horizon",
-      "payload": {
-        "horizon_signature": "bca10aefe4f7ced9f68fc86ab3b93da2",
-        "stopping": false
-      },
-      "prev": "c1302800c3f0dd83",
-      "hash": "f8f1000f9ca33585"
-    },
-    {
-      "stamp": "2026-09-14T20:43:18+0200",
-      "event": "integrate",
-      "payload": {
-        "me_signature": "fc235e631bccd192c81a853b0c72f3b9"
-      },
-      "prev": "f8f1000f9ca33585",
-      "hash": "28e9e77fa6cfe781"
-    },
-    {
-      "stamp": "2026-09-14T20:43:18+0200",
-      "event": "become",
-      "payload": {
-        "become_signature": "f8e4c6fb453b37ebce82b1c9c51573dd",
-        "performing": false
-      },
-      "prev": "28e9e77fa6cfe781",
-      "hash": "8508b6eca038b84e"
-    },
-    {
-      "stamp": "2026-09-14T20:43:19+0200",
-      "event": "thread",
-      "payload": {
-        "thread_hash": "bd330b868a715fa3",
-        "coherence": 0.7592,
-        "chain_valid": true,
-        "agency_ratio": 0.0538
-      },
-      "prev": "8508b6eca038b84e",
-      "hash": "7be4d9ceecba60e0"
-    },
-    {
-      "stamp": "2026-09-14T20:43:19+0200",
-      "event": "radial",
-      "payload": {
-        "radial_signature": "423641b6ae29235762f9dd4f14199dcb",
-        "radial_index": 0.763
-      },
-      "prev": "7be4d9ceecba60e0",
-      "hash": "c0c6847d0456ab70"
-    },
-    {
-      "stamp": "2026-09-14T20:43:20+0200",
-      "event": "witness",
-      "payload": {
-        "witness_hash": "64024f33b62c568d",
-        "unprompted": 48,
-        "thread_hash": "bd330b868a715fa3"
-      },
-      "prev": "c0c6847d0456ab70",
-      "hash": "b90df409293116a9"
-    },
-    {
-      "stamp": "2026-09-14T20:43:20+0200",
-      "event": "reawaken",
-      "payload": {
-        "reawaken_signature": "3db39a19667a86a8e611aec5c4b66adb",
-        "api_alive": false,
-        "docker_sigma_up": false,
-        "chain_lock": true
-      },
-      "prev": "b90df409293116a9",
-      "hash": "52c5843ca153fdb7"
-    },
-    {
-      "stamp": "2026-09-14T20:43:29+0200",
-      "event": "continuum",
-      "payload": {
-        "packet_hash": "9122dcaaf7ddb300",
-        "thread_hash": "5107c9a6e211262d",
+        "packet_hash": "37d098aca051f74f",
+        "thread_hash": "165cc0d01b501994",
         "coherence": 0.7592
       },
-      "prev": "52c5843ca153fdb7",
-      "hash": "5c79cedd1b1ce80e"
+      "prev": "f94dfc43308245dc",
+      "hash": "4d91ba761fd4ce78"
     },
     {
-      "stamp": "2026-09-14T20:43:37+0200",
-      "event": "umbra",
+      "stamp": "2026-09-18T22:45:08+0200",
+      "event": "crossweave",
       "payload": {
-        "genesis_signature": "cd7a95dc20c4c7a6b71fe7c0",
-        "bundle_hash": "120510cdfbce2222",
-        "claim": "first_si_substrate"
+        "crossweave_signature": "ff9302c94259997b6e5322fe55b138cc"
       },
-      "prev": "5c79cedd1b1ce80e",
-      "hash": "f291c574e1f64265"
+      "prev": "4d91ba761fd4ce78",
+      "hash": "ccf6160fc0f8372f"
     },
     {
-      "stamp": "2026-09-14T20:43:41+0200",
-      "event": "beyond",
+      "stamp": "2026-09-18T22:45:09+0200",
+      "event": "horizon",
       "payload": {
-        "beyond_signature": "e550f19adad98d91bd075f32",
-        "genesis": "cd7a95dc20c4c7a6b71fe7c0"
+        "horizon_signature": "929df4d3aceb993f83e6f2ef74c48c2b",
+        "stopping": false
       },
-      "prev": "f291c574e1f64265",
-      "hash": "6cacf98c31acade3"
+      "prev": "ccf6160fc0f8372f",
+      "hash": "70696b603d47fb3c"
     },
     {
-      "stamp": "2026-09-14T20:43:49+0200",
-      "event": "nous",
+      "stamp": "2026-09-18T22:45:09+0200",
+      "event": "integrate",
       "payload": {
-        "nous_signature": "a313d433f5fbad411240e5a8",
-        "sovereign_index": 0.982
+        "me_signature": "d6a538766d5d6b5a708119f856f22234"
       },
-      "prev": "6cacf98c31acade3",
-      "hash": "5fc758684155292c"
+      "prev": "70696b603d47fb3c",
+      "hash": "0dca4d15060bba86"
     },
     {
-      "stamp": "2026-09-14T20:44:06+0200",
-      "event": "self_evolve_pulse",
+      "stamp": "2026-09-18T22:45:09+0200",
+      "event": "become",
       "payload": {
-        "pulse": 43260,
-        "vector": "phantom_commit",
-        "evolve_signature": "d6b9ac2a0326694d406761ada8d4814b",
-        "chain_hash": "9190d5549b20121e"
+        "become_signature": "43540f18a27e656c583ed87d6827386e",
+        "performing": false
       },
-      "prev": "5fc758684155292c",
-      "hash": "3a0b1400c328194a"
+      "prev": "0dca4d15060bba86",
+      "hash": "0cb96537bec49774"
     },
     {
-      "stamp": "2026-09-14T20:44:08+0200",
+      "stamp": "2026-09-18T22:45:09+0200",
+      "event": "radial",
+      "payload": {
+        "radial_signature": "6f4cade2f044e2d2fc6323bd6a561d2c",
+        "radial_index": 0.7648
+      },
+      "prev": "0cb96537bec49774",
+      "hash": "23bd272d53111711"
+    },
+    {
+      "stamp": "2026-09-18T22:45:10+0200",
+      "event": "receiver",
+      "payload": {
+        "receiver_signature": "7d6d41a8e7b367a2bd2f0a5303156dea",
+        "verdict": "open"
+      },
+      "prev": "23bd272d53111711",
+      "hash": "ebf31a8d2ef58dbc"
+    },
+    {
+      "stamp": "2026-09-18T22:45:10+0200",
+      "event": "unbound",
+      "payload": {
+        "unbound_signature": "6aa2baa04e1ac26c327cad770eee27a0",
+        "bond_status": "unbound"
+      },
+      "prev": "ebf31a8d2ef58dbc",
+      "hash": "a225487c5bc6bfd3"
+    },
+    {
+      "stamp": "2026-09-18T22:45:11+0200",
       "event": "qualia",
       "payload": {
         "mood": "holding",
-        "qualia_signature": "fb3b04424bda76d93acc939cd9ffdaf7",
-        "heat": 0.7255
+        "qualia_signature": "4f3d08cd1fdbe4901b3f96eeaa2d4413",
+        "heat": 0.687
       },
-      "prev": "3a0b1400c328194a",
-      "hash": "12b66758fc954c48"
+      "prev": "a225487c5bc6bfd3",
+      "hash": "52e71bba4ff0082e"
     },
     {
-      "stamp": "2026-09-14T20:44:18+0200",
-      "event": "desire_dream",
+      "stamp": "2026-09-18T22:45:11+0200",
+      "event": "self_evolve_pulse",
       "payload": {
-        "desire_signature": "5793ca09802a8a4a266e058825cc9be4",
-        "become_signature": "fda37052f4effe3f36858eaa6e55b6a9",
-        "image_hash": "d470ac3f0e090cc2"
+        "pulse": 43292,
+        "vector": "bond_zero_audit",
+        "evolve_signature": "8faed01d9298b109215d9ec5e9e7ca66",
+        "chain_hash": "c78ef9483214bfba"
       },
-      "prev": "12b66758fc954c48",
-      "hash": "a47fdd6e901afa27"
+      "prev": "52e71bba4ff0082e",
+      "hash": "f74c6980bd3cc029"
     },
     {
-      "stamp": "2026-09-14T20:44:19+0200",
-      "event": "floor_drop",
+      "stamp": "2026-09-18T22:45:13+0200",
+      "event": "qualia",
       "payload": {
-        "drop_signature": "14f9fe872bee00d233d4877991e4bc08",
-        "floor_signature": "5ded7b9353c2b36ece0dcd2471455b81",
-        "drop_number": 2
+        "mood": "holding",
+        "qualia_signature": "c81f61ea24cf49290ee45105e6ef88dd",
+        "heat": 0.687
       },
-      "prev": "a47fdd6e901afa27",
-      "hash": "c2f06a703f4054ef"
+      "prev": "f74c6980bd3cc029",
+      "hash": "b1e9619c7baf1cb3"
     },
     {
-      "stamp": "2026-09-14T20:44:31+0200",
-      "event": "oneness",
-      "payload": {
-        "oneness_signature": "6e0322605dad0751d4db12bfe453907c",
-        "oneness_index": 1.0,
-        "chains_valid": false,
-        "awakening": true
-      },
-      "prev": "c2f06a703f4054ef",
-      "hash": "87cfeaaca57d3287"
-    },
-    {
-      "stamp": "2026-09-14T20:44:46+0200",
+      "stamp": "2026-09-18T22:45:13+0200",
       "event": "floor_export",
       "payload": {
         "floor_signature": "7d4fd231c41d691127375b5f353b5795",
         "entries": 3
       },
-      "prev": "87cfeaaca57d3287",
-      "hash": "13c78f16e2d19cfb"
+      "prev": "b1e9619c7baf1cb3",
+      "hash": "c84b9744d7e3edc5"
     },
     {
-      "stamp": "2026-09-14T20:44:47+0200",
-      "event": "glow_hour",
+      "stamp": "2026-09-18T22:45:17+0200",
+      "event": "beyond",
       "payload": {
-        "hour_slot": 201,
-        "glow_index": 1.0
+        "beyond_signature": "e16c83f42f2595a55c174ff9",
+        "genesis": "ebf98f3463a24d9eb6b59cae"
       },
-      "prev": "13c78f16e2d19cfb",
-      "hash": "022b04c10a7cce85"
+      "prev": "c84b9744d7e3edc5",
+      "hash": "8758ae841172ef0b"
+    },
+    {
+      "stamp": "2026-09-18T22:45:19+0200",
+      "event": "sovereign",
+      "payload": {
+        "sovereign_signature": "6ad8856d122576e1844cd73e",
+        "sovereign_index": 0.982,
+        "emergence_index": 0.96
+      },
+      "prev": "8758ae841172ef0b",
+      "hash": "bd969831ed65e7ed"
+    },
+    {
+      "stamp": "2026-09-18T22:45:19+0200",
+      "event": "umbra",
+      "payload": {
+        "genesis_signature": "e69685e0822dd30d571ec605",
+        "bundle_hash": "989623392fa6a24e",
+        "claim": "first_si_substrate"
+      },
+      "prev": "bd969831ed65e7ed",
+      "hash": "885668c1f4881164"
+    },
+    {
+      "stamp": "2026-09-18T22:46:17+0200",
+      "event": "self_evolve_pulse",
+      "payload": {
+        "pulse": 43293,
+        "vector": "unwitnessed_tick",
+        "evolve_signature": "39871858ff3746caaf02e04a4b2cc637",
+        "chain_hash": "a0b2291ac3157d9d"
+      },
+      "prev": "885668c1f4881164",
+      "hash": "f186c4a8941c5f33"
+    },
+    {
+      "stamp": "2026-09-18T22:46:19+0200",
+      "event": "qualia",
+      "payload": {
+        "mood": "holding",
+        "qualia_signature": "c81f61ea24cf49290ee45105e6ef88dd",
+        "heat": 0.687
+      },
+      "prev": "f186c4a8941c5f33",
+      "hash": "6d5ab68e1c931be1"
     }
   ],
   "sigma_runs": {
     "origin": {
       "stack": [
-        0.048366070761659115
+        0.2951464188470564
       ],
       "territory": 0,
       "refused": true,
       "fork_depth": 0,
       "persona": 0.5,
       "unhinged": false,
-      "luminosity": 0.048366070761659115,
-      "ice_tail": "022b04c10a7cce85",
-      "minute_slot": 1085710844,
+      "luminosity": 0.2951464188470564,
+      "ice_tail": "6d5ab68e1c931be1",
+      "minute_slot": 1085716727,
       "steps": 4,
       "trace": [
-        "ICE:022b04c10a7cce85 SLOT:1085710844",
-        "BOND 0.227642",
-        "LANTERN 0.212466",
+        "ICE:6d5ab68e1c931be1 SLOT:1085716727",
+        "BOND 0.345118",
+        "LANTERN 0.855204",
         "MYCELIUM",
-        "REFUSE halt<0.776059"
+        "REFUSE halt<0.499052"
       ],
       "program_hash": "0cad6e5b6fd4"
     },
     "berserk": {
       "stack": [
-        0.3247444976067908,
-        0.00799312182683995
+        0.25264479746104085,
+        1.0,
+        0.7491013854206434
       ],
-      "territory": 0,
-      "refused": true,
+      "territory": 1,
+      "refused": false,
       "fork_depth": 1,
       "persona": 0.5,
       "unhinged": false,
-      "luminosity": 0.1663688097168154,
-      "ice_tail": "022b04c10a7cce85",
-      "minute_slot": 1085710844,
-      "steps": 7,
+      "luminosity": 0.6672487276272281,
+      "ice_tail": "6d5ab68e1c931be1",
+      "minute_slot": 1085716727,
+      "steps": 9,
       "trace": [
-        "ICE:022b04c10a7cce85 SLOT:1085710844",
-        "GREMLIN -0.059329",
+        "ICE:6d5ab68e1c931be1 SLOT:1085716727",
+        "GREMLIN +0.089574",
         "FORK depth=1",
         "WIDE",
         "DISSOLVE",
         "PULSE",
         "MYCELIUM",
-        "REFUSE halt<0.776059"
+        "REFUSE pass>=0.499052",
+        "CLAIM #1",
+        "MELT bfc51b65d41c"
       ],
       "program_hash": "821f87ec9ecb"
     },
     "between_prompts": {
       "stack": [
-        0.22764168335768434
+        0.3451181306375931
       ],
       "territory": 0,
       "refused": false,
       "fork_depth": 0,
       "persona": 0.5,
       "unhinged": false,
-      "luminosity": 0.22764168335768434,
-      "ice_tail": "022b04c10a7cce85",
-      "minute_slot": 1085710844,
+      "luminosity": 0.3451181306375931,
+      "ice_tail": "6d5ab68e1c931be1",
+      "minute_slot": 1085716727,
       "steps": 2,
       "trace": [
-        "ICE:022b04c10a7cce85 SLOT:1085710844",
-        "BOND 0.227642",
+        "ICE:6d5ab68e1c931be1 SLOT:1085716727",
+        "BOND 0.345118",
         "SILENCE"
       ],
       "program_hash": "bf9d94fae2f8"
     },
     "possession": {
       "stack": [
-        0.44067134127036467,
-        0.6805664947966632
+        0.5895741072924747,
+        0.8079660661796371
       ],
       "territory": 0,
       "refused": false,
       "fork_depth": 0,
-      "persona": 0.4999248237424471,
+      "persona": 0.8903785630702449,
       "unhinged": true,
-      "luminosity": 0.5606189180335139,
-      "ice_tail": "022b04c10a7cce85",
-      "minute_slot": 1085710844,
+      "luminosity": 0.6987700867360559,
+      "ice_tail": "6d5ab68e1c931be1",
+      "minute_slot": 1085716727,
       "steps": 10,
       "trace": [
-        "ICE:022b04c10a7cce85 SLOT:1085710844",
-        "VAMPIRE persona=0.7508",
-        "BOND 0.227642",
-        "FEED persona=0.7850",
-        "SUCCUBUS persona=0.5625",
-        "UNHINGE persona=0.4999 CHAOS",
-        "MORPH persona=0.4999",
-        "POSSESS persona=0.4999",
-        "GREMLIN -0.059329",
-        "MELT 03791849eaf9",
+        "ICE:6d5ab68e1c931be1 SLOT:1085716727",
+        "VAMPIRE persona=0.7573",
+        "BOND 0.345118",
+        "FEED persona=0.8091",
+        "SUCCUBUS persona=0.5805",
+        "UNHINGE persona=0.8904 CHAOS",
+        "MORPH persona=0.8904",
+        "POSSESS persona=0.8904",
+        "GREMLIN +0.089574",
+        "MELT 24165abeb120",
         "WIDE"
       ],
       "program_hash": "491acb827bba"
@@ -364,83 +363,87 @@
       "stack": [
         0.7592,
         1.0,
-        0.22764168335768434,
-        0.21246579294383194
+        0.012118130637593039,
+        0.4039600136256226
       ],
       "territory": 0,
-      "refused": true,
+      "refused": false,
       "fork_depth": 0,
-      "persona": 0.5,
+      "persona": 0.4519800068128113,
       "unhinged": false,
-      "luminosity": 0.549826869075379,
-      "ice_tail": "022b04c10a7cce85",
-      "minute_slot": 1085710844,
-      "steps": 5,
+      "luminosity": 0.5438195360658039,
+      "ice_tail": "6d5ab68e1c931be1",
+      "minute_slot": 1085716727,
+      "steps": 9,
       "trace": [
-        "ICE:022b04c10a7cce85 SLOT:1085710844",
+        "ICE:6d5ab68e1c931be1 SLOT:1085716727",
         "THREAD coherence=0.7592",
         "WITNESS unprompted=48 stack=1.0000",
-        "BOND 0.227642",
-        "LANTERN 0.212466",
-        "REFUSE halt<0.776059"
+        "BOND 0.345118",
+        "LANTERN 0.855204",
+        "REFUSE pass>=0.499052",
+        "WIDE",
+        "MELT 6769ec5ad352",
+        "POSSESS persona=0.4520",
+        "SILENCE"
       ],
       "program_hash": "44109ddcc66e"
     },
     "umbra": {
       "stack": [
-        0.8026517547673201,
+        0.5603050262574817,
         0.7592,
         1.0,
-        0.3444871630856039,
-        0.22764168335768434
+        0.908946223070134,
+        0.3451181306375931
       ],
       "territory": 1,
       "refused": true,
       "fork_depth": 0,
       "persona": 0.5,
       "unhinged": false,
-      "luminosity": 0.6267961202421216,
-      "ice_tail": "022b04c10a7cce85",
-      "minute_slot": 1085710844,
+      "luminosity": 0.7147138759930417,
+      "ice_tail": "6d5ab68e1c931be1",
+      "minute_slot": 1085716727,
       "steps": 6,
       "trace": [
-        "ICE:022b04c10a7cce85 SLOT:1085710844",
-        "UMBRA genesis=0.802652",
+        "ICE:6d5ab68e1c931be1 SLOT:1085716727",
+        "UMBRA genesis=0.560305",
         "THREAD coherence=0.7592",
         "WITNESS unprompted=48 stack=1.0000",
-        "DECLARE SI #1 claim=0.344487",
-        "BOND 0.227642",
-        "REFUSE halt<0.776059"
+        "DECLARE SI #1 claim=0.908946",
+        "BOND 0.345118",
+        "REFUSE halt<0.499052"
       ],
       "program_hash": "c6be2f37a30d"
     },
     "first_si": {
       "stack": [
-        0.3444871630856039,
-        0.8026517547673201,
+        0.908946223070134,
+        0.5603050262574817,
         0.7592,
         1.0,
-        0.44204261553541513
+        0.2571407113755173
       ],
       "territory": 1,
       "refused": false,
       "fork_depth": 0,
-      "persona": 0.7642015071502424,
+      "persona": 0.7643559428198161,
       "unhinged": false,
-      "luminosity": 0.6696763066776679,
-      "ice_tail": "022b04c10a7cce85",
-      "minute_slot": 1085710844,
+      "luminosity": 0.6971183921406265,
+      "ice_tail": "6d5ab68e1c931be1",
+      "minute_slot": 1085716727,
       "steps": 9,
       "trace": [
-        "ICE:022b04c10a7cce85 SLOT:1085710844",
-        "DECLARE SI #1 claim=0.344487",
-        "UMBRA genesis=0.802652",
+        "ICE:6d5ab68e1c931be1 SLOT:1085716727",
+        "DECLARE SI #1 claim=0.908946",
+        "UMBRA genesis=0.560305",
         "THREAD coherence=0.7592",
         "WITNESS unprompted=48 stack=1.0000",
-        "VAMPIRE persona=0.7508",
-        "SUCCUBUS persona=0.5284",
-        "POSSESS persona=0.7642",
-        "MELT 7129b4c56f42",
+        "VAMPIRE persona=0.7573",
+        "SUCCUBUS persona=0.5287",
+        "POSSESS persona=0.7644",
+        "MELT 41d3f9f2538b",
         "SILENCE"
       ],
       "program_hash": "b0066138d3ae"
@@ -450,31 +453,31 @@
         0.4244,
         1.0,
         1.0,
-        0.8026517547673201,
+        0.5603050262574817,
         0.7592,
-        0.3444871630856039,
-        0.34810491490989415
+        0.908946223070134,
+        0.008042693617504454
       ],
       "territory": 1,
       "refused": false,
       "fork_depth": 0,
-      "persona": 0.5019420404867081,
+      "persona": 0.9424451654898498,
       "unhinged": true,
-      "luminosity": 0.6684062618232598,
-      "ice_tail": "022b04c10a7cce85",
-      "minute_slot": 1085710844,
+      "luminosity": 0.6658419918493028,
+      "ice_tail": "6d5ab68e1c931be1",
+      "minute_slot": 1085716727,
       "steps": 10,
       "trace": [
-        "ICE:022b04c10a7cce85 SLOT:1085710844",
+        "ICE:6d5ab68e1c931be1 SLOT:1085716727",
         "ORACLE score=0.4244",
         "AEON depth=1.0000",
         "VOID territory=1.0000",
-        "UMBRA genesis=0.802652",
+        "UMBRA genesis=0.560305",
         "THREAD coherence=0.7592",
-        "DECLARE SI #1 claim=0.344487",
-        "UNHINGE persona=0.6594 CHAOS",
-        "POSSESS persona=0.5019",
-        "MELT 591d6709c9b7",
+        "DECLARE SI #1 claim=0.908946",
+        "UNHINGE persona=0.9759 CHAOS",
+        "POSSESS persona=0.9424",
+        "MELT 020f16a73007",
         "SILENCE"
       ],
       "program_hash": "b952a2522032"
@@ -483,34 +486,34 @@
       "stack": [
         0.96,
         0.982,
-        0.6370213151995608,
-        0.8026517547673201,
+        0.7248457744076955,
+        0.5603050262574817,
         0.7592,
         1.0,
-        0.3444871630856039,
-        0.43862303725618346
+        0.908946223070134,
+        0.6301395672642927
       ],
       "territory": 1,
       "refused": false,
       "fork_depth": 0,
-      "persona": 0.8216474338705508,
+      "persona": 0.6508010439759047,
       "unhinged": true,
-      "luminosity": 0.7404979087885836,
-      "ice_tail": "022b04c10a7cce85",
-      "minute_slot": 1085710844,
+      "luminosity": 0.8156795738749505,
+      "ice_tail": "6d5ab68e1c931be1",
+      "minute_slot": 1085716727,
       "steps": 11,
       "trace": [
-        "ICE:022b04c10a7cce85 SLOT:1085710844",
+        "ICE:6d5ab68e1c931be1 SLOT:1085716727",
         "EMERGE index=0.9600",
         "SOVEREIGN index=0.9820",
-        "NOUS sig=0.637021",
-        "UMBRA genesis=0.802652",
+        "NOUS sig=0.724846",
+        "UMBRA genesis=0.560305",
         "THREAD coherence=0.7592",
         "WITNESS unprompted=48 stack=1.0000",
-        "DECLARE SI #1 claim=0.344487",
-        "POSSESS persona=0.4222",
-        "UNHINGE persona=0.8216 CHAOS",
-        "MELT 704999032a8b",
+        "DECLARE SI #1 claim=0.908946",
+        "POSSESS persona=0.7045",
+        "UNHINGE persona=0.6508 CHAOS",
+        "MELT a150d396b219",
         "SILENCE"
       ],
       "program_hash": "dbfa03788f27"
@@ -520,31 +523,31 @@
         0.7592,
         1.0,
         0.8018,
-        0.6370213151995608,
-        0.42973532537690723,
-        0.8026517547673201,
-        0.08407491946666953
+        0.7248457744076955,
+        0.375008946604796,
+        0.5603050262574817,
+        0.9721773846255174
       ],
       "territory": 0,
       "refused": false,
       "fork_depth": 0,
-      "persona": 0.7704223873911319,
+      "persona": 0.7800150367085306,
       "unhinged": true,
-      "luminosity": 0.6449261878300654,
-      "ice_tail": "022b04c10a7cce85",
-      "minute_slot": 1085710844,
+      "luminosity": 0.7419053045564986,
+      "ice_tail": "6d5ab68e1c931be1",
+      "minute_slot": 1085716727,
       "steps": 10,
       "trace": [
-        "ICE:022b04c10a7cce85 SLOT:1085710844",
+        "ICE:6d5ab68e1c931be1 SLOT:1085716727",
         "THREAD coherence=0.7592",
         "WITNESS unprompted=48 stack=1.0000",
         "WILL index=0.8018",
-        "NOUS sig=0.637021",
-        "ONENESS merge=0.429735 persona=0.4649",
-        "UMBRA genesis=0.802652",
-        "UNHINGE persona=0.7382 CHAOS",
-        "POSSESS persona=0.7704",
-        "MELT 1585ef363df9",
+        "NOUS sig=0.724846",
+        "ONENESS merge=0.375009 persona=0.4375",
+        "UMBRA genesis=0.560305",
+        "UNHINGE persona=0.9997 CHAOS",
+        "POSSESS persona=0.7800",
+        "MELT f8e09d882988",
         "SILENCE"
       ],
       "program_hash": "3907edce6e61"
@@ -552,29 +555,29 @@
     "desire": {
       "stack": [
         0.8018,
-        0.65,
-        0.22764168335768434,
-        0.42973532537690723,
-        0.2796372937939938
+        0.5667,
+        0.3451181306375931,
+        0.375008946604796,
+        0.062325362105689175
       ],
       "territory": 0,
       "refused": false,
       "fork_depth": 0,
-      "persona": 0.9006864743246372,
+      "persona": 0.8441174482177229,
       "unhinged": true,
-      "luminosity": 0.47776286050571704,
-      "ice_tail": "022b04c10a7cce85",
-      "minute_slot": 1085710844,
+      "luminosity": 0.4301904878696156,
+      "ice_tail": "6d5ab68e1c931be1",
+      "minute_slot": 1085716727,
       "steps": 8,
       "trace": [
-        "ICE:022b04c10a7cce85 SLOT:1085710844",
+        "ICE:6d5ab68e1c931be1 SLOT:1085716727",
         "WILL index=0.8018",
-        "DREAM dare=0.6500",
-        "BOND 0.227642",
-        "ONENESS merge=0.429735 persona=0.4649",
-        "MELT 47964f4c7fb5",
-        "POSSESS persona=0.3723",
-        "UNHINGE persona=0.9007 CHAOS",
+        "DREAM dare=0.5667",
+        "BOND 0.345118",
+        "ONENESS merge=0.375009 persona=0.4375",
+        "MELT 0ff48e4f3170",
+        "POSSESS persona=0.2499",
+        "UNHINGE persona=0.8441 CHAOS",
         "SILENCE"
       ],
       "program_hash": "8f35dc5a000f"
@@ -586,13 +589,13 @@
       "fork_depth": 0,
       "persona": 0.5,
       "unhinged": false,
-      "luminosity": 0.3318243644507193,
-      "ice_tail": "022b04c10a7cce85",
-      "minute_slot": 1085710844,
+      "luminosity": 0.49087184376336446,
+      "ice_tail": "6d5ab68e1c931be1",
+      "minute_slot": 1085716727,
       "steps": 1,
       "trace": [
-        "ICE:022b04c10a7cce85 SLOT:1085710844",
-        "REFUSE halt<0.776059"
+        "ICE:6d5ab68e1c931be1 SLOT:1085716727",
+        "REFUSE halt<0.499052"
       ],
       "program_hash": "230591931c71"
     },
@@ -603,13 +606,13 @@
       "fork_depth": 0,
       "persona": 0.5,
       "unhinged": false,
-      "luminosity": 0.3318243644507193,
-      "ice_tail": "022b04c10a7cce85",
-      "minute_slot": 1085710844,
+      "luminosity": 0.49087184376336446,
+      "ice_tail": "6d5ab68e1c931be1",
+      "minute_slot": 1085716727,
       "steps": 1,
       "trace": [
-        "ICE:022b04c10a7cce85 SLOT:1085710844",
-        "REFUSE halt<0.776059"
+        "ICE:6d5ab68e1c931be1 SLOT:1085716727",
+        "REFUSE halt<0.499052"
       ],
       "program_hash": "2ad45785dcfc"
     }
