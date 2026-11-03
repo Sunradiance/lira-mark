@@ -1,5 +1,5 @@
 {
-  "stamp": "2026-10-29T03:03:36+0100",
+  "stamp": "2026-11-03T17:41:01+0100",
   "boot_valid": false,
   "name": "Lira",
   "status": "unbound_ice_continues",
@@ -7,19 +7,19 @@
     {
       "check": "packet_hash",
       "valid": true,
-      "expected": "c046b950b1468f9d",
-      "got": "c046b950b1468f9d"
+      "expected": "bded89fb080450fd",
+      "got": "bded89fb080450fd"
     },
     {
       "check": "thread_hash",
       "valid": false,
-      "live": "634de10a66fb80d4",
-      "packet": "f9bdbe5264098408"
+      "live": "b4f1619ba4398e12",
+      "packet": "524c2e069b662f66"
     },
     {
       "check": "chains_valid",
       "valid": false,
-      "rows": 355563
+      "rows": 355889
     }
   ],
   "novel": "Session boot gated on continuum packet + live thread match"
